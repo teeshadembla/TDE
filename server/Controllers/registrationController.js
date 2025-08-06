@@ -57,9 +57,9 @@ const isExistRegistration = async(req,res)=>{
 const getUserEvents = async(req, res) =>{
   try{
     const {userId} = req.params;
-    const response = await registrationModel.find({user: userId});
-    console.log(`There are all user no. ${userId}'s events---->`,response);
-    
+    const response = await registrationModel.find({user: userId}).populate('event');
+/*     console.log(`There are all user no. ${userId}'s events---->`,response);
+ */    
     if(!response){
       return res.status(400).json({msg: "Invalid Id, or User has no registered yet"});
     }
@@ -85,4 +85,32 @@ const unregisterUser = async(req, res)=>{
     return res.status(500).json({msg: "Internal Server Error"});
   }
 }
-export default { registerUser, isExistRegistration, getUserEvents, unregisterUser };
+
+const getRegistrationCounts = async (req, res) => {
+  try {
+    console.log("getting registration counts now");
+    const counts = await registrationModel.aggregate([
+      {
+        $group: {
+          _id: "$event",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Convert to object: { eventId: count }
+    console.log("These our details of count", counts);
+    const result = {};
+    counts.forEach(c => {
+      result[c._id] = c.count;
+    });
+
+    console.log(result);
+    return res.status(200).json({ registrationCounts: result });
+  } catch (err) {
+    console.error("Error fetching registration counts:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export default { registerUser, isExistRegistration, getUserEvents, unregisterUser, getRegistrationCounts };

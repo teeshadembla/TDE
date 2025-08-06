@@ -1,5 +1,6 @@
 import eventsModel from "../Models/eventsModel.js";
 import mongoose from "mongoose";
+import registrationModel from "../Models/regitrationsModel.js";
 
 // GET: Upcoming Events
 const getCurrentEvents = async (req, res) => {
@@ -62,21 +63,32 @@ const addEvents = async (req, res) => {
 const deleteEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
+    console.log("Starting deletion of event:", eventId);
 
     if (!mongoose.Types.ObjectId.isValid(eventId)) {
       return res.status(400).json({ msg: "Invalid event ID" });
     }
 
-    const deleted = await eventsModel.findByIdAndDelete(eventId);
 
+    const deleted = await eventsModel.findByIdAndDelete(eventId);
+    console.log("Deletion done");
     if (!deleted) {
       return res.status(404).json({ msg: "Event not found" });
     }
+    console.log("preparing response message");
 
+    let respMsg = "";
+    const regDelete = await registrationModel.deleteMany({event: eventId});
+    if(!regDelete){
+      respMsg = "No registrations were found for this event";
+    }else{
+      respMsg = "All registrations for the event are also deleted.";
+    }
     console.log("Event deleted:", eventId);
+    console.log("Response message prepared: ", respMsg);
 
     return res.status(200).json({
-      msg: "Event deleted successfully",
+      msg: "Event deleted successfully! "+respMsg,
       deletedId: eventId,
     });
   } catch (err) {
@@ -113,4 +125,28 @@ const updateEvent = async (req, res) => {
   }
 };
 
-export default {addEvents, getCurrentEvents, updateEvent, deleteEvent}
+//GET: past events
+const getPastEvents = async (req, res) => {
+  try {
+    const today = new Date();
+    const { limit = 10, skip = 0 } = req.query;
+
+    const pastEvents = await eventsModel
+      .find({ eventDate: { $lt: today } })
+      .sort({ eventDate: 1 })
+      .limit(parseInt(limit))
+      .skip(parseInt(skip));
+
+    console.log(" Current events fetched:", pastEvents.length);
+
+    return res.status(200).json({
+      msg: "Upcoming events retrieved successfully",
+      events: pastEvents,
+    });
+  } catch (err) {
+    console.error(" Error fetching current events:", err);
+    return res.status(500).json({ msg: "Internal server error", error: err.message });
+  }
+};
+
+export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents}

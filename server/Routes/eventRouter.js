@@ -10,5 +10,6 @@ eventRouter.get("/getCurrentEvents",eventsController.getCurrentEvents );
 eventRouter.post("/addEvent", authenticateToken, eventMiddleware.isAdmin, eventsController.addEvents);
 eventRouter.patch("/updateEvent/:eventId",authenticateToken, eventMiddleware.isAdmin,eventsController.updateEvent);
 eventRouter.delete("/delete/:eventId",authenticateToken, eventMiddleware.isAdmin,eventsController.deleteEvent);
+eventRouter.get("/getPastEvents", eventsController.getPastEvents);
 
 export default eventRouter;
