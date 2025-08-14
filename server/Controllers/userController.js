@@ -68,7 +68,8 @@ const signup = async(req,res)=>{
 const login = async(req, res)=>{
     try{
         const {email, password} = req.body;
-
+        console.log(req);
+        
         if(!email || !password){
             return res.status(400).json({msg: "Fields are incomplete, kindly fill all fields and try again."});
         }
@@ -114,7 +115,7 @@ const login = async(req, res)=>{
         return res.status(200).json({
             userData: {_id: currUser._id, email: currUser.email, name:currUser.FullName , role:currUser.role},
             msg:"User logged in successfully",
-            accessToken: accessToken
+            accessToken: accessToken,
         })
 
     }catch(err){
@@ -159,4 +160,10 @@ const getMe = async(req, res) =>{
         return res.status(500).json({msg:"Internal Server Error"});
     }
 }
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------- */
+/* Fellowship actions for user */
+
+
+
 export default {signup, login, getMe, logout};
