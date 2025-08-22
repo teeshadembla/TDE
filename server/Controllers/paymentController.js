@@ -64,7 +64,8 @@ export const verifyPaymentAndRegister = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status === "succeeded") {
-      const { userId, fellowshipId, workex, workgroupId, amount } = paymentIntent.metadata;
+      const { userId, fellowshipId, workex, workgroupId} = paymentIntent.metadata;
+      const amount = paymentIntent.amount;
 
       console.log("Payment succeeded for user:", userId, "fellowship:", fellowshipId);
 
@@ -80,6 +81,7 @@ export const verifyPaymentAndRegister = async (req, res) => {
           status: "PENDING",
           userStat: (workex === "0-2" || workex === "3-5") ? "Fellow" : "Senior Fellow",
           workgroupId: workgroupId,
+          amount: amount,
         });
       }
 

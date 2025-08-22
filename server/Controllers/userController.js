@@ -3,6 +3,8 @@ import tokenModel from "../Models/tokenModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import userValidationSchema from "../SchemaValidation/userValidationSchema.js";
+import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
+import fellowshipModel from "../Models/fellowshipModel.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -162,8 +164,71 @@ const getMe = async(req, res) =>{
 }
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------- */
-/* Fellowship actions for user */
+/* Fellowship Dashboard Admin automatic user stats calculation */
+
+const getUserStats = async (req, res) => {
+    try{
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        const monthlyRevenue = await fellowshipRegistrationModel.aggregate([
+            {
+            $match: {
+                createdAt: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+                }
+            }
+            },
+            {
+            $group: {
+                _id: null,
+                total: { $sum: "$amount" }
+            }
+            }
+        ]);
+
+        const totalRevenue = await fellowshipRegistrationModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+        //calculating total number of fellowships and active fellowships
+        const fellowships = await fellowshipModel.countDocuments({})
+        const currentDate = new Date();
+        const activeFellowships = await fellowshipModel.countDocuments({
+            startDate: { $lte: currentDate },
+            endDate: { $gte: currentDate }
+        });
+
+        const monthlyApplications = await fellowshipRegistrationModel.countDocuments({
+            createdAt: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+            }
+        });
+
+        const pendingApplications = await fellowshipRegistrationModel.find({
+            status: "PENDING",
+            createdAt: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+            }
+        }).populate('user', 'FullName').populate('fellowship', 'title');
+
+        const uniqueParticipants = await fellowshipRegistrationModel.distinct('user').length;
+
+        return res.status(200).json({ totalRevenue: totalRevenue[0]?.total || 0 , monthlyRevenue: monthlyRevenue[0]?.total || 0, totalFellowships: fellowships, activeFellowships: activeFellowships, monthlyApplications: monthlyApplications, pendingApplications: pendingApplications, totalUsers: uniqueParticipants });
+    }catch(err){
+        console.log("Error occurred in the backend callback of fetching user stats--->", err);
+        return res.status(500).json({msg: "Internal Server Error"});
+    }
+}
 
 
-
-export default {signup, login, getMe, logout};
+export default {signup, login, getMe, logout, getUserStats};

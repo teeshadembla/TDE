@@ -8,4 +8,6 @@ userRouter.post("/login", userController.login);
 userRouter.delete("/logout",authenticateToken, userController.logout);
 userRouter.get("/me",authenticateToken, userController.getMe);
 
+userRouter.get("/stats", authenticateToken, userController.getUserStats);
+
 export default userRouter;

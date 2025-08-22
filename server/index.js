@@ -11,6 +11,8 @@ import eventRouter  from './Routes/eventRouter.js';
 import registerRouter from './Routes/registerRouter.js';
 import fellowshipRouter from './Routes/fellowshipRoutes.js';
 import fellowshipRegistrationRouter from './Routes/fellowshipRegistrationRouter.js';
+import postRouter from "./Routes/postRouter.js";
+import commentRouter from './Routes/commentRouter.js';
 /* ----------------------------------------------------------------------------------------------------------------------------------------------- */
 
 const app = express();
@@ -29,6 +31,8 @@ app.use("/api/events", eventRouter);
 app.use("/api/user-event", registerRouter);
 app.use("/api/fellowship", fellowshipRouter);
 app.use("/api/fellowship-registration", fellowshipRegistrationRouter);
+app.use("/api/community", postRouter);
+app.use("/api/comment", commentRouter);
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 const PORT = process.env.PORT;
 
