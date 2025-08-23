@@ -230,5 +230,169 @@ const getUserStats = async (req, res) => {
     }
 }
 
+/* Controller to fetch only core team members */
 
-export default {signup, login, getMe, logout, getUserStats};
+const getCoreTeamMembers = async (req, res) => {
+    try {
+        const coreTeamMembers = await userModel.find({ role: "core" });
+        return res.status(200).json({ coreTeamMembers });
+    } catch (err) {
+        console.log("Error occurred in the backend callback of fetching core team members--->", err);
+        return res.status(500).json({ msg: "Internal Server Error" });
+    }
+}
+
+/* Controller to fetch only fellows */
+
+const getFellows = async(req, res) =>{
+    try{
+        const fellowsGroupedByUserAndYear = await fellowshipRegistrationModel.aggregate([
+            // Populate references
+            {
+                $lookup: {
+                from: 'users',
+                localField: 'user',
+                foreignField: '_id',
+                as: 'user'
+                }
+            },
+            {
+                $lookup: {
+                from: 'fellowships',
+                localField: 'fellowship',
+                foreignField: '_id',
+                as: 'fellowship'
+                }
+            },
+            {
+                $lookup: {
+                from: 'workgroups',
+                localField: 'workgroupId',
+                foreignField: '_id',
+                as: 'workgroup'
+                }
+            },
+            
+            // Unwind arrays
+            { $unwind: '$user' },
+            { $unwind: '$fellowship' },
+            
+            // Extract year from cycle (e.g., "january-2026" -> "2026")
+            {
+                $addFields: {
+                fellowshipYear: {
+                    $arrayElemAt: [
+                    { $split: ['$fellowship.cycle', '-'] },
+                    -1
+                    ]
+                }
+                }
+            },
+            
+            // Group by user first, then by year
+            {
+                $group: {
+                _id: {
+                    userId: '$user._id',
+                    year: '$fellowshipYear'
+                },
+                user: { $first: '$user' },
+                year: { $first: '$fellowshipYear' },
+                fellowships: {
+                    $push: {
+                    fellowship: '$fellowship',
+                    workgroup: { $arrayElemAt: ['$workgroup', 0] },
+                    registrationId: '$_id',
+                    startDate: '$startDate',
+                    endDate: '$endDate',
+                    applicationDeadline: '$applicationDeadline'
+                    }
+                }
+                }
+            },
+            
+            // Group by user to nest years
+            {
+                $group: {
+                _id: '$_id.userId',
+                user: { $first: '$user' },
+                yearlyFellowships: {
+                    $push: {
+                    year: '$year',
+                    fellowships: '$fellowships'
+                    }
+                }
+                }
+            },
+            
+            // Sort years in descending order
+            {
+                $addFields: {
+                yearlyFellowships: {
+                    $sortArray: {
+                    input: '$yearlyFellowships',
+                    sortBy: { year: -1 }
+                    }
+                }
+                }
+            }
+        ]);
+        return res.status(200).json({ fellows: fellowsGroupedByUserAndYear });
+    }catch(err){
+        console.log("This error occurred while trying to fetch the data of all fellows---->", err);
+        return res.status(500).json({ msg: "Internal Server Error" });
+    }
+}
+
+
+/* Update User Profile */
+const updateUser = async(req, res)=>{
+    try{
+        console.log("Updating the user here and now....");
+        const { id } = req.params;
+        const updateData = req.body;
+        console.log("The update data is:", updateData);
+        const user = await userModel.findByIdAndUpdate(id, updateData, { new: true });
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        return res.status(200).json({ user });
+    }catch(err){
+        console.log("Error occurred while updating user profile---->", err);
+        return res.status(500).json({ msg: "Internal Server Error" });
+    }
+}
+
+/* Deleting user profile */
+const deleteUser = async(req, res) => {
+    try{
+        const {id} = req.params;
+        const user = await userModel.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        return res.status(200).json({ msg: "User deleted successfully" });
+
+    }catch(err){
+        console.log("Error occurred while deleting user profile---->", err);
+        return res.status(500).json({ msg: "Internal Server Error" });
+    }
+}
+
+/* To get user by ID, this can also be done using the getMe controller, but I am chosing to make another controller for the same purpose for manageablity */
+
+const getUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await userModel.findById(id);
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        return res.status(200).json({ user });
+    } catch (err) {
+        console.log("Error occurred while fetching user by ID---->", err);
+        return res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
+export default {signup, login, getMe, logout, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById};

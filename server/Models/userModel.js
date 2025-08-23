@@ -92,6 +92,11 @@ const userSchema = mongoose.Schema({
         "Company/Organization", "Hackathon or Event", "Friend", "Family", "Colleague",
         "Google Search", "News Article or Blog", "Other"
         ]
+    },
+    introduction: {
+        type: String,
+        maxlength: 500,
+        default: null
     }
 })
 

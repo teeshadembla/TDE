@@ -12,4 +12,6 @@ fellowshipRegistrationRouter.delete("/deleteFellowshipRegistration/:id", fellows
 
 fellowshipRegistrationRouter.get("/getAllRegistrationsByUser/:userId", fellowshipregistrationController.getAllRegistrationsByUser);
 
+fellowshipRegistrationRouter.get("/getYears", fellowshipregistrationController.getYears);
+
 export default fellowshipRegistrationRouter;

@@ -10,4 +10,15 @@ userRouter.get("/me",authenticateToken, userController.getMe);
 
 userRouter.get("/stats", authenticateToken, userController.getUserStats);
 
+/* Get core team members */
+userRouter.get("/core-team", authenticateToken, userController.getCoreTeamMembers);
+
+/* Get fellow data */
+userRouter.get("/fellows", authenticateToken, userController.getFellows);
+
+/* Update and delete user profile */
+userRouter.patch("/update/:id", authenticateToken, userController.updateUser);
+userRouter.delete("/delete/:id", authenticateToken, userController.deleteUser);
+
+userRouter.get("/:id", authenticateToken, userController.getUserById);  
 export default userRouter;

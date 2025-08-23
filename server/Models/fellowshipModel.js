@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const fellowshipSchema = new mongoose.Schema({
     cycle:{
         type: String,
-        enum: [],
         required: true,
     },
     workGroupId: {

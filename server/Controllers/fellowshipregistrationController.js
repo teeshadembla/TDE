@@ -1,4 +1,5 @@
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
+import fellowshipModel from "../Models/fellowshipModel.js"; 
 
 const getAllFellowshipRegistrations = async (req, res) => {
   try {
@@ -88,4 +89,46 @@ const getAllRegistrationsByUser = async(req, res)=>{
   }
 }
 
-export default {getAllFellowshipRegistrations, acceptFellowshipRegistration, rejectFellowshipRegistration, deleteFellowshipRegistration, getAllRegistrationsByUser};
+/* Controller to get years since we have had fellowships */
+
+const getYears = async(req, res) => {
+  try {
+    // Query Fellowship directly - much faster
+    const uniqueYears = await fellowshipModel.aggregate([
+      {
+        $addFields: {
+          year: {
+            $arrayElemAt: [
+              { $split: ['$cycle', '-'] },
+              -1
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$year'
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          year: '$_id'
+        }
+      },
+      {
+        $sort: { year: -1 }
+      }
+    ]);
+
+    const years = uniqueYears.map(item => item.year);
+    return res.status(200).json({ years: years });
+    
+  } catch(err) {
+    console.log("Error:", err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+export default {getAllFellowshipRegistrations, acceptFellowshipRegistration, rejectFellowshipRegistration, deleteFellowshipRegistration, getAllRegistrationsByUser, getYears};
