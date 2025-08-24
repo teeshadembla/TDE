@@ -14,8 +14,8 @@ const signup = async(req,res)=>{
         if (error) {
         return res.status(400).json({ msg: error.details[0].message });
         }
-        const {FullName, email, password, role, socialLinks, followedTopics, isSubscribedToNewsletter, location, title, department, company, expertise, discoverySource} = value;
-        console.log("Data coming from request body--->", {FullName, email, password, role, socialLinks, followedTopics, isSubscribedToNewsletter, location, title, department, company, expertise, discoverySource});
+        const {FullName, email, password, role, socialLinks, followedTopicsArray, isSubscribedToNewsletter, location, title, department, company, expertiseArray, discoverySource} = value;
+        console.log("Data coming from request body--->", {FullName, email, password, role, socialLinks, followedTopicsArray, isSubscribedToNewsletter, location, title, department, company, expertiseArray, discoverySource});
 
         if(!FullName || !email || !password || !role || !discoverySource){
             return res.status(401).json({msg: "Incomplete fields, Kindly fill all the required fields and then log in"});
@@ -36,7 +36,7 @@ const signup = async(req,res)=>{
             password: hashedPassword,
             role: role,
             socialLinks: socialLinks,
-            followedTopics: followedTopics,
+            followedTopics: followedTopicsArray,
             membership: {
                 isActive: false,
             },
@@ -50,7 +50,7 @@ const signup = async(req,res)=>{
             title: title,
             department: department,
             company: company,
-            expertise: expertise,
+            expertise: expertiseArray,
             discoverySource: discoverySource,
         }
 

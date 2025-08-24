@@ -1,6 +1,6 @@
 import fellowshipModel from "../Models/fellowshipModel.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
-import sendApprovalEmail from "../utils/sendMail.js";
+
 
 /* Admin fellowship control, must have middleware for authorization */
 const addNewFellowship = async(req, res) =>{
@@ -24,7 +24,7 @@ const addNewFellowship = async(req, res) =>{
 
 const getAllRegistrations = async(req, res) =>{
     try{
-        const registration = await fellowshipRegistrationModel.find({status: "PENDING"});
+        const registration = await fellowshipRegistrationModel.find({status: "PENDING_REVIEW"}).populate("user", "FullName email company title socialLinks").populate("fellowship").populate("workgroupId", "title");
 
         return res.status(200).json({msg: "All pending fellowships have been retrieved.", registrations: registration});
     }catch(err){
@@ -116,5 +116,6 @@ const getFellowshipRegistrationCounts = async (req, res) => {
 export {
     addNewFellowship,
     getAllPastFellowships,
-    getFellowshipRegistrationCounts
+    getFellowshipRegistrationCounts,
+    getAllRegistrations
 };

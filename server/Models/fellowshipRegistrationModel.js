@@ -1,46 +1,59 @@
-import mongoose, { mongo } from "mongoose";
-
+// Updated fellowshipRegistrationModel schema
+import mongoose from "mongoose";
 const fellowshipRegistrationSchema = new mongoose.Schema({
-    fellowship:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Fellowship",
-        required: true,
-    },
-    workgroupId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Workgroup",
-    },
-    user:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    }, 
-    status:{
-        type: String, 
-        enum: ["PENDING", "ACCEPTED", "REJECTED"]
-    },
-    userStat:{
-        type: String,
-        enum: ["Senior Fellow","Fellow"],
-        required: true,
-    },
-    amount:{
-        type: Number,
-        required: true,
-    },
-    createdAt:{
-        type:Date,
-        default: Date.now(),
-    },
-    completedAt:{
-        type: Date,
-        default:() => {
-            const now = new Date();
-            now.setDate(now.getDate() + 365); 
-            return now;
-        } 
-    }
-})
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  fellowship: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Fellowship',
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['PENDING_REVIEW', 'APPROVED', 'REJECTED', 'CONFIRMED'],
+    default: 'PENDING_REVIEW'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['PENDING', 'COMPLETED', 'FAILED'],
+    default: 'PENDING'
+  },
+  userStat: {
+    type: String,
+    enum: ['Fellow', 'Senior Fellow'],
+    required: true
+  },
+  workgroupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workgroup',
+    required: true
+  },
+  
+  // Application fields
+  experience: { type: String, required: true },
+  motivation: { type: String, required: true },
+  organization: { type: String, required: true },
+  position: { type: String, required: true },
 
-const fellowshipRegistrationModel = mongoose.model("Fellowship-Registration", fellowshipRegistrationSchema);
-export default fellowshipRegistrationModel;
+  // Admin review fields
+  adminComments: { type: String },
+  reviewedAt: { type: Date},
+
+  // Payment fields
+  amount: { type: Number, required: true },
+  paymentIntentId: { type: String },
+  paidAt: { type: Date },
+
+  // Timestamps
+  appliedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true
+});
+
+export default mongoose.model('Fellowship-Registration', fellowshipRegistrationSchema);

@@ -32,8 +32,8 @@ const userValidationSchema = Joi.object({
   eventsSpokenAt: Joi.array().items(Joi.string()).optional(),
 
   referencesGiven: Joi.array().items(Joi.string()).optional(),
-
-  followedTopics: Joi.array().items(Joi.string()).optional(),
+  followedTopics: Joi.string().optional().allow(""),
+  followedTopicsArray: Joi.array().items(Joi.string()).optional(),
 
   isSubscribedToNewsletter: Joi.boolean().default(false),
 
@@ -41,8 +41,9 @@ const userValidationSchema = Joi.object({
   title: Joi.string().max(100).allow("").optional(),
   department: Joi.string().max(100).allow("").optional(),
   company: Joi.string().max(100).allow("").optional(),
-
-  expertise: Joi.array().items(Joi.string()).optional(),
+  expertise: Joi.string().optional().allow(""),
+  expertiseArray: Joi.array().items(Joi.string()).optional(),
+  introduction : Joi.string().max(500).allow("", null).optional(),
 
   discoverySource: Joi.string()
     .valid(
