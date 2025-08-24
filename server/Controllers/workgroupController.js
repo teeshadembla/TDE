@@ -53,5 +53,38 @@ const getWorkgroups = async(req, res)=>{
     }
 }
 
+/* Admin control to edit a workgorup */
+const editWorkgroup = async(req, res) =>{
+    try{
+        const {id} = req.params;
+        const updatedData = req.body;
 
-export {addNewWorkgroup, getWorkgroups}
+        const result = await workgroupModel.findByIdAndUpdate(id, updatedData, {new: true});
+        if (!result) {
+            return res.status(404).json({msg: "Workgroup not found"});
+        }
+
+        return res.status(200).json({msg: "Workgroup updated successfully", data: result});
+    }catch(err){
+        console.log("This error occurred while trying to edit a workgroup --> ", err);
+        return res.status(500).json({msg: "Internal Server Error"});
+    }
+}
+
+const deleteWorkgroup = async(req, res) =>{
+    try{
+        const {id} = req.params;
+        const result = await workgroupModel.findByIdAndDelete(id);
+        if (!result) {
+            return res.status(404).json({msg: "Workgroup not found"});
+        }
+
+        return res.status(200).json({msg: "Workgroup deleted successfully"});
+    }catch(err){
+        console.log("This error occurred while trying to delete a workgroup --> ", err);
+        return res.status(500).json({msg: "Internal Server Error"});
+    }
+}
+
+/* Admin control to delete a workgroup */
+export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup}

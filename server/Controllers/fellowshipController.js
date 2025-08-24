@@ -20,6 +20,44 @@ const addNewFellowship = async(req, res) =>{
     }
 }
 
+/* Admin Control to update and delete fellowships */
+const updateFellowship = async(req, res) =>{
+    try{
+        const {id} = req.params;
+        const {startDate,  applicationDeadline} = req.body;
+
+        const updatedFellowship = await fellowshipModel.findByIdAndUpdate(id, {
+            startDate, applicationDeadline
+        }, {new: true});
+
+        if(!updatedFellowship){
+            return res.status(404).json({msg: "Fellowship not found"});
+        }
+
+        return res.status(200).json({msg: "Fellowship updated successfully", updatedFellowship});
+    }catch(err){
+        console.log("This error occurred while trying to update fellowship --> ", err);
+        return res.status(500).json({msg: "Internal Server Error"});
+    }
+}
+
+const deleteFellowship = async(req, res) =>{
+    try{
+        const {id} = req.params;
+
+        const deletedFellowship = await fellowshipModel.findByIdAndDelete(id);
+
+        if(!deletedFellowship){
+            return res.status(404).json({msg: "Fellowship not found"});
+        }
+
+        return res.status(200).json({msg: "Fellowship deleted successfully", deletedFellowship});
+    }catch(err){
+        console.log("This error occurred while trying to delete fellowship --> ", err);
+        return res.status(500).json({msg: "Internal Server Error"});
+    }
+}
+
 /* Admin control to view all existing fellowships */
 
 const getAllRegistrations = async(req, res) =>{
@@ -33,7 +71,7 @@ const getAllRegistrations = async(req, res) =>{
     }
 }
 
-/* Admin control to fetch all accepted fellowships */
+
 
 /* Admin control to fetch all previous fellowship details */
 const getAllPastFellowships = async(req, res) =>{
@@ -46,31 +84,14 @@ const getAllPastFellowships = async(req, res) =>{
     }
 }
 
-/* Admin control to change the status of a fellowship from pending to accepted or rejected */
-const moveRegistraionStatus = async(req, res) =>{
+/* Admin control to fetch all future fellowship details */
+const getAllFutureFellowships = async(req, res) =>{
     try{
-        const {fellowshipId, status} = req.params; 
-        const updated = await fellowshipRegistrationModel.findByIdAndUpdate(
-        fellowshipId,
-        { status },
-        { new: true }
-        ).populate("user", "fellowship");
-
-        if (!updated) {
-        return res.status(404).json({ error: "Registration not found." });
-        }
-
-        await sendApprovalEmail({
-            to: updated.user_id.email,
-            name: updated.user_id.name,
-            status: updated.status,
-            fellowshipName: updated.fellowship.title, // or get from DB
-        });
-
-        res.status(200).json({ success: true, data: updated });
+        const futureFellowships = await fellowshipModel.find({startDate: {$gte: new Date()}}).populate("workGroupId", "title description maxMembers");
+        return res.status(200).json({msg: "All future fellowships have been retrieved.", fellowships: futureFellowships});
     }catch(err){
-        console.log("This error occurred in the backend while trying to change the status of application--->", err);
-        return res.status(500).json({msg: "Internal Server Error", error: err});
+        console.log("This error occured in the backend while trying to fetch future fellowship data--->", err);
+        return res.status(500).json({msg: "Internal Server error", error: err});
     }
 }
 
@@ -117,5 +138,8 @@ export {
     addNewFellowship,
     getAllPastFellowships,
     getFellowshipRegistrationCounts,
-    getAllRegistrations
+    getAllRegistrations,
+    getAllFutureFellowships,
+    deleteFellowship,
+    updateFellowship,
 };
