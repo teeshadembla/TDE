@@ -37,7 +37,9 @@ app.use("/api/comment", commentRouter);
 const PORT = process.env.PORT;
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
-
+app.use('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 app.listen(PORT, ()=>{
     console.log(`Server is listening on ${PORT}`);
 })
