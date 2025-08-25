@@ -4,7 +4,7 @@ import authenticateToken from "../Controllers/tokenControllers.js";
 //write middlewares for authorizing add update delete only to one admin id
 import eventMiddleware from "../Middlewares/eventMiddlewares.js";
 
-const eventRouter = express.Router({mergeParams: true});
+const eventRouter = express.Router({mergeParams:true});
 
 eventRouter.get("/getCurrentEvents",eventsController.getCurrentEvents );
 eventRouter.post("/addEvent", authenticateToken, eventMiddleware.isAdmin, eventsController.addEvents);

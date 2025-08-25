@@ -3,6 +3,10 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import Connection from './db.js';
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config();
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -25,21 +29,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
-
+ 
 app.use("/api/user", userRouter);
 app.use("/api/events", eventRouter);
 app.use("/api/user-event", registerRouter);
 app.use("/api/fellowship", fellowshipRouter);
 app.use("/api/fellowship-registration", fellowshipRegistrationRouter);
 app.use("/api/community", postRouter);
-app.use("/api/comment", commentRouter);
-/* ---------------------------------------------------------------------------------------------------------------------------------------------- */
-const PORT = process.env.PORT;
+app.use("/api/comment", commentRouter); 
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
-app.use('*', (req, res) => {
+
+// Serve static files from dist directory
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get(/^(?!\/api).*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------- */
+
+const PORT = process.env.PORT;
+
 app.listen(PORT, ()=>{
     console.log(`Server is listening on ${PORT}`);
 })
