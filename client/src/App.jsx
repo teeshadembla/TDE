@@ -1,6 +1,5 @@
 // File: src/App.jsx
 import './App.css';
-import EarthScene from './components/EarthScene.jsx';
 import HomePage from './Pages/HomePage.jsx'; 
 import Header from './components/Header.jsx';
 import 'slick-carousel/slick/slick.css';
@@ -21,6 +20,7 @@ import CenterForExcellence from './Pages/CentreForExcellence.jsx';
 import ApplicationModal from "./components/ExecutiveFellowships/ApplicationModal.jsx";
 import CommunityPage from './Pages/CommunityPage/CommunityPage.jsx';
 import OurPeople from  "./Pages/PeopleAtTDE/OurPeople.jsx";
+import AboutUs from './Pages/AboutUs/AboutUs.jsx';
 // ProtectedRoute.jsx
 import { Navigate, useLocation } from "react-router-dom";
 import AdminProfile from './Pages/AdminProfile/AdminProfile.jsx';
@@ -86,6 +86,7 @@ function App() {
         <div className="App">
           <Routes>
             <Route path='/' element={<HomePage/>}></Route>
+            <Route path='/about' element={<AboutUs/>}></Route>
             {/* ---------------------------------------------------------------------------------------------------------------------------------- */}
 
             {/* Authentication elements */}
