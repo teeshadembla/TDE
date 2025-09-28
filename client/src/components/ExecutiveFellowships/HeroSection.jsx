@@ -16,7 +16,9 @@ const HeroSection = ({ onApplyClick }) => {
   ];
 
   return (
-    <section className="relative py-24 px-6 bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden">
+    <section style={{backgroundImage : 'url("https://cdn.prod.website-files.com/682f43574652bd066d73adbf/685ba0a9938045f303d35ac4_fellowbackground.png")', backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'}} className="relative py-24 px-6 bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-5">
         <div 
@@ -30,33 +32,30 @@ const HeroSection = ({ onApplyClick }) => {
       </div>
 
       <div className="max-w-5xl mx-auto text-center relative z-10">
-        <div className="inline-block p-4 bg-black rounded-full mb-8 animate-pulse">
-          <Award className="w-10 h-10 text-white" />
+        <div className="inline-block p-4 bg-white rounded-full mb-8 animate-pulse">
+          <Award className="w-10 h-10 text-black" />
         </div>
         
-        <h1 className="text-6xl md:text-7xl font-extralight mb-8 tracking-tight leading-tight">
+        <h1 className="text-6xl text-white md:text-7xl font-extralight mb-8 tracking-tight leading-tight">
           Executive
-          <span className="block bg-gradient-to-r from-black via-gray-700 to-black bg-clip-text text-transparent">
+          <span className="block bg-gradient-to-r from-white via-neutral-200 to-white bg-clip-text text-transparent">
             Fellowship
           </span>
-          <span className="text-4xl md:text-5xl block mt-2 text-gray-600">Program</span>
+          <span className="text-4xl md:text-5xl block mt-2 text-gray-200">Program</span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-4xl mx-auto">
-          An <span className="font-medium text-black">elite initiative</span> for visionary leaders committed to 
-          <span className="font-medium text-black"> shaping the future</span> of global economic policy
+        <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-4xl mx-auto">
+          An <span className="font-medium text-white">elite initiative</span> for visionary leaders committed to 
+          <span className="font-medium text-white"> shaping the future</span> of global economic policy
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <button
             onClick={onApplyClick}
-            className="group bg-black text-white px-10 py-5 hover:bg-gray-800 transition-all duration-300 flex items-center gap-3 font-medium text-lg transform hover:scale-105 hover:shadow-2xl"
+            className="group bg-white text-black px-10 py-5 hover:bg-neutral-200 transition-all duration-300 flex items-center gap-3 font-medium text-lg transform hover:scale-105 hover:shadow-2xl"
           >
             Apply Now
             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <button className="border-2 border-gray-300 px-10 py-5 hover:bg-gray-50 transition-all duration-300 font-medium text-lg hover:border-black transform hover:scale-105">
-            Watch Overview
           </button>
         </div>
 
@@ -64,7 +63,7 @@ const HeroSection = ({ onApplyClick }) => {
         <div className="grid grid-cols-3 gap-8 mt-16 pt-16 border-t border-gray-200">
           {stats.map((stat, i) => (
             <div key={i} className="text-center group">
-              <div className="text-4xl md:text-5xl font-light text-black mb-2 group-hover:scale-110 transition-transform">
+              <div className="text-4xl md:text-5xl font-light text-white mb-2 group-hover:scale-110 transition-transform">
                 {stat.number}
               </div>
               <div className="text-gray-600 font-medium">{stat.label}</div>

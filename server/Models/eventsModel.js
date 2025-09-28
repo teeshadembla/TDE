@@ -9,6 +9,9 @@ const eventsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    image:{
+        type: String,
+    },
     location: {
         type: String, 
         required: true
@@ -20,6 +23,11 @@ const eventsSchema = new mongoose.Schema({
     registrationLink:{
         type: String,
         required: true,
+    },
+    workgroup:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Workgroup",
+        required: true
     },
     slackLink:{
         type:String,

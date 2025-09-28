@@ -8,6 +8,8 @@ import CTASection from "../components/ExecutiveFellowships/CTASection.jsx";
 import FAQSection from "../components/ExecutiveFellowships/FAQSection.jsx";
 import ApplicationModal from '../components/ExecutiveFellowships/ApplicationModal.jsx';
 import DataProvider from '../context/DataProvider.jsx';
+import ThematicWorkgroups from '../components/ExecutiveFellowships/ThematicWorkgroups.jsx';
+import FellowshipTimeline from '../components/ExecutiveFellowships/FellowshipTimeline.jsx';
 import {toast} from "react-toastify";
 
 const ExecutiveFellowship = ({authLoading}) => {
@@ -48,7 +50,8 @@ const ExecutiveFellowship = ({authLoading}) => {
     <div className="min-h-screen bg-white text-black overflow-hidden">
       <HeroSection onApplyClick={handleApplyClick} />
       <BenefitsSection />
-      <ProgramStructure />
+      <ThematicWorkgroups/>
+      <FellowshipTimeline />
       <TestimonialsSection />
       <FAQSection />
       <CTASection onApplyClick={handleApplyClick} />

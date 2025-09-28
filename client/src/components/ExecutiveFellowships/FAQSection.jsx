@@ -5,22 +5,67 @@ const FAQSection = () => {
 
   const faqs = [
     {
-      question: "What is the application process timeline?",
-      answer: "Applications are reviewed on a rolling basis. The typical timeline is: Application submission → Initial review (5-7 days) → Interview process (2 weeks) → Final decision (1 week). We accept applications year-round with quarterly cohort starts."
+        "id": 1,
+        "question": "What is the duration of the Executive Fellowship?",
+        "answer": "The fellowship is a one-year program, starting on September 1, 2025, and ending on August 31, 2026."
     },
     {
-      question: "What are the fellowship costs and funding options?",
-      answer: "The fellowship has a participation fee of $15,000 annually, which covers all convenings, publications, and program resources. We offer partial scholarships for qualifying candidates from developing economies and academic institutions."
+        "id": 2,
+        "question": "How selective is the program?",
+        "answer": "The Executive Fellowship is highly exclusive, admitting only a select group of professionals to ensure a focused and impactful experience."
     },
     {
-      question: "How flexible is the time commitment?",
-      answer: "We understand executive schedules are demanding. The 30-hour commitment is spread across the year with flexible virtual participation options. Most activities are recorded, and we offer multiple time zones for global participation."
+        "id": 3,
+        "question": "What are the application requirements?",
+        "answer": "Applicants should demonstrate a strong track record of leadership, innovation, or systems thinking and a commitment to using digital technologies for human and planetary outcomes."
     },
     {
-      question: "What kind of research and publications are expected?",
-      answer: "Fellows contribute to policy briefs, research papers, and opinion pieces on topics within their expertise. We provide editorial support, research assistance, and ensure wide distribution through our network of partner organizations."
+        "id": 4,
+        "question": "Is there a cost associated with the program?",
+        "answer": "Yes, there is a one-time administrative fee associated with the Executive Fellowship program."
+    },
+    {
+        "id": 5,
+        "question": "What kind of commitment is expected from Executive fellows?",
+        "answer": "Fellows are expected to actively participate in strategic roundtables, and major events, contributing their expertise and insights to the Center’s initiatives."
+    },
+    {
+        "id": 6,
+        "question": "What support will I receive during the fellowship?",
+        "answer": "Fellows will receive continuous peer learning, mentorship, as well as on-demand consultation with the Fellowship team."
+    },
+    {
+        "id": 7,
+        "question": "How can I apply for the fellowship?",
+        "answer": "Applications can be submitted online during the application period. The application form will remain available on our platforms until June 15, 2025."
+    },
+    {
+        "id": 8,
+        "question": "What are the key dates for the program?",
+        "answer": "Application Deadline: June 15, 2025 | Program Start: September 1, 2025 | Program End: August 31, 2026"
+    },
+    {
+        "id": 9,
+        "question": "Are there any in-person events I need to attend?",
+        "answer": "There will be numerous opportunities throughout the year for fellows to join events in person; however, this is not a mandatory requirement to be a part of the program."
+    },
+    {
+        "id": 10,
+        "question": "What benefits do fellows receive?",
+        "answer": "Fellows receive numerous benefits, including access to The Digital Economist ecosystem, numerous impact projects to engage with on, high-level networking opportunities, as well as over a 500 virtual and in-person events during the Fellowship."
+    },
+    {
+        "id": 11,
+        "question": "Can I apply if I am an early career professional?",
+        "answer": "Yes, the program is open to visionary professionals at all career stages who are committed to making a global impact."
+    },
+    {
+        "id": 12,
+        "question": "Will I receive a certificate upon completion?",
+        "answer": "Yes, fellows will receive a certificate recognizing their completion of the program."
     }
-  ];
+]
+
 
   return (
     <section className="py-24 px-6 bg-gray-50">

@@ -39,7 +39,7 @@ const cardData = [
   },
 ];
 
-const ProjectsSection = () => {
+const ThematicWorkgroups = () => {
   const Card = ({ title, description, image }) => {
     return (
       <div className="relative overflow-hidden rounded-sm shadow-xl group cursor-pointer h-80 transition-transform transform hover:scale-105">
@@ -66,17 +66,8 @@ const ProjectsSection = () => {
 
   return (
     <div className="bg-white min-h-screen font-sans antialiased text-gray-800 p-8 md:p-16">
-      {/* Header Section */}
-      <div className="text-center font-montserrat max-w-4xl mx-auto mb-16">
-        <h1 className="text-3xl font-sans sm:text-4xl md:text-5xl font-bold text-blue-800 mb-2">
-          Center of Excellence
-        </h1>
-        <h2 className="text-2xl font-sans sm:text-3xl md:text-4xl font-extrabold text-gray-800 mb-6">
-          on Human-Centered Global Economy
-        </h2>
-        <p className="text-sm md:text-base text-gray-600 leading-relaxed max-w-2xl mx-auto">
-          The Digital Economist's Center of Excellence is where technology meets human values—with purpose. It's a living lab for reimagining economic systems that prioritize people and the planet. By joining, enterprise leaders gain a seat at the table to shape future-defining conversations, guide ethical innovation, and leave behind more than just growth: a legacy.
-        </p>
+      <div className='font-medium text-3xl md:text-4xl text-center mb-12 text-sans text-black'>
+        <h2>Thematic Workgroups</h2>
       </div>
 
       {/* Grid Section */}
@@ -99,4 +90,4 @@ const ProjectsSection = () => {
   );
 };
 
-export default ProjectsSection;
+export default ThematicWorkgroups;

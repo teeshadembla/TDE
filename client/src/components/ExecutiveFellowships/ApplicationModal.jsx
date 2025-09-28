@@ -171,8 +171,10 @@ const ApplicationModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
+  <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+  <div className="flex max-w-6xl w-full max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden">
+    {/* Form Section */}
+    <div className="bg-white w-1/2 overflow-y-auto">
         <div className="p-10">
           <div className="flex justify-between items-center mb-10">
             <div>
@@ -386,7 +388,18 @@ const ApplicationModal = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
+      <div 
+      style={{
+        backgroundImage: 'url("https://cdn.prod.website-files.com/682f43574652bd066d73adbf/68662e2e70b9174c52186b5f_People%20seated%20at%20tables.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }} 
+      className='w-1/2'
+    >
     </div>
+    </div>
+  </div>
   );
 };
 
