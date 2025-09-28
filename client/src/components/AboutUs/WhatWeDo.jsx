@@ -5,13 +5,13 @@ const Box = ({
   title, 
   description, 
   image, 
-  className = "",
+  className = "h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]",
   titleClassName = "",
   descriptionClassName = "",
   overlayOpacity = "bg-black/40"
 }) => {
   return (
-    <div className={`relative rounded-lg overflow-hidden shadow-2xl ${className}`}>
+    <div className={`relative rounded-lg overflow-hidden shadow-2xl h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] ${className}`}>
       {/* Background Image */}
       <div 
         className="relative h-64 sm:h-72 md:h-80 lg:h-96 bg-cover bg-center bg-no-repeat"
@@ -109,7 +109,7 @@ const WhatWeDo = () => {
   };
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center pt-10 px-4">
+    <div className="bg-black h-[900px] flex flex-col items-center pt-10 px-4">
       <h1 className="text-white font-sans text-[40px] md:text-[52px] font-bold pb-5 text-center">
         What We Do
       </h1>

@@ -4,6 +4,9 @@ import OurMission from '../../components/AboutUs/OurMission';
 import CoreValuesPage from '../../components/AboutUs/CoreValuePage';  
 import WhatWeDo from '../../components/AboutUs/WhatWeDo'; 
 import PartnershipsSection from '../../components/AboutUs/PartnershipsSection'; 
+import OurLeaderships from '../../components/AboutUs/OurLeaderships';   
+import OurTeam from '../../components/AboutUs/OurTeam';
+import Footer from "../../components/Footer";
 
 const AboutUs = () => {
     return (
@@ -13,6 +16,9 @@ const AboutUs = () => {
             <CoreValuesPage/>
             <WhatWeDo/>
             <PartnershipsSection/>
+            <OurLeaderships/>
+            <OurTeam/>
+            <Footer/>
         </>
     );
 }

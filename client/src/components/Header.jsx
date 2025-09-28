@@ -41,11 +41,11 @@ const Header = () => {
     // Practice Area dropdown options
     const practiceAreaOptions = [
         { label: 'Digital Policy', href: '/practice/digital-policy' },
-        { label: 'Economic Research', href: '/practice/economic-research' },
-        { label: 'Technology Innovation', href: '/practice/tech-innovation' },
+        { label: 'Blockchain and Digital Assets', href: '/practice/blockchain-digital-assets' },
+        { label: 'Applied AI', href: '/practice/applied-ai' },
         { label: 'Sustainability', href: '/practice/sustainability' },
-        { label: 'Global Markets', href: '/practice/global-markets' },
-        { label: 'Data Analytics', href: '/practice/data-analytics' }
+        { label: 'Governance', href: '/practice/governance' },
+        { label: 'Healthcare', href: '/practice/healthcare' }
     ];
 
     // Executive Fellowship dropdown options
