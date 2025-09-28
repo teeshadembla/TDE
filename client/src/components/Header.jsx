@@ -50,8 +50,8 @@ const Header = () => {
 
     // Executive Fellowship dropdown options
     const executiveFellowshipOptions = [
-        { label: 'Current Programs', href: '/fellowship/current' },
-        { label: 'Application Process', href: '/fellowship/application' }
+        { label: 'Current Programs', href: '/execFellowship' },
+        { label: 'The Digital Economist Fellows', href: '/fellowship/fellows' }
     ];
 
     const handleNavClick = (href) => {

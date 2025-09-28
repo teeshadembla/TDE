@@ -27,6 +27,7 @@ import AdminProfile from './Pages/AdminProfile/AdminProfile.jsx';
 import AdminRoute from './Utils/AdminRoute.jsx';
 import UserRoute from './Utils/UserRoute.jsx';
 import PracticeArea from './Pages/PracticeArea/PracticeArea.jsx';
+import NewsPage from './Pages/News/NewsPage.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -117,6 +118,8 @@ function App() {
 
               {/* Practice Area dynamic pages */}
               <Route path='/practice/:slug' element={<PracticeArea/>}></Route>
+
+              <Route path='/news' element={<NewsPage/>}></Route>
 
           </Routes>
 
