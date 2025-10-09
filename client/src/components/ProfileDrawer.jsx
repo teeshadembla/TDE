@@ -36,7 +36,7 @@ export default function ProfileDrawer() {
 
   const goToProfile = () =>{
     {
-      account.role === "core" ? navigate("/admin/profile") : navigate("/user/profile");
+      account.role === "core"  ? navigate("/admin/profile") : navigate("/user/profile");
 
     }
   }

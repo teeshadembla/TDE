@@ -72,7 +72,7 @@ export default function Step3({ formData, formFunction, setStepValid }) {
           type="text"
           value={formData.followedTopics || ''}
           placeholder="Artificial Intelligence, Blockchain, etc"
-          className="text-white input [&::placeholder]:text-white"
+          className="w-full px-4 py-2 bg-transparent border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
           onChange={handleChange}
         />
       </div>
@@ -87,7 +87,7 @@ export default function Step3({ formData, formFunction, setStepValid }) {
           id="expertise"
           value={formData.expertise || ''}
           placeholder="e.g. Data Science, Policy, Climate"
-          className="text-white input [&::placeholder]:text-white"
+          className="w-full px-4 py-2 bg-transparent border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
           onChange={handleChange}
         />
       </div>
@@ -116,7 +116,7 @@ export default function Step3({ formData, formFunction, setStepValid }) {
           id="discoverySource"
           value={formData.discoverySource}
           onChange={handleChange}
-          className="input text-white [&_option]:!text-white [&_option]:!bg-gray-800"
+          className="w-full px-4 py-2 bg-transparent border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded [&_option]:!text-white [&_option]:!bg-gray-800"
           required
         >
           <option value="">Select an option</option>

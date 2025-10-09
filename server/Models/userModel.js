@@ -14,9 +14,14 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    profilePicture: {
+        type: String, 
+        required: false,
+        default:"https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small_2x/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+    },
     role:{
         type: String,
-        enum: ["core","user"],
+        enum: ["core","user","chair"],
         required: true
     },
     fellowshipId: {
@@ -37,7 +42,6 @@ const userSchema = mongoose.Schema({
     workGroupId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workgroup",
-        default: null,
     },
     eventsRegistered: [{
         type: mongoose.Schema.Types.ObjectId,

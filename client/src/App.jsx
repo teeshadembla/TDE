@@ -66,7 +66,8 @@ function App() {
           _id: user._id,
           name: user.name,
           role: user.role,
-          email:user.email
+          email:user.email,
+          profilePicture: user.profilePicture,
         })
       }catch(err){
         console.log("Some error has occured in frontend--->", err);
@@ -114,7 +115,7 @@ function App() {
               <Route path='/community' element={<CommunityPage/>}></Route>
 
             {/* Our People Page */}
-              <Route path='/our-people' element={<OurPeople/>}></Route>
+              <Route path='/fellowship/fellows' element={<OurPeople/>}></Route>
 
               {/* Practice Area dynamic pages */}
               <Route path='/practice/:slug' element={<PracticeArea/>}></Route>

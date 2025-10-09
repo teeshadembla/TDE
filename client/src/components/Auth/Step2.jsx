@@ -20,8 +20,8 @@ export default function Step2({ formData, formFunction, setStepValid }) {
         isValid = false;
       }
     } else {
-      if (value.length > 25) {
-        error = `${name} must be 25 characters or less`;
+      if (value.length > 50) {
+        error = `${name} must be 50 characters or less`;
         isValid = false;
       }
     }

@@ -110,6 +110,8 @@ const ProfileDashboard = () => {
       fetchUserRegistrations();
     }, [account._id]);
 
+    
+
   const tabs = [
     { id: 'current', label: 'Current Registrations', icon: Award },
     { id: 'history', label: 'Fellowship History', icon: Clock },

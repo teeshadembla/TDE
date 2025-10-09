@@ -9,7 +9,7 @@ const PersonCard = ({ person, onClick }) => (
   >
     <div className="text-center">
       <img 
-        src={person.image} 
+        src={person.profilePicture} 
         alt={person.FullName}
         className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-2 border-gray-100 group-hover:border-gray-300 transition-colors"
       />

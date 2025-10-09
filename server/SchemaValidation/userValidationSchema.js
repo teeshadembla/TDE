@@ -8,10 +8,11 @@ const userValidationSchema = Joi.object({
   password: Joi.string().min(6).required(), // You may adjust length/security policy as needed
 
   role: Joi.string()
-    .valid("core", "user")
+    .valid("core", "user", "chair")
     .required(),
 
   fellowshipId: Joi.string().optional().allow(null, ''), // MongoDB ObjectId
+  profilePicture: Joi.any().optional(),
 
   socialLinks: Joi.object({
     twitter: Joi.string().uri().allow(""),

@@ -5,15 +5,31 @@ import bcrypt from "bcryptjs";
 import userValidationSchema from "../SchemaValidation/userValidationSchema.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
+import { uploadToS3 } from '../utils/s3config.js';
 import dotenv from "dotenv";
 dotenv.config();
 
 const signup = async(req,res)=>{
     try{
+        if (typeof req.body.socialLinks === 'string') {
+            req.body.socialLinks = JSON.parse(req.body.socialLinks);
+        }
+        if (typeof req.body.followedTopicsArray === 'string') {
+            req.body.followedTopicsArray = JSON.parse(req.body.followedTopicsArray);
+        }
+        if (typeof req.body.expertiseArray === 'string') {
+            req.body.expertiseArray = JSON.parse(req.body.expertiseArray);
+        }
+        // Convert string boolean to actual boolean
+        if (typeof req.body.isSubscribedToNewsletter === 'string') {
+            req.body.isSubscribedToNewsletter = req.body.isSubscribedToNewsletter === 'true';
+        }
+
         const { error, value } = userValidationSchema.validate(req.body);
         if (error) {
         return res.status(400).json({ msg: error.details[0].message });
         }
+
         const {FullName, email, password, role, socialLinks, followedTopicsArray, isSubscribedToNewsletter, location, title, department, company, expertiseArray, discoverySource} = value;
         console.log("Data coming from request body--->", {FullName, email, password, role, socialLinks, followedTopicsArray, isSubscribedToNewsletter, location, title, department, company, expertiseArray, discoverySource});
 
@@ -30,10 +46,30 @@ const signup = async(req,res)=>{
         const hashedPassword = await bcrypt.hash(password,10);
         console.log("Password has been hashed, now moving forward to making a data object to create user.");
 
+        let profilePictureUrl = null;
+        if (req.file) {
+            try {
+                console.log("Uploading profile picture to S3...");
+                profilePictureUrl = await uploadToS3(
+                    req.file.buffer,
+                    req.file.originalname,
+                    req.file.mimetype,
+                    'profile-pictures'
+                );
+                console.log("Profile picture uploaded successfully:", profilePictureUrl);
+            } catch (uploadError) {
+                console.error("Error uploading profile picture:", uploadError);
+                return res.status(500).json({
+                    msg: "Failed to upload profile picture. Please try again."
+                });
+            }
+        }
+
         const userData = {
             FullName: FullName,
             email: email,
             password: hashedPassword,
+            profilePicture: profilePictureUrl,
             role: role,
             socialLinks: socialLinks,
             followedTopics: followedTopicsArray,
@@ -150,7 +186,7 @@ const logout = async(req,res)=>{
 const getMe = async(req, res) =>{
     try{
         console.log("Starting callback function now");
-        const user = {_id: req.user._id , name: req.user.FullName, email: req.user.email, role: req.user.role};
+        const user = {_id: req.user._id , name: req.user.FullName, email: req.user.email, role: req.user.role, profilePicture: req.user.profilePict};
         console.log("User from the backend has been fetched and it is as follows--->", user);
 
         if(!user){
@@ -244,106 +280,15 @@ const getCoreTeamMembers = async (req, res) => {
 
 /* Controller to fetch only fellows */
 
-const getFellows = async(req, res) =>{
+const getFellows = async(req, res) => {
     try{
-        const fellowsGroupedByUserAndYear = await fellowshipRegistrationModel.aggregate([
-            // Populate references
-            {
-                $lookup: {
-                from: 'users',
-                localField: 'user',
-                foreignField: '_id',
-                as: 'user'
-                }
-            },
-            {
-                $lookup: {
-                from: 'fellowships',
-                localField: 'fellowship',
-                foreignField: '_id',
-                as: 'fellowship'
-                }
-            },
-            {
-                $lookup: {
-                from: 'workgroups',
-                localField: 'workgroupId',
-                foreignField: '_id',
-                as: 'workgroup'
-                }
-            },
-            
-            // Unwind arrays
-            { $unwind: '$user' },
-            { $unwind: '$fellowship' },
-            
-            // Extract year from cycle (e.g., "january-2026" -> "2026")
-            {
-                $addFields: {
-                fellowshipYear: {
-                    $arrayElemAt: [
-                    { $split: ['$fellowship.cycle', '-'] },
-                    -1
-                    ]
-                }
-                }
-            },
-            
-            // Group by user first, then by year
-            {
-                $group: {
-                _id: {
-                    userId: '$user._id',
-                    year: '$fellowshipYear'
-                },
-                user: { $first: '$user' },
-                year: { $first: '$fellowshipYear' },
-                fellowships: {
-                    $push: {
-                    fellowship: '$fellowship',
-                    workgroup: { $arrayElemAt: ['$workgroup', 0] },
-                    registrationId: '$_id',
-                    startDate: '$startDate',
-                    endDate: '$endDate',
-                    applicationDeadline: '$applicationDeadline'
-                    }
-                }
-                }
-            },
-            
-            // Group by user to nest years
-            {
-                $group: {
-                _id: '$_id.userId',
-                user: { $first: '$user' },
-                yearlyFellowships: {
-                    $push: {
-                    year: '$year',
-                    fellowships: '$fellowships'
-                    }
-                }
-                }
-            },
-            
-            // Sort years in descending order
-            {
-                $addFields: {
-                yearlyFellowships: {
-                    $sortArray: {
-                    input: '$yearlyFellowships',
-                    sortBy: { year: -1 }
-                    }
-                }
-                }
-            }
-        ]);
-        return res.status(200).json({ fellows: fellowsGroupedByUserAndYear });
+        const fellows = await userModel.find({ role: { $in: ["fellow", "chair"] }}).populate('workGroupId', 'title description');
+        return res.status(200).json({ fellows });
     }catch(err){
-        console.log("This error occurred while trying to fetch the data of all fellows---->", err);
+        console.log("Error occurred in the backend callback of fetching fellows--->", err);
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 }
-
 
 /* Update User Profile */
 const updateUser = async(req, res)=>{

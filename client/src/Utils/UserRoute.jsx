@@ -3,7 +3,7 @@ import DataProvider from "../context/DataProvider";
 import { Navigate } from "react-router-dom";
 
 const UserRoute = ({children}) =>{
-    const isUser = useContext(DataProvider.DataContext).account.role === 'user';
+    const isUser = useContext(DataProvider.DataContext).account.role === 'user' || useContext(DataProvider.DataContext).account.role === 'chair';
     return isUser ? children : <Navigate to="/admin/profile" />;
 }
 

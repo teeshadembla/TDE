@@ -7,6 +7,7 @@ export default function Step1({ formData, formFunction, setStepValid }) {
     password: "",
     role: "",
   });
+  const [imagePreview, setImagePreview] = useState(null);
 
   const validateField = (name, value) => {
     switch (name) {
@@ -49,6 +50,45 @@ export default function Step1({ formData, formFunction, setStepValid }) {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+
+      // Store the file in formData
+      formFunction((prev) => ({
+        ...prev,
+        profilePicture: file,
+      }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    formFunction((prev) => ({
+      ...prev,
+      profilePicture: null,
+    }));
+    setImagePreview(null);
+  };
+
   useEffect(() => {
     const allValid =
       Object.values(errors).every((msg) => isValid(msg)) &&
@@ -64,6 +104,48 @@ export default function Step1({ formData, formFunction, setStepValid }) {
 
   return (
     <div className="text-white bg-black space-y-6 p-4 rounded-md">
+      {/* Profile Picture */}
+      <div>
+        <label htmlFor="profilePicture" className="block mb-1 font-medium">
+          Profile Picture <span className="text-gray-400 text-sm">(Optional)</span>
+        </label>
+        
+        {imagePreview ? (
+          <div className="flex items-center gap-4">
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              className="w-24 h-24 rounded-full object-cover border-2 border-gray-500"
+            />
+            <button
+              type="button"
+              onClick={removeImage}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white transition"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div>
+            <input
+              type="file"
+              id="profilePicture"
+              name="profilePicture"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <label
+              htmlFor="profilePicture"
+              className="inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded cursor-pointer transition"
+            >
+              Choose Image
+            </label>
+            <p className="text-sm text-gray-400 mt-2">Max size: 5MB (JPG, PNG, GIF)</p>
+          </div>
+        )}
+      </div>
+
       {/* Full Name */}
       <div>
         <label htmlFor="fullName" className="block mb-1 font-medium">
@@ -142,6 +224,7 @@ export default function Step1({ formData, formFunction, setStepValid }) {
           <option value="">Select Role</option>
           <option value="core">Core Member</option>
           <option value="user">User</option>
+          <option value="chair">Chair</option>
         </select>
         {errors.role && (
           <p className={`text-sm mt-1 ${isValid(errors.role) ? "text-green-500" : "text-red-500"}`}>
