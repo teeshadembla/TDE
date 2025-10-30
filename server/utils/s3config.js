@@ -27,7 +27,6 @@ export const uploadToS3 = async (fileBuffer, fileName, mimetype, folder = 'profi
         Key: key,
         Body: fileBuffer,
         ContentType: mimetype,
-        // ACL: 'public-read' // Removed as we're using bucket policy for public access
     };
 
     try {
@@ -50,7 +49,7 @@ export const deleteFromS3 = async (fileUrl) => {
     const key = url.pathname.substring(1); // Remove leading '/'
 
     const params = {
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Bucket: process.env.AWS_BUCKET_NAME_PP,
         Key: key
     };
 

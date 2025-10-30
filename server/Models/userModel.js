@@ -34,11 +34,24 @@ const userSchema = mongoose.Schema({
         LinkedIn: { type: String, default: "" },
         Instagram: { type: String, default: "" }
     },
-    membership: {
+    membership: [{
         isActive: { type: Boolean, default: false },
-        startDate: { type: Date },
-        endDate: { type: Date }
-    },
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        status: { 
+            type: String, 
+            enum: ["active", "expired", "cancelled"],
+            default: "active"
+        },
+        membershipType: {
+            type: String,
+            enum: ["digital-i", "digital-c", "strategic"],
+            default: "annual"
+        },
+        renewalDate: { type: Date },
+        cancellationDate: { type: Date },
+        cancellationReason: { type: String }
+    }],
     workGroupId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workgroup",

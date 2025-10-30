@@ -28,6 +28,10 @@ import AdminRoute from './Utils/AdminRoute.jsx';
 import UserRoute from './Utils/UserRoute.jsx';
 import PracticeArea from './Pages/PracticeArea/PracticeArea.jsx';
 import NewsPage from './Pages/News/NewsPage.jsx';
+import UserProfile from './components/PeopleAtTDE/UserProfile.jsx';
+import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';
+import DocumentUpload from './Pages/Publications/DocumentUpload.jsx';
+import Publications from './Pages/Publications/Publications.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -116,11 +120,20 @@ function App() {
 
             {/* Our People Page */}
               <Route path='/fellowship/fellows' element={<OurPeople/>}></Route>
+              <Route path='/profile/:user_id' element={<UserProfile/>}></Route>
+
+              {/* Memberships browse page */}
+              <Route path='/join-us/pricing' element={<MembershipBrowse/>}></Route>
 
               {/* Practice Area dynamic pages */}
               <Route path='/practice/:slug' element={<PracticeArea/>}></Route>
 
               <Route path='/news' element={<NewsPage/>}></Route>
+
+              <Route path='/doc-upload' element={<DocumentUpload/>}></Route>
+
+              {/* Publications Page */}
+              <Route path='/publications' element={<Publications/>} ></Route>
 
           </Routes>
 

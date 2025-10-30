@@ -2,6 +2,7 @@ import FellowshipRegistrationCard from "./FellowshipRegistrationCard";
 import PastRegistrationsTable from "./PastRegistrationsTable";
 import RegistrationPrompt from "./RegistrationPrompt";
 import ProfileSettings from "./ProfileSettings";
+import Memberships from "./Memberships";
 
 const updateUserData = async () => {
   try {
@@ -44,6 +45,12 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
         />
       </div>
     );
+  }else if(activeTab === 'membership'){
+    return (
+      <div>
+        <Memberships/> 
+      </div>
+    )
   }
 
   return (

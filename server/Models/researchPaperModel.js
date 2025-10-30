@@ -1,33 +1,68 @@
-import mongoose from "mongoose";
-import fellowshipModel from "./fellowshipModel";
+import mongoose from 'mongoose';
 
 const researchPaperSchema = new mongoose.Schema({
-    fellowship:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Fellowship"
-    },
-    workgroup: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Workgroup",
-    },
-    user:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-    },
-    submission_title:{
-        type: String,
-        required: true,
-    },
-    fileurl:{
-        type: String,
-        required: true,
-    },
-    publicationDate:{
-        type: Date,
-        default: null,
-        required: true,
-    }
-})
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
+  originalName: {
+    type: String,
+    required: true,
+  },
+  s3Url: {
+    type: String,
+    required: true,
+  },
+  s3Key: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  thumbnailUrl: {
+    type: String,
+    required: true,
+  },
+  thumbnailKey: {
+    type: String,
+    required: true,
+  },
+  fileSize: {
+    type: Number,
+    required: true,
+  },
+  mimeType: {
+    type: String,
+    required: true,
+    default: 'application/pdf',
+  },
+  uploadStatus: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending',
+    index: true,
+  },
+  description: {
+    type: String,
+    default: '',
+  },
+  uploadedAt: {
+    type: Date,
+    default: Date.now,
+  },
+}, {
+  timestamps: true,
+});
 
-const researchPaperModel = new mongoose.model("Research_Paper",  researchPaperSchema);
+// Index for faster queries
+researchPaperSchema.index({ userId: 1, uploadStatus: 1 });
+researchPaperSchema.index({ uploadedAt: -1 });
+
+const researchPaperModel = mongoose.model('research-paper', researchPaperSchema);
+
 export default researchPaperModel;

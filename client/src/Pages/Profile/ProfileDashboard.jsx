@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User,  Award, Clock, Settings} from 'lucide-react';
+import { User,  Award, Clock, Settings, IdCard} from 'lucide-react';
 import TabContent from '../../components/Profile/TabContent.jsx';
 import ProfileSidebar from '../../components/Profile/ProfileSidebar.jsx';
 import ProfileSettings from '../../components/Profile/ProfileSettings.jsx';
@@ -7,14 +7,7 @@ import DataProvider from '../../context/DataProvider.jsx';
 import { useContext } from 'react';
 import axiosInstance from '../../config/apiConfig.js';
 
-// Sample data structure based on your schemas
-/* const sampleUser = {
-  _id: "60d0fe4f5311236168a109ca",
-  name: "Dr. Sarah Chen",
-  email: "sarah.chen@thinktank.org",
-  profilePicture: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
-};
- */
+
 const sampleCurrentRegistrations = [
   {
     _id: "60d0fe4f5311236168a109cb",
@@ -115,6 +108,7 @@ const ProfileDashboard = () => {
   const tabs = [
     { id: 'current', label: 'Current Registrations', icon: Award },
     { id: 'history', label: 'Fellowship History', icon: Clock },
+    {id: 'membership', label: "Manage Membership" ,icon: IdCard},
     { id: 'settings', label: "Profile Settings", icon: Settings }
   ];
 

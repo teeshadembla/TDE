@@ -21,5 +21,5 @@ userRouter.get("/fellows", userController.getFellows);
 userRouter.patch("/update/:id", authenticateToken, userController.updateUser);
 userRouter.delete("/delete/:id", authenticateToken, userController.deleteUser);
 
-userRouter.get("/:id", authenticateToken, userController.getUserById);  
+userRouter.get("/:id", userController.getUserById);  
 export default userRouter;

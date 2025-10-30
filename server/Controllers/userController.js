@@ -186,7 +186,7 @@ const logout = async(req,res)=>{
 const getMe = async(req, res) =>{
     try{
         console.log("Starting callback function now");
-        const user = {_id: req.user._id , name: req.user.FullName, email: req.user.email, role: req.user.role, profilePicture: req.user.profilePict};
+        const user = {_id: req.user._id , name: req.user.FullName, email: req.user.email, role: req.user.role, profilePicture: req.user.profilePicture};
         console.log("User from the backend has been fetched and it is as follows--->", user);
 
         if(!user){
