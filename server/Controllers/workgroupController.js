@@ -1,3 +1,4 @@
+import userModel from "../Models/userModel.js";
 import workgroupModel from "../Models/workgroupModel.js";
 import { workgroupValidationSchema } from "../SchemaValidation/workgroupValidationSchema.js";
 
@@ -71,6 +72,8 @@ const editWorkgroup = async(req, res) =>{
     }
 }
 
+/* Admin control to delete a workgroup */
+
 const deleteWorkgroup = async(req, res) =>{
     try{
         const {id} = req.params;
@@ -86,5 +89,23 @@ const deleteWorkgroup = async(req, res) =>{
     }
 }
 
-/* Admin control to delete a workgroup */
-export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup}
+/* Get users by workgroup */
+
+const getUsersByWorkgroup = async(req, res) =>{
+    try{
+        const workgroupId = req.params.workgroupId;
+        console.log("Fetching users for workgroupId ---> ", workgroupId);
+
+        if(!workgroupId){
+            return res.status(400).json({msg: "Undefined workgroupId"});
+        }
+
+        const usersByWorkgroup =await userModel.find({workGroupId: workgroupId});
+
+        return res.status(200).json({msg: "Users by workgroup successfullu fetched", data: usersByWorkgroup});
+    }catch(err){
+        console.log("This error has occurred in backend while trying to fetch users by certaiin workgroup ---> ", err);
+        return res.status(500).json({msg:"Internal Server Error"});
+    }
+}
+export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getUsersByWorkgroup}

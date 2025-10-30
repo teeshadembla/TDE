@@ -1,6 +1,7 @@
 import express from 'express';
 import userController from '../Controllers/userController.js';
 import authenticateToken from '../Controllers/tokenControllers.js';
+import {getUsersByWorkgroup} from "../Controllers/workgroupController.js";
 import { uploadProfilePicture } from '../utils/multerConfig.js';
 const userRouter = express.Router({mergeParams:true});
 
@@ -22,4 +23,7 @@ userRouter.patch("/update/:id", authenticateToken, userController.updateUser);
 userRouter.delete("/delete/:id", authenticateToken, userController.deleteUser);
 
 userRouter.get("/:id", userController.getUserById);  
+
+/* Get fellows by workgroup */
+userRouter.get("/workgroup/:workgroupId", getUsersByWorkgroup);
 export default userRouter;

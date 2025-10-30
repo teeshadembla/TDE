@@ -51,6 +51,18 @@ const researchPaperSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  workgroupId :{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workgroup',
+  },
+  Authors: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  }],
+  tags:[{
+    type: String,
+  }],
   uploadedAt: {
     type: Date,
     default: Date.now,

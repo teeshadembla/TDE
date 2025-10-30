@@ -29,8 +29,9 @@ import UserRoute from './Utils/UserRoute.jsx';
 import PracticeArea from './Pages/PracticeArea/PracticeArea.jsx';
 import NewsPage from './Pages/News/NewsPage.jsx';
 import UserProfile from './components/PeopleAtTDE/UserProfile.jsx';
-import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';
-import DocumentUpload from './Pages/Publications/DocumentUpload.jsx';
+import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';/* 
+import DocumentUpload from './Pages/Publications/DocumentUpload.jsx'; */
+import ResearchPaperUploadForm from './components/DocumentUpload/ResearchPaperUploadForm.jsx';
 import Publications from './Pages/Publications/Publications.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
@@ -90,7 +91,7 @@ function App() {
   return (
     <BrowserRouter>
       <Header></Header>
-        <div className="App">
+        <div className="App overflow-x-hidden">
           <Routes>
             <Route path='/' element={<HomePage/>}></Route>
             <Route path='/about' element={<AboutUs/>}></Route>
@@ -130,7 +131,7 @@ function App() {
 
               <Route path='/news' element={<NewsPage/>}></Route>
 
-              <Route path='/doc-upload' element={<DocumentUpload/>}></Route>
+              <Route path='/doc-upload' element={<ResearchPaperUploadForm/>}></Route>
 
               {/* Publications Page */}
               <Route path='/publications' element={<Publications/>} ></Route>
