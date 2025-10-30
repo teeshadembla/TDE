@@ -59,11 +59,9 @@ const Header = () => {
         setMobileMenuOpen(false);
     };
 
-    // Mock account for demonstration
-    const mockAccount = account || { _id: null, name: 'John Doe' };
 
     return (
-        <div className='h-16 sm:h-20 lg:h-24 font-montserrat lg:w-screen md:w-screen sm:w-screen bg-black flex relative overflow-x-hidden'>
+        <div className='h-16 sm:h-20 lg:h-24 font-montserrat lg:w-screen md:w-screen sm:w-screen bg-black flex relative z-[100]'>
             
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (

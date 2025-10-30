@@ -91,7 +91,7 @@ function App() {
   return (
     <BrowserRouter>
       <Header></Header>
-        <div className="App overflow-x-hidden">
+        <div className="App">
           <Routes>
             <Route path='/' element={<HomePage/>}></Route>
             <Route path='/about' element={<AboutUs/>}></Route>
