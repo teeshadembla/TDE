@@ -5,7 +5,9 @@ import SingleSelect from './SingleSelect.jsx';
 import MultiSelect from './MultiSelect.jsx';
 import FileUploadField from './FileUploadField.jsx';
 import TagsInput from './TagsInput.jsx';
-import DocumentTypeSelect from './DocumentTypeSelect.jsx'; 
+import DocumentTypeSelect from './DocumentTypeSelect.jsx';
+import TextInputField from './TextInputField.jsx';
+import DateInputField from './DateInputField.jsx';
 import axios from 'axios';
 import axiosInstance from '../../config/apiConfig';
 
@@ -57,8 +59,11 @@ const ProgressBar = ({ label, progress }) => {
 const ResearchPaperUploadForm = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [publishingDate, setPublishingDate] = useState('');
   const [description, setDescription] = useState('');
-  const [documentType, setDocumentType] = useState(''); // NEW STATE
+  const [documentType, setDocumentType] = useState('');
   const [selectedWorkgroup, setSelectedWorkgroup] = useState('');
   const [selectedAuthors, setSelectedAuthors] = useState([]);
   const [tags, setTags] = useState([]);
@@ -81,7 +86,7 @@ const ResearchPaperUploadForm = () => {
         setWorkgroups(response.data.data || response.data);
       } catch (err) {
         setError('Failed to load workgroups');
-        console.error(err);
+        console.log(err);
       } finally {
         setLoadingWorkgroups(false);
       }
@@ -155,8 +160,8 @@ const ResearchPaperUploadForm = () => {
   };
 
   const handleSubmit = async () => {
-    // Updated validation to include documentType
-    if (!pdfFile || !thumbnailFile || !selectedWorkgroup || selectedAuthors.length === 0 || !documentType) {
+    // Updated validation to include title and publishingDate
+    if (!pdfFile || !thumbnailFile || !title || !publishingDate || !selectedWorkgroup || selectedAuthors.length === 0 || !documentType) {
       setError('Please fill all required fields');
       return;
     }
@@ -176,8 +181,11 @@ const ResearchPaperUploadForm = () => {
           fileType: pdfFile.type,
           fileSize: pdfFile.size,
           thumbnailType: thumbnailFile.type,
+          title: title,
+          subtitle: subtitle,
+          publishingDate: publishingDate,
           description: description,
-          documentType: documentType, // INCLUDE IN API CALL
+          documentType: documentType,
           workgroupId: selectedWorkgroup,
           authors: selectedAuthors,
           tags: tags,
@@ -233,8 +241,11 @@ const ResearchPaperUploadForm = () => {
       // Reset form
       setPdfFile(null);
       setThumbnailFile(null);
+      setTitle('');
+      setSubtitle('');
+      setPublishingDate('');
       setDescription('');
-      setDocumentType(''); // RESET DOCUMENT TYPE
+      setDocumentType('');
       setSelectedWorkgroup('');
       setSelectedAuthors([]);
       setTags([]);
@@ -267,8 +278,11 @@ const ResearchPaperUploadForm = () => {
     }
   };
 
-  // Updated form validation to include documentType
-  const isFormValid = pdfFile && thumbnailFile && selectedWorkgroup && selectedAuthors.length > 0 && documentType;
+  // Updated form validation to include title and publishingDate
+  const isFormValid = pdfFile && thumbnailFile && title && publishingDate && selectedWorkgroup && selectedAuthors.length > 0 && documentType;
+
+  // Get today's date in YYYY-MM-DD format for max date validation
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="min-h-screen bg-black py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
@@ -289,6 +303,37 @@ const ResearchPaperUploadForm = () => {
           {success && <Alert type="success" message={success} />}
 
           <div className="space-y-6">
+            {/* Title */}
+            <TextInputField
+              label="Title"
+              value={title}
+              onChange={setTitle}
+              placeholder="Enter the research paper title..."
+              required
+              disabled={isSubmitting}
+              maxLength={200}
+            />
+
+            {/* Subtitle */}
+            <TextInputField
+              label="Subtitle"
+              value={subtitle}
+              onChange={setSubtitle}
+              placeholder="Enter subtitle (optional)..."
+              disabled={isSubmitting}
+              maxLength={300}
+            />
+
+            {/* Publishing Date */}
+            <DateInputField
+              label="Publishing Date"
+              value={publishingDate}
+              onChange={setPublishingDate}
+              required
+              disabled={isSubmitting}
+              max={today}
+            />
+
             {/* PDF Upload */}
             <FileUploadField
               label="PDF Document"
@@ -320,7 +365,7 @@ const ResearchPaperUploadForm = () => {
               </div>
             )}
 
-            {/* Document Type Selection - NEW FIELD */}
+            {/* Document Type Selection */}
             <DocumentTypeSelect
               label="Document Type"
               selectedType={documentType}

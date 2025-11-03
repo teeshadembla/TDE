@@ -12,12 +12,12 @@ const DocumentTypeSelect = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const documentTypes = [
-    { id: 'report', name: 'Report' },
-    { id: 'opinion-piece', name: 'Opinion Piece' },
-    { id: 'policy-paper', name: 'Policy Paper' },
-    { id: 'position-paper', name: 'Position Paper' },
-    { id: 'expert-insight', name: 'Expert Insight' },
-    { id: 'research-article', name: 'Research Article' },
+    { id: 'Report', name: 'Report' },
+    { id: 'Opinion Piece', name: 'Opinion Piece' },
+    { id: 'Policy Paper', name: 'Policy Paper' },
+    { id: 'Position Paper', name: 'Position Paper' },
+    { id: 'Industry Insight', name: 'Industry Insight' },
+    { id: 'Research Article', name: 'Research Article' },
   ];
 
   const selectedOption = documentTypes.find(type => type.id === selectedType);

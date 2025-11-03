@@ -1,6 +1,7 @@
 import react from 'react';
 import Footer from '../../components/Footer.jsx';
 import PublicationContent from '../../components/Publications/PublicationContent.jsx';
+import ResearchDisplay from '../../components/Publications/ResearchDisplay.jsx';
 
 const Publications = () => {
     return (
@@ -23,6 +24,7 @@ const Publications = () => {
         </div>
 
         <PublicationContent/>
+        <ResearchDisplay/>
         <Footer/>
         </>
     )

@@ -8,7 +8,9 @@ import {
   getViewUrl,      
   getDownloadUrl,  
   deleteDocument, 
-  markUploadFailed 
+  markUploadFailed,
+  getAllPapers,
+  findSimilarPapers,
 } from '../Controllers/researchPaperController.js';
 import authenticateToken from '../Controllers/tokenControllers.js';
 
@@ -16,11 +18,14 @@ const researchPaperRouter = express.Router();
 
 researchPaperRouter.post('/presigned-url', authenticateToken, getPresignedUrl);
 researchPaperRouter.post('/confirm-upload', authenticateToken, confirmUpload);
+researchPaperRouter.get('/getPapers', authenticateToken, getAllPapers);
 researchPaperRouter.get('/', authenticateToken, getUserDocuments);
-researchPaperRouter.get('/:id', authenticateToken, getDocument);
+researchPaperRouter.get('/getPaperById/:id', authenticateToken, getDocument);
 researchPaperRouter.get('/:id/view-url', authenticateToken, getViewUrl);       
 researchPaperRouter.get('/:id/download-url', authenticateToken, getDownloadUrl); 
 researchPaperRouter.delete('/:id', authenticateToken, deleteDocument);
 researchPaperRouter.post('/mark-failed', authenticateToken, markUploadFailed);
+researchPaperRouter.get("/:id/similar", authenticateToken, findSimilarPapers );
+
 
 export default researchPaperRouter;

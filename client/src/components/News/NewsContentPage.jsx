@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // or your router
 import ArticleCard from './ArticleCard';
-import { ArticleCardSkeleton } from './ArticleCard';
+import NewsContent from "../../assets/Data.js";
+
 
 const NewsContentPage = () => {
   const navigate = useNavigate();
@@ -18,9 +19,7 @@ const NewsContentPage = () => {
 
   const handleArticleClick = (article) => {
     // Navigate to article detail page
-    navigate(`/news/${article.slug}`);
-    // Or use window.location.href if not using React Router
-    // window.location.href = `/news/${article.slug}`;
+    navigate(`/news/${article.id}`);
   };
 
   const handleLoadMore = () => {
@@ -31,17 +30,8 @@ const NewsContentPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        {/* Header */}
-        <header className="mb-12 sm:mb-16">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-            Latest News
-          </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl">
-            Stay informed with insights on digital economics, blockchain, AI, and global policy.
-          </p>
-        </header>
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 flex justify-center items-center">
+        
         {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
@@ -56,13 +46,16 @@ const NewsContentPage = () => {
         )}
 
         {/* Articles List */}
-        <div className="space-y-12 sm:space-y-16">
+        <div className="box-border text-[rgb(51,51,51)] block font-sans text-[14px] leading-[20px] w-[940px] h-auto">
+          <div className='box-border block font-sans text-[#333] text-sm leading-5 w-[940px] h-[1028px]'>
           {loading && page === 1 ? (
             // Initial Loading Skeletons
             <>
-              <ArticleCardSkeleton />
-              <ArticleCardSkeleton />
-              <ArticleCardSkeleton />
+              {NewsContent.map((article, index)=>(
+                
+                <ArticleCard article={article} onClick={()=>handleArticleClick(article)}/>
+                
+              ))}
             </>
           ) : articles.length > 0 ? (
             // Articles
@@ -95,7 +88,7 @@ const NewsContentPage = () => {
               <p className="text-sm text-gray-400">Check back soon for new content</p>
             </div>
           )}
-
+          </div>
           {/* Loading More Indicator */}
           {loadingMore && (
             <>

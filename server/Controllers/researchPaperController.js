@@ -67,6 +67,13 @@ export const getPresignedUrl = async (req, res) => {
       s3Key: pdfKey,
       thumbnailUrl: thumbnailFileUrl, // Store public thumbnail URL
       thumbnailKey: thumbnailKey,
+      workgroupId: req.body.workgroupId,
+      documentType: req.body.documentType ,
+      publishingDate: req.body.publishingDate || null,
+      title: req.body.title || '',
+      subtitle: req.body.subtitle || '',
+      tags: req.body.tags || [],
+      Authors: req.body.authors || [],
       fileSize: fileSize,
       mimeType: fileType,
       uploadStatus: 'pending',
@@ -187,8 +194,8 @@ export const getDocument = async (req, res) => {
   try {
     const document = await researchPaperModel.findOne({
       _id: req.params.id,
-      userId: req.user._id,
-    });
+    })
+    .populate('Authors', 'FullName');
 
     if (!document) {
       return res.status(404).json({
@@ -214,7 +221,6 @@ export const getViewUrl = async (req, res) => {
   try {
     const document = await researchPaperModel.findOne({
       _id: req.params.id,
-      userId: req.user._id,
     });
 
     if (!document) {
@@ -229,15 +235,15 @@ export const getViewUrl = async (req, res) => {
     const { GetObjectCommand, S3Client } = await import('@aws-sdk/client-s3');
     
     const s3Client = new S3Client({
-      region: process.env.AWS_REGION,
+      region: process.env.AWS_REGION_PP,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY_PP,
+        secretAccessKey: process.env.AWS_SECRET_KEY_PP,
       },
     });
 
     const command = new GetObjectCommand({
-      Bucket: process.env.AWS_S3_PDF_BUCKET_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME_PDF,
       Key: document.s3Key,
       ResponseContentDisposition: 'inline',
       ResponseContentType: 'application/pdf',
@@ -268,7 +274,6 @@ export const getDownloadUrl = async (req, res) => {
   try {
     const document = await researchPaperModel.findOne({
       _id: req.params.id,
-      userId: req.user._id,
     });
 
     if (!document) {
@@ -283,15 +288,15 @@ export const getDownloadUrl = async (req, res) => {
     const { GetObjectCommand, S3Client } = await import('@aws-sdk/client-s3');
     
     const s3Client = new S3Client({
-      region: process.env.AWS_REGION,
+      region: process.env.AWS_REGION_PP,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY_PP,
+        secretAccessKey: process.env.AWS_SECRET_KEY_PP,
       },
     });
 
     const command = new GetObjectCommand({
-      Bucket: process.env.AWS_S3_PDF_BUCKET_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME_PDF,
       Key: document.s3Key,
       ResponseContentDisposition: `attachment; filename="${document.fileName}"`,
       ResponseContentType: 'application/pdf',
@@ -396,3 +401,30 @@ export const markUploadFailed = async (req, res) => {
     });
   }
 };
+
+export const getAllPapers = async(req, res)=> {
+  try{
+    const researchPapers = await researchPaperModel.find().populate('Authors', 'FullName');
+
+    return res.status(200).json({msg: "Successfully retrieved all papers", data: researchPapers});
+  }catch(err){
+    console.log("This error occurred in the backend while trying to fetch research papers from the database.--->",err);
+    return res.status(500).json({msg: "Internal Server Error"});
+  }
+}
+
+export const findSimilarPapers = async (req, res) => {
+  try {
+    const paper = await researchPaperModel.findById(req.params.id);
+    if (!paper) return res.status(404).json({ message: "Paper not found" });
+
+    const similarPapers = await researchPaperModel.find({
+      _id: { $ne: paper._id }, // exclude current paper
+      tags: { $in: paper.tags }, // match at least one tag
+    }).limit(5).populate('Authors', 'FullName');
+
+    res.json(similarPapers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}

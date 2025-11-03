@@ -47,6 +47,18 @@ const researchPaperSchema = new mongoose.Schema({
     default: 'pending',
     index: true,
   },
+  title:{
+    type: String,
+    required: true,
+  },
+  subtitle:{
+    type: String,
+    required: true,
+  },
+  publishingDate: {
+    type: Date,
+    required: true,
+  },
   description: {
     type: String,
     default: '',
@@ -60,6 +72,11 @@ const researchPaperSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   }],
+  documentType:{
+    type: String,
+    enum: ['report','opinion-piece','policy-paper','position-paper','industry-insight','research-article'],
+    required: true
+  },
   tags:[{
     type: String,
   }],

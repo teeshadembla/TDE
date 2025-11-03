@@ -33,6 +33,8 @@ import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';/*
 import DocumentUpload from './Pages/Publications/DocumentUpload.jsx'; */
 import ResearchPaperUploadForm from './components/DocumentUpload/ResearchPaperUploadForm.jsx';
 import Publications from './Pages/Publications/Publications.jsx';
+import IndividualPaperPage from './components/Publications/IndividualPaperPage.jsx';
+import ArticlePage from "./components/News/ArticlePage.jsx";
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -130,11 +132,13 @@ function App() {
               <Route path='/practice/:slug' element={<PracticeArea/>}></Route>
 
               <Route path='/news' element={<NewsPage/>}></Route>
+              <Route path='/news/:articleId' element={<ArticlePage/>}></Route>
 
               <Route path='/doc-upload' element={<ResearchPaperUploadForm/>}></Route>
 
               {/* Publications Page */}
               <Route path='/publications' element={<Publications/>} ></Route>
+              <Route path='/research-paper/:paper_id' element={<IndividualPaperPage/>} ></Route>
 
           </Routes>
 
