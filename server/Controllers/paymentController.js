@@ -92,6 +92,7 @@ export const submitFellowshipApplication = async (req, res) => {
 
 // UPDATED: Create Payment Intent (Only for Approved Applications)
 export const createPaymentIntent = async (req, res) => {
+  console.log("Request body for payment intent:", req.body);
   console.log(req.body._id);
   const  applicationId  = req.body._id;
   console.log("Creating payment Intent for application:", applicationId);
@@ -106,7 +107,7 @@ export const createPaymentIntent = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    if (application.status !== "APPROVED") {
+    if (application.status != "APPROVED" ) {
       return res.status(400).json({ message: "Application must be approved before payment" });
     }
 

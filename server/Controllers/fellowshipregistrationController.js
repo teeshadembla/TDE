@@ -24,8 +24,8 @@ const getAllFellowshipRegistrations = async (req, res) => {
 
     const currReg = registrations.filter(reg => {
       const fellowship = reg.fellowship;
-      const startDate = new Date(fellowship.startDate);
-      const endDate = new Date(fellowship.endDate);
+      const startDate = new Date(fellowship?.startDate);
+      const endDate = new Date(fellowship?.endDate);
       
       // Set dates to start of day for comparison
       startDate.setHours(0, 0, 0, 0);
@@ -37,7 +37,7 @@ const getAllFellowshipRegistrations = async (req, res) => {
 
     const pastReg = registrations.filter(reg => {
       const fellowship = reg.fellowship;
-      const endDate = new Date(fellowship.endDate);
+      const endDate = new Date(fellowship?.endDate);
       
       // Set date to start of day for comparison
       endDate.setHours(0, 0, 0, 0);
@@ -217,7 +217,7 @@ const getAllRegistrationsByUser = async (req, res) => {
     // Get all registrations for user
     const allRegistrations = await fellowshipRegistrationModel
       .find({ user: userId})
-      .populate("fellowship")
+      .populate("fellowship", "cycle startDate endDate")
       .populate("workgroupId", "title description")
       .sort({ appliedAt: -1 });
 
@@ -235,7 +235,7 @@ const getAllRegistrationsByUser = async (req, res) => {
 
     allRegistrations.forEach(reg => {
       
-      const endDate = new Date(reg.fellowship.endDate);
+      const endDate = new Date(reg?.fellowship?.endDate);
       // First categorize by status
       switch (reg.status) {
         case "PENDING_REVIEW":

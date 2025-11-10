@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User,  Award, Clock, Settings, IdCard} from 'lucide-react';
+import { User,  Award, Clock, Settings, IdCard, ClipboardList} from 'lucide-react';
 import TabContent from '../../components/Profile/TabContent.jsx';
 import ProfileSidebar from '../../components/Profile/ProfileSidebar.jsx';
 import ProfileSettings from '../../components/Profile/ProfileSettings.jsx';
@@ -108,6 +108,7 @@ const ProfileDashboard = () => {
   const tabs = [
     { id: 'current', label: 'Current Registrations', icon: Award },
     { id: 'history', label: 'Fellowship History', icon: Clock },
+    {id:'track-application' , label: "Application Tracker", icon: ClipboardList},
     {id: 'membership', label: "Manage Membership" ,icon: IdCard},
     { id: 'settings', label: "Profile Settings", icon: Settings }
   ];

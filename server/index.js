@@ -18,6 +18,7 @@ import fellowshipRegistrationRouter from './Routes/fellowshipRegistrationRouter.
 import postRouter from "./Routes/postRouter.js";
 import commentRouter from './Routes/commentRouter.js';
 import researchPaperRouter from './Routes/researchPaperRouter.js';
+import fellowProfileRouter from './Routes/fellowProfileRouter.js';
 /* ----------------------------------------------------------------------------------------------------------------------------------------------- */
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/fellowship-registration", fellowshipRegistrationRouter);
 app.use("/api/community", postRouter);
 app.use("/api/comment", commentRouter); 
 app.use("/api/documents", researchPaperRouter);
+app.use("/api/fellow-profile", fellowProfileRouter);
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 

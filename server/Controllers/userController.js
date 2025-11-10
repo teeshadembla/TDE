@@ -214,7 +214,8 @@ const getUserStats = async (req, res) => {
                 createdAt: {
                 $gte: startOfMonth,
                 $lte: endOfMonth
-                }
+                },
+                paymentStatus: "COMPLETED"
             }
             },
             {
@@ -250,7 +251,7 @@ const getUserStats = async (req, res) => {
         });
 
         const pendingApplications = await fellowshipRegistrationModel.find({
-            status: "PENDING",
+            status: "PENDING_REVIEW",
             createdAt: {
                 $gte: startOfMonth,
                 $lte: endOfMonth

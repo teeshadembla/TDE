@@ -35,6 +35,7 @@ import ResearchPaperUploadForm from './components/DocumentUpload/ResearchPaperUp
 import Publications from './Pages/Publications/Publications.jsx';
 import IndividualPaperPage from './components/Publications/IndividualPaperPage.jsx';
 import ArticlePage from "./components/News/ArticlePage.jsx";
+import OnboardingForm from './Pages/OnboardingForm/OnboardingForm.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -139,6 +140,9 @@ function App() {
               {/* Publications Page */}
               <Route path='/publications' element={<Publications/>} ></Route>
               <Route path='/research-paper/:paper_id' element={<IndividualPaperPage/>} ></Route>
+
+              {/* User Profile */}
+              <Route path='/onboarding/:registrationId' element={<OnboardingForm/>}></Route>
 
           </Routes>
 

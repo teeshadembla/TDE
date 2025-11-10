@@ -3,6 +3,7 @@ import PastRegistrationsTable from "./PastRegistrationsTable";
 import RegistrationPrompt from "./RegistrationPrompt";
 import ProfileSettings from "./ProfileSettings";
 import Memberships from "./Memberships";
+import ApplicationTracker from "./ApplicationTracker";
 
 const updateUserData = async () => {
   try {
@@ -50,6 +51,10 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
       <div>
         <Memberships/> 
       </div>
+    )
+  }else if(activeTab === 'track-application'){
+    return(
+      <div><ApplicationTracker/></div>
     )
   }
 

@@ -74,7 +74,7 @@ const researchPaperSchema = new mongoose.Schema({
   }],
   documentType:{
     type: String,
-    enum: ['report','opinion-piece','policy-paper','position-paper','industry-insight','research-article'],
+    enum: ['Report','Opinion Piece','Policy Paper','Position Paper','Industry Insight','Research Article'],
     required: true
   },
   tags:[{

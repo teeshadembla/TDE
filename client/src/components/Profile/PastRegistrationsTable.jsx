@@ -65,24 +65,24 @@ const PastRegistrationsTable = ({ registrations }) => {
                 <tr key={registration._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div>
-                      <div className="font-medium text-gray-900">{registration.fellowship.cycle}</div>
+                      <div className="font-medium text-gray-900">{registration?.fellowship?.cycle}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm">
-                      <div className="font-medium text-gray-900">{registration.workgroupId.title}</div>
-                      <div className="text-gray-500 truncate max-w-xs">{registration.workgroupId.description}</div>
+                      <div className="font-medium text-gray-900">{registration?.workgroupId?.title}</div>
+                      <div className="text-gray-500 truncate max-w-xs">{registration?.workgroupId?.description}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {formatDate(registration.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {registration.completedAt ? formatDate(registration.completedAt) : '-'}
+                    {registration.completedAt ? formatDate(registration?.completedAt) : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(registration.status)}`}>
-                      {registration.status}
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(registration?.status)}`}>
+                      {registration?.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

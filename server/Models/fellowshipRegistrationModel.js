@@ -51,9 +51,29 @@ const fellowshipRegistrationSchema = new mongoose.Schema({
   appliedAt: {
     type: Date,
     default: Date.now
+  },
+  onboardingStatus: {
+    type: String,
+    enum: ['PENDING', 'IN_PROGRESS', 'SUBMITTED', 'APPROVED'],
+    default: 'PENDING'
+  },
+  onboardingStartedAt: { type: Date },
+  onboardingSubmittedAt: { type: Date },
+  onboardingCompletedAt: { type: Date },
+  
+  // Email tracking
+  lastReminderSent: { type: Date },
+  reminderCount: { type: Number, default: 0 },
+  
+  // Reference to public profile (once created)
+  fellowProfileId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FellowProfile',
+    default: null
   }
 }, {
   timestamps: true
 });
 
-export default mongoose.model('Fellowship-Registration', fellowshipRegistrationSchema);
+const fellowshipRegistrationModel = mongoose.model('Fellowship-Registration', fellowshipRegistrationSchema);
+export default fellowshipRegistrationModel

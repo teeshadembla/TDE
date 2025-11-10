@@ -65,7 +65,7 @@ export const getPresignedUrl = async (req, res) => {
       originalName: fileName,
       s3Url: pdfFileUrl,
       s3Key: pdfKey,
-      thumbnailUrl: thumbnailFileUrl, // Store public thumbnail URL
+      thumbnailUrl: thumbnailFileUrl, 
       thumbnailKey: thumbnailKey,
       workgroupId: req.body.workgroupId,
       documentType: req.body.documentType ,
