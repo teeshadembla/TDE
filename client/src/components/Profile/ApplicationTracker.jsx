@@ -12,6 +12,7 @@ const ApplicationTracker = () => {
   const [applications, setApplications] = useState([]);
   const [isPaymentFormOpen, setIsPaymentFormOpen] = useState(false);
   const [recentApplication, setRecentApplication] = useState(null);
+  const [pendingOnboarding, setPendingOnboarding] = useState(false);
   const { account } = useContext(DataProvider.DataContext);
   const navigate = useNavigate();
 
@@ -38,8 +39,22 @@ const ApplicationTracker = () => {
            (app?.onboardingStatus === 'PENDING' || app?.onboardingStatus === 'IN_PROGRESS');
   };
 
-  // Find if there's any pending onboarding
-  const pendingOnboarding = applications.find(app => needsOnboarding(app));
+  const checkPendingOnboarding = async() => {
+    try{
+      const response = await axiosInstance.get("/api/fellow-profile/getFellowProfile");
+      console.log("this is the response while trying to check if user already has a profile---->", response);
+
+      if(response) setPendingOnboarding(response.data);
+      console.log("Pending Onboarding has been updated");
+
+    }catch(err){
+      console.log("This error occurred while trying to check if user has a pulic fellow profile already.");
+    }
+  }
+
+  useEffect(()=>{
+    checkPendingOnboarding();
+  },[])
 
   // Get application stage for progress tracker
   const getApplicationStage = (app) => {
@@ -98,10 +113,10 @@ const ApplicationTracker = () => {
     setIsPaymentFormOpen(true);
   };
 
-  const handleStartOnboarding = async (registrationId) => {
+  const handleStartOnboarding = async (userId) => {
     try {
       // Navigating to onboarding page
-      navigate(`/onboarding/${registrationId}`);
+      navigate(`/onboarding/${userId}`);
     } catch (error) {
       console.error('Error starting onboarding:', error);
       alert('Failed to start onboarding. Please try again.');
@@ -141,7 +156,7 @@ const ApplicationTracker = () => {
         </div>
 
         {/* Onboarding Alert Banner */}
-        {pendingOnboarding && (
+        {pendingOnboarding.isProfile && (pendingOnboarding.profile.status !== "APPROVED") && (
           <div className="mb-8 bg-gradient-to-r from-[#004aad] via-[#062c65] to-[#004aad] p-8 rounded-xl border-2 border-[#aae7ff] shadow-2xl">
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
               <div className="flex-1">
@@ -161,11 +176,11 @@ const ApplicationTracker = () => {
                 </div>
               </div>
               <button
-                onClick={() => handleStartOnboarding(pendingOnboarding._id)}
+                onClick={() => handleStartOnboarding(account._id)}
                 className="bg-[#ffffff] text-[#004aad] px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#aae7ff] transition-colors shadow-xl flex items-center gap-2 whitespace-nowrap"
               >
                 <Users className="w-6 h-6" />
-                {pendingOnboarding.onboardingStatus === 'IN_PROGRESS' 
+                {pendingOnboarding.isProfile 
                   ? 'Continue Setup' 
                   : 'Start Now'}
               </button>
@@ -198,7 +213,7 @@ const ApplicationTracker = () => {
               const showPaymentButton = 
                 (app?.status === 'APPROVED' || app?.status === 'CONFIRMED') && 
                 app?.paymentStatus === 'PENDING';
-              const showOnboardingButton = needsOnboarding(app);
+              /* const showOnboardingButton = needsOnboarding(app); */
 
               return (
                 <div
@@ -308,7 +323,7 @@ const ApplicationTracker = () => {
                     )}
 
                     {/* Onboarding Button */}
-                    {showOnboardingButton && (
+                    {/* {showOnboardingButton && (
                       <button
                         onClick={() => handleStartOnboarding(app?._id)}
                         className="w-full bg-gradient-to-r from-[#004aad] to-[#062c65] hover:from-[#062c65] hover:to-[#004aad] text-[#ffffff] font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl border-2 border-[#aae7ff]"
@@ -318,7 +333,7 @@ const ApplicationTracker = () => {
                           ? 'Continue Profile Setup' 
                           : 'Complete Your Fellow Profile'}
                       </button>
-                    )}
+                    )} */}
 
                     {isPaymentFormOpen && (
                       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

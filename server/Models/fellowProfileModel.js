@@ -19,8 +19,11 @@ const fellowProfileSchema = new mongoose.Schema({
     type: String,
     maxlength: 100
   },
-  professionalHeadshot: {
+  professionalHeadshotUrl: {
     type: String, // URL to image
+  },
+  professionalHeadshotKey: {
+    type: String,
   },
   headline: {
     type: String, // e.g., "AI Researcher | Senior Fellow"
@@ -35,8 +38,8 @@ const fellowProfileSchema = new mongoose.Schema({
     type: String,
   }], // Minimum 3 tags
   currentRole: {
-    title: { type: String, required: true },
-    organization: { type: String, required: true }
+    title: { type: String },
+    organization: { type: String }
   },
   socialLinks: {
     linkedin: { type: String, default: '' },
@@ -50,6 +53,13 @@ const fellowProfileSchema = new mongoose.Schema({
     url: String,
     type: { type: String, enum: ['project', 'publication', 'talk', 'other'] }
   }],
+
+  //IMAGE UPLOAD STATUS AND RELATED FIELDS
+  imageUploadStatus: {
+    type: String,
+    enum: ['completed', 'pending', 'failed'],
+    default: 'pending',
+  },
   
   // MODERATION FIELDS
   status: {

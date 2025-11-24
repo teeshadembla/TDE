@@ -1,6 +1,8 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION_PP,
@@ -20,6 +22,7 @@ const s3Client = new S3Client({
  * @returns {Promise<{presignedUrl: string, fileUrl: string, key: string}>}
  */
 const generatePresignedUrl = async (
+  bucketName,
   userId,
   fileName,
   fileType,
@@ -34,7 +37,7 @@ const generatePresignedUrl = async (
 
     // Create S3 command parameters
     const commandParams = {
-      Bucket: process.env.AWS_BUCKET_NAME_PDF,
+      Bucket: bucketName,
       Key: key,
       ContentType: fileType,
     };
@@ -50,7 +53,7 @@ const generatePresignedUrl = async (
     });
 
     // Construct the file URL
-    const fileUrl = `https://${process.env.AWS_BUCKET_NAME_PDF}.s3.${process.env.AWS_REGION_PP}.amazonaws.com/${key}`;
+    const fileUrl = `https://${bucketName}.s3.${process.env.AWS_REGION_PP}.amazonaws.com/${key}`;
 
     return {
       presignedUrl,

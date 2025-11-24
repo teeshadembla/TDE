@@ -8,15 +8,21 @@ import ImageUpload from '../../components/OnboardingForm/UiComponents/ImageUploa
 import DynamicList from '../../components/OnboardingForm/UiComponents/DynamicList';
 import PortfolioItem from '../../components/OnboardingForm/UiComponents/PortfolioItem';
 import ProgressIndicator from '../../components/OnboardingForm/UiComponents/ProgressIndicator';
-// Main Form Component
+import axios from 'axios';
+import toast from 'react-hot-toast';
+
 const OnboardingForm = () => {
-  const { registrationId } = useParams();
+  const { userId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [hasNewImage, setHasNewImage] = useState(false); // Track if image changed
+  const [existingImageUrl, setExistingImageUrl] = useState(null); // Store existing S3 URL
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
+  const [imgUploadProgress, setImgUploadProgress] = useState(0);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -53,12 +59,13 @@ const OnboardingForm = () => {
     const loadDraft = async () => {
       try {
         const response = await axiosInstance.get(
-          `/api/fellow-profile/getDraft/${registrationId}`
+          `/api/fellow-profile/getDraft/${userId}`
         );
         if (response.data) {
           setFormData(response.data);
-          if (response.data.professionalHeadshot) {
-            setImagePreview(response.data.professionalHeadshot);
+          if (response.data.professionalHeadshotUrl) {
+            setImagePreview(response.data.professionalHeadshotUrl);
+            setExistingImageUrl(response.data.professionalHeadshotUrl); // Store existing URL
           }
         }
       } catch (error) {
@@ -66,7 +73,7 @@ const OnboardingForm = () => {
       }
     };
     loadDraft();
-  }, [registrationId]);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -106,21 +113,51 @@ const OnboardingForm = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, image: 'Image must be less than 5MB' }));
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Image must be less than 10MB' }));
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setFormData(prev => ({
-          ...prev,
-          professionalHeadshot: reader.result
-        }));
-        setErrors(prev => ({ ...prev, image: '' }));
-      };
-      reader.readAsDataURL(file);
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, image: 'File must be an image' }));
+        return;
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      setImageFile(file);
+      setHasNewImage(true); // Mark that image has changed
+      
+      setFormData(prev => ({
+        ...prev,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      }));
+
+      setErrors(prev => ({ ...prev, image: '' }));
     }
+  };
+
+  const handleImageRemove = async () => {
+    // If there's an existing image in S3, delete it
+    if (existingImageUrl && !hasNewImage) {
+      try {
+        await axiosInstance.delete(
+          `/api/fellow-profile/headshot/delete/${userId}`
+        );
+        toast.success('Image deleted successfully');
+      } catch (error) {
+        console.error('Error deleting image:', error);
+        toast.error('Failed to delete image');
+      }
+    }
+
+    // Clear local state
+    setImagePreview(null);
+    setImageFile(null);
+    setHasNewImage(true); // Mark as changed (removed)
+    setExistingImageUrl(null);
+    setFormData(prev => ({ ...prev, professionalHeadshot: '' }));
   };
 
   const addPortfolioItem = () => {
@@ -181,17 +218,63 @@ const OnboardingForm = () => {
   const handleSaveDraft = async () => {
     setSaving(true);
     try {
-      await axiosInstance.post(
-        `/api/fellow-profile/saveDraft/${registrationId}`,
-        formData
+      // Prepare data to send
+      const dataToSend = {
+        ...formData,
+        hasNewImage // Tell backend if image changed
+      };
+
+      // Step 1: Save draft (backend will conditionally return presigned URL)
+      const response = await axiosInstance.post(
+        `/api/fellow-profile/presigned-url/headshot/${userId}`,
+        dataToSend
       );
+
+      const { profileId, presignedUrl, key } = response.data;
+
+      // Step 2: Upload image ONLY if there's a new one
+      if (hasNewImage && presignedUrl && imageFile) {
+        await axios.put(presignedUrl, imageFile, {
+          headers: {
+            'Content-Type': imageFile.type,
+          },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setImgUploadProgress(progress);
+          },
+        });
+
+        // Step 3: Confirm upload
+        const confirmResponse = await axiosInstance.put('/api/fellow-profile/headshot/confirmUpload', {
+          documentId: profileId
+        });
+
+        // Reload draft to get new signed URL
+        const draftResponse = await axiosInstance.get(
+          `/api/fellow-profile/getDraft/${userId}`
+        );
+        
+        if (draftResponse.data.professionalHeadshot) {
+          setImagePreview(draftResponse.data.professionalHeadshotUrl);
+          setExistingImageUrl(draftResponse.data.professionalHeadshotUrl);
+        }
+        
+        setHasNewImage(false); // Reset flag
+        setImageFile(null);
+      }
+
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
+      toast.success("Draft saved successfully!");
+
     } catch (error) {
       console.error('Error saving draft:', error);
-      alert('Failed to save draft');
+      toast.error('Failed to save draft');
     } finally {
       setSaving(false);
+      setImgUploadProgress(0);
     }
   };
 
@@ -205,15 +288,44 @@ const OnboardingForm = () => {
 
     setLoading(true);
     try {
-      await axiosInstance.post(
-        `/api/fellow-profile/submit/${registrationId}`,
-        formData
+      const response = await axiosInstance.post(
+        `/api/fellow-profile/submit/${userId}`,
+        formData,
+        hasNewImage,
       );
-      alert('Profile submitted successfully! You will be notified once it is reviewed.');
-      navigate('/dashboard/applications');
+      toast.success('Profile submitted successfully!');
+
+      const { profileId, presignedUrl, key } = response.data;
+
+      console.log("If we have new image:", hasNewImage);
+      console.log("presigned Url", presignedUrl);
+      console.log("imageFile", imageFile);
+      
+      // Step 2: Upload image ONLY if there's a new one
+      if (hasNewImage && presignedUrl && imageFile) {
+        await axios.put(presignedUrl, imageFile, {
+          headers: {
+            'Content-Type': imageFile.type,
+          },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setImgUploadProgress(progress);
+          },
+        })
+      }
+
+      // Step 3: Confirm upload
+        const confirmResponse = await axiosInstance.put('/api/fellow-profile/headshot/confirmUpload', {
+          documentId: profileId
+        });
+
+        console.log("Image is getting uploaded");
+      /* navigate('/user/profile'); */
     } catch (error) {
       console.error('Error submitting profile:', error);
-      alert('Failed to submit profile. Please try again.');
+      toast.error('Failed to submit profile');
     } finally {
       setLoading(false);
     }
@@ -247,18 +359,33 @@ const OnboardingForm = () => {
           </div>
         )}
 
+        {/* Upload Progress */}
+        {imgUploadProgress > 0 && imgUploadProgress < 100 && (
+          <div className='mb-6 bg-blue-900/20 border border-blue-700 rounded-lg p-4'>
+            <div className='flex items-center justify-between mb-2'>
+              <span className='text-blue-400 text-sm'>Uploading image...</span>
+              <span className='text-blue-400 text-sm'>{imgUploadProgress}%</span>
+            </div>
+            <div className='w-full bg-neutral-800 rounded-full h-2'>
+              <div 
+                className='bg-blue-600 h-2 rounded-full transition-all duration-300'
+                style={{ width: `${imgUploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className='space-y-6'>
           {/* Professional Headshot */}
-          <FormCard 
-            title='Professional Headshot' 
-            required
-          >
+          <FormCard title='Professional Headshot' required>
             <ImageUpload
               preview={imagePreview}
               onUpload={handleImageUpload}
               onRemove={() => {
                 setImagePreview(null);
-                setFormData(prev => ({ ...prev, professionalHeadshot: '' }));
+                setImageFile(null);
+                setHasNewImage(true); // Mark as changed (removed)
+                setExistingImageUrl(null);
               }}
               error={errors.image}
             />

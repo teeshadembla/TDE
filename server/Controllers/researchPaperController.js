@@ -1,5 +1,7 @@
 import generatePresignedUrl from '../utils/s3presigned.js';
 import researchPaperModel from '../Models/researchPaperModel.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Step 1: Get presigned URLs (for both PDF and thumbnail)
 export const getPresignedUrl = async (req, res) => {
@@ -42,6 +44,7 @@ export const getPresignedUrl = async (req, res) => {
     // Generate presigned URL for PDF
     const { presignedUrl: pdfPresignedUrl, fileUrl: pdfFileUrl, key: pdfKey } = 
       await generatePresignedUrl(
+        process.env.AWS_BUCKET_NAME_PDF,
         req.user._id,
         fileName,
         fileType,
@@ -52,6 +55,7 @@ export const getPresignedUrl = async (req, res) => {
     const thumbnailFileName = fileName.replace('.pdf', '.jpg');
     const { presignedUrl: thumbnailPresignedUrl, fileUrl: thumbnailFileUrl, key: thumbnailKey } = 
       await generatePresignedUrl(
+        process.env.AWS_BUCKET_NAME_PDF,
         req.user._id,
         thumbnailFileName,
         thumbnailType,

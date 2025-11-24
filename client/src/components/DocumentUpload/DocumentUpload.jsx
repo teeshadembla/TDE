@@ -80,7 +80,6 @@ const DocumentUpload = () => {
           fileType: pdfFile.type,
           fileSize: pdfFile.size,
           thumbnailType: thumbnailFile.type,
-          description: 'My PDF document', // Optional
         },
       );
 

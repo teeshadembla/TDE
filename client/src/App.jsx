@@ -142,7 +142,7 @@ function App() {
               <Route path='/research-paper/:paper_id' element={<IndividualPaperPage/>} ></Route>
 
               {/* User Profile */}
-              <Route path='/onboarding/:registrationId' element={<OnboardingForm/>}></Route>
+              <Route path='/onboarding/:userId' element={<OnboardingForm/>}></Route>
 
           </Routes>
 
