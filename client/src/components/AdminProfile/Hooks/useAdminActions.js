@@ -1,4 +1,7 @@
 import axiosInstance from "../../../config/apiConfig";
+import {toast} from "react-toastify";
+import { updateApplicationStatus } from "../Services/AdminServices.js";
+import "react-toastify/dist/ReactToastify.css";
 
 export const useAdminActions = (setFellowshipRegistrations) => {
   const handleStatusChange = async (applicationId, newStatus) => {

@@ -93,7 +93,6 @@ export const getFellowProfileByUserId = async (req, res) => {
             displayName: r.user?.FullName || '',
             professionalHeadshotUrl: r.user?.profilePicture || '',
             headline: '',
-            fellowshipRegistrationId: r,
             status: 'PENDING'
           }));
 
@@ -108,13 +107,9 @@ export const getFellowProfileByUserId = async (req, res) => {
         // search filter: match displayName, headline or user email / fullname
         let profiles = await fellowProfileModel.find(query)
           .populate('userId', 'email FullName profilePicture')
-          .populate({ path: 'fellowshipRegistrationId', populate: { path: 'fellowship' } })
           .limit(500)
           .lean();
 
-        if (cohort && cohort !== 'all') {
-          profiles = profiles.filter(p => p.fellowshipRegistrationId && p.fellowshipRegistrationId.fellowship && String(p.fellowshipRegistrationId.fellowship.cycle).toLowerCase() === String(cohort).toLowerCase());
-        }
 
         if (keyword) {
           const k = keyword.toLowerCase();

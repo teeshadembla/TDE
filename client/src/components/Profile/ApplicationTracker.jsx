@@ -132,6 +132,9 @@ const ApplicationTracker = () => {
   };
 
   const getOnboardingStatusText = (status) => {
+    if(pendingOnboarding.isProfile === true) {
+      return '✓ Profile Approved';
+    }
     const statusMap = {
       'APPROVED': '✓ Profile Approved',
       'SUBMITTED': 'Under Review',
@@ -188,16 +191,7 @@ const ApplicationTracker = () => {
           </div>
         )}
 
-        {/* Progress Tracker for Recent Application */}
-        {/* {recentApplication && (
-          <div className="mb-8">
-            <ProgressTracker 
-              currentStage={getApplicationStage(recentApplication)} 
-              status={recentApplication.status}
-            />
-          </div>
-        )}
- */}
+       
         {/* Applications Grid */}
         {applications.length === 0 ? (
           <div className="text-center py-16">
@@ -213,7 +207,6 @@ const ApplicationTracker = () => {
               const showPaymentButton = 
                 (app?.status === 'APPROVED' || app?.status === 'CONFIRMED') && 
                 app?.paymentStatus === 'PENDING';
-              /* const showOnboardingButton = needsOnboarding(app); */
 
               return (
                 <div
@@ -323,7 +316,7 @@ const ApplicationTracker = () => {
                     )}
 
                     {/* Onboarding Button */}
-                    {/* {showOnboardingButton && (
+                    {!pendingOnboarding.isProfile && (
                       <button
                         onClick={() => handleStartOnboarding(app?._id)}
                         className="w-full bg-gradient-to-r from-[#004aad] to-[#062c65] hover:from-[#062c65] hover:to-[#004aad] text-[#ffffff] font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl border-2 border-[#aae7ff]"
@@ -333,7 +326,7 @@ const ApplicationTracker = () => {
                           ? 'Continue Profile Setup' 
                           : 'Complete Your Fellow Profile'}
                       </button>
-                    )} */}
+                    )}
 
                     {isPaymentFormOpen && (
                       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

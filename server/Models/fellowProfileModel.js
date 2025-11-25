@@ -8,12 +8,6 @@ const fellowProfileSchema = new mongoose.Schema({
     required: true,
     unique: true // One profile per user
   },
-  fellowshipRegistrationId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Fellowship-Registration',
-    required: true
-  },
-  
   // PUBLIC PROFILE DATA (what appears on Fellows page)
   displayName: {
     type: String,
