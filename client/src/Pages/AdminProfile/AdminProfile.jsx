@@ -22,7 +22,7 @@ import AdminInfoSideBar from '../../components/AdminProfile/AdminInfoSideBar.jsx
 
 const AdminProfile = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [adminData, setAdminData] = useState(sampleAdminData);
+  const [adminData, setAdminData] = useState();
   const {account} = useContext(DataProvider.DataContext);
 
   const {

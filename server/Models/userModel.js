@@ -1,6 +1,12 @@
 import mongoose, { mongo } from 'mongoose';
 
 const userSchema = mongoose.Schema({
+    clerkUserId: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true,
+    },
     FullName: {
         type: String,
         required: true
@@ -9,10 +15,6 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-    },
-    password: {
-        type: String,
-        required: true,
     },
     profilePicture: {
         type: String, 
@@ -36,8 +38,8 @@ const userSchema = mongoose.Schema({
     },
     membership: [{
         isActive: { type: Boolean, default: false },
-        startDate: { type: Date, required: true },
-        endDate: { type: Date, required: true },
+        startDate: { type: Date },
+        endDate: { type: Date },
         status: { 
             type: String, 
             enum: ["active", "expired", "cancelled"],
@@ -46,7 +48,7 @@ const userSchema = mongoose.Schema({
         membershipType: {
             type: String,
             enum: ["digital-i", "digital-c", "strategic"],
-            default: "annual"
+            default: "digital-i"
         },
         renewalDate: { type: Date },
         cancellationDate: { type: Date },

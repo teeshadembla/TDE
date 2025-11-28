@@ -1,32 +1,45 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
+import userModel from "../Models/userModel.js";
 dotenv.config();
 
-const authenticateToken = async(req, res, next) =>{
+const enrichUserData = async(req, res, next) =>{
     try{
-        console.log("starting middleware function....");
-        const accessToken = req.cookies.accessToken;
-
-        console.log("accessToken has been retrieved");
-        if(!accessToken){
-            return res.status(400).json({msg:"User not logged in, token missing."});
+        if(!req.auth?.userId){
+            return res.status(401).json({msg: "User not authenticated"});
         }
 
-        console.log("Now we are verifying the accessToken");
+        console.log("Clerk user ID:", req.auth.userId);
 
-        jwt.verify(accessToken, process.env.ACCESS_SECRET, (error, user)=>{
-            if(error){
-                return res.status(403).json({msg:"Some error has occurred.", error: error});
-            }
-            console.log("The current user in the backend is--->", user);
-            req.user = user;
+        const dbUser = await userModel.findOne({clerkUserId: req.auth.userId});
 
-            next();
-        })
+        if (!dbUser) {
+            return res.status(404).json({ 
+                msg: "User profile not found in database" 
+            });
+        }
+
+        req.user = {
+            userId: dbUser._id,              
+            clerkUserId: req.auth.userId,    
+            email: dbUser.email,
+            username: dbUser.FullName,
+            role: dbUser.role,
+            profilePicture: dbUser.profilePicture,
+        };
+
+        console.log("User data enriched:", req.user.email);
+        next();
 
     }catch(err){
-        return res.status(500).json({mag: "Internal Server Error in token controller"});
+        console.error("Error enriching user data:", err);
+        return res.status(500).json({ 
+            msg: "Error fetching user data",
+            error: err.message 
+        });
     }
 }
 
+const authenticateToken = [requireAuth() , enrichUserData];
 export default authenticateToken;

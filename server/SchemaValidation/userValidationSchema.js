@@ -1,6 +1,8 @@
 import Joi from "joi";
 
 const userValidationSchema = Joi.object({
+  clerkUserId: Joi.string().required(),
+
   FullName: Joi.string().max(100).required(),
   
   email: Joi.string().email().required(),

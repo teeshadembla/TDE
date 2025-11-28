@@ -8,7 +8,7 @@ const userRouter = express.Router({mergeParams:true});
 userRouter.post("/signup", uploadProfilePicture.single('profilePicture') ,userController.signup);
 userRouter.post("/login", userController.login);
 userRouter.delete("/logout",authenticateToken, userController.logout);
-userRouter.get("/me",authenticateToken, userController.getMe);
+userRouter.get("/me", userController.getMe);
 
 userRouter.get("/stats", authenticateToken, userController.getUserStats);
 

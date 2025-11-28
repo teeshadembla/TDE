@@ -2,15 +2,26 @@ import userModel from "../Models/userModel.js";
 import tokenModel from "../Models/tokenModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import {getAuth} from "@clerk/express"
 import userValidationSchema from "../SchemaValidation/userValidationSchema.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
 import { uploadToS3 } from '../utils/s3config.js';
+import  clerkClient  from "../utils/clerkConfig.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const signup = async(req,res)=>{
-    try{
+// ============================================
+// Backend Signup Function with Clerk Integration
+// ============================================
+
+// First, install Clerk backend SDK: npm install @clerk/backend
+
+
+
+const signup = async (req, res) => {
+    try {
+        // Parse JSON strings from FormData
         if (typeof req.body.socialLinks === 'string') {
             req.body.socialLinks = JSON.parse(req.body.socialLinks);
         }
@@ -27,24 +38,65 @@ const signup = async(req,res)=>{
 
         const { error, value } = userValidationSchema.validate(req.body);
         if (error) {
-        return res.status(400).json({ msg: error.details[0].message });
+            return res.status(400).json({ msg: error.details[0].message });
         }
 
-        const {FullName, email, password, role, socialLinks, followedTopicsArray, isSubscribedToNewsletter, location, title, department, company, expertiseArray, discoverySource} = value;
-        console.log("Data coming from request body--->", {FullName, email, password, role, socialLinks, followedTopicsArray, isSubscribedToNewsletter, location, title, department, company, expertiseArray, discoverySource});
+        const {
+            FullName,
+            email,
+            role,
+            socialLinks,
+            followedTopicsArray,
+            isSubscribedToNewsletter,
+            location,
+            title,
+            department,
+            company,
+            expertiseArray,
+            discoverySource,
+            clerkUserId 
+        } = value;
 
-        if(!FullName || !email || !password || !role || !discoverySource){
-            return res.status(401).json({msg: "Incomplete fields, Kindly fill all the required fields and then log in"});
+        console.log("Data coming from request body--->", {
+            FullName,
+            email,
+            role,
+            socialLinks,
+            followedTopicsArray,
+            isSubscribedToNewsletter,
+            location,
+            title,
+            department,
+            company,
+            expertiseArray,
+            discoverySource,
+            clerkUserId
+        });
+
+        if (!FullName || !email || !role || !discoverySource) {
+            return res.status(401).json({
+                msg: "Incomplete fields, Kindly fill all the required fields"
+            });
         }
 
-        //check for uniqueness of email
-        const isUniqueEmail = await userModel.findOne({email: email});
-        if(isUniqueEmail){
-            return res.status(402).json({msg: `An account with ${email} exists. Try Signing up with another email`});
+        // Check if Clerk user ID is provided
+        if (!clerkUserId) {
+            return res.status(401).json({
+                msg: "Authentication error. Please try signing up again."
+            });
         }
 
-        const hashedPassword = await bcrypt.hash(password,10);
-        console.log("Password has been hashed, now moving forward to making a data object to create user.");
+        // Check for uniqueness of email
+        const isUniqueEmail = await userModel.findOne({ email: email });
+        if (isUniqueEmail) {
+            return res.status(402).json({
+                msg: `An account with ${email} exists. Try Signing up with another email`
+            });
+        }
+
+        // Note: Password is already hashed by Clerk, so we don't need to hash it again
+        // We can store a reference or skip storing password entirely
+        console.log("User authenticated through Clerk, proceeding to save additional data.");
 
         let profilePictureUrl = null;
         if (req.file) {
@@ -65,10 +117,30 @@ const signup = async(req,res)=>{
             }
         }
 
+        // Update Clerk user metadata with additional info
+        try {
+            await clerkClient.users.updateUser(clerkUserId, {
+                publicMetadata: {
+                    role: role,
+                    location: location,
+                    title: title,
+                    department: department,
+                    company: company,
+                },
+                privateMetadata: {
+                    discoverySource: discoverySource,
+                    isSubscribedToNewsletter: isSubscribedToNewsletter,
+                }
+            });
+        } catch (clerkError) {
+            console.error("Error updating Clerk user metadata:", clerkError);
+            // Continue anyway, as the main data will be in your database
+        }
+
         const userData = {
             FullName: FullName,
             email: email,
-            password: hashedPassword,
+            clerkUserId: clerkUserId, // Store Clerk user ID for reference
             profilePicture: profilePictureUrl,
             role: role,
             socialLinks: socialLinks,
@@ -88,20 +160,22 @@ const signup = async(req,res)=>{
             company: company,
             expertise: expertiseArray,
             discoverySource: discoverySource,
-        }
+        };
 
         console.log("The new user that we are going to create: ", userData);
 
         const newUser = new userModel(userData);
         await newUser.save();
 
-        return res.status(200).json({msg: "User registered successfully!"});
-    }catch(err){
-        console.log("This error has occurred in the backend while registering user---->",err);
-        return res.status(500).json({msg: "Internal Server Error has occurred"});
+        return res.status(200).json({ 
+            msg: "User registered successfully!",
+            userId: newUser._id 
+        });
+    } catch (err) {
+        console.log("This error has occurred in the backend while registering user---->", err);
+        return res.status(500).json({ msg: "Internal Server Error has occurred" });
     }
-
-}
+};
 
 const login = async(req, res)=>{
     try{
@@ -185,16 +259,35 @@ const logout = async(req,res)=>{
 
 const getMe = async(req, res) =>{
     try{
-        console.log("Starting callback function now");
-        const user = {_id: req.user._id , name: req.user.FullName, email: req.user.email, role: req.user.role, profilePicture: req.user.profilePicture};
-        console.log("User from the backend has been fetched and it is as follows--->", user);
+        console.log("Getting existing user");
+        const {userId} = getAuth(req);
 
-        if(!user){
-            return res.status(500).json({msg:"User not found"});
+        console.log(userId);
+
+        if (!userId) {
+            return res.status(401).json({ msg: "Not authenticated" });
+        }
+        const user = await userModel.findOne({ clerkUserId: userId });
+
+        if (!user) {
+        return res.status(404).json({ msg: "User not found in database" });
         }
 
-        return res.status(200).json({msg: "User is authenticated", user: user});
+        const cleanUser = {
+        _id: user._id,
+        FullName: user.FullName,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        };
+
+        return res.status(200).json({
+        msg: "User is authenticated",
+        user: cleanUser,
+        });
+        
     }catch(err){
+        console.error("Error in getMe:", err);
         return res.status(500).json({msg:"Internal Server Error"});
     }
 }

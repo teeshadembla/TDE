@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
+import { clerkMiddleware } from "@clerk/express";
 import Connection from './db.js';
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -31,6 +32,12 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
+app.use(
+  clerkMiddleware({
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    secretKey: process.env.CLERK_SECRET_KEY,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -61,6 +68,7 @@ const PORT = process.env.PORT;
 
 app.listen(PORT, ()=>{
     console.log(`Server is listening on ${PORT}`);
+    console.log(process.env.CLERK_SECRET_KEY);
 })
 
 Connection();

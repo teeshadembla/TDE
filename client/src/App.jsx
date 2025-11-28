@@ -21,6 +21,7 @@ import ApplicationModal from "./components/ExecutiveFellowships/ApplicationModal
 import CommunityPage from './Pages/CommunityPage/CommunityPage.jsx';
 import OurPeople from  "./Pages/PeopleAtTDE/OurPeople.jsx";
 import AboutUs from './Pages/AboutUs/AboutUs.jsx';
+import { useAuth, useUser } from "@clerk/clerk-react";
 // ProtectedRoute.jsx
 import { Navigate, useLocation } from "react-router-dom";
 import AdminProfile from './Pages/AdminProfile/AdminProfile.jsx';
@@ -61,30 +62,46 @@ function ProtectedRoute({ children, authLoading}) {
 function App() {
   const {account, setAccount} = useContext(DataProvider.DataContext);
   const [authLoading, setAuthLoading] = useState(true); 
+  const {isLoaded, isSignedIn} = useAuth();
+  const {user} = useUser();
 
   useEffect(()=>{
-    const validateUser = async() =>{
-      try{
-        const res = await axiosInstance.get("/api/user/me");
-        console.log(res);
-        console.log("before being updated",account);
+    console.log("This is the user from clerk--->", user);
+    console.log("Thisis the loading and auth status--->", isLoaded, isSignedIn);
+  },[isLoaded, isSignedIn, user])
 
-        const user = res.data.user;
+  useEffect(()=>{
+    if(!isLoaded) return;
+
+      if (!isSignedIn) {
+        setAccount({ _id: "", name: "", email: "", role: "", profilePicture: "" });
+        setAuthLoading(false);
+        return;
+      }
+
+    const syncUser = async () =>{
+      
+
+      try{
+
+        const res = await axiosInstance.get("/api/user/me");
+
+        const u = res.data.user;
         setAccount({
-          _id: user._id,
-          name: user.name,
-          role: user.role,
-          email:user.email,
-          profilePicture: user.profilePicture,
-        })
+          _id: u._id,
+          name: u.FullName,
+          role: u.role,
+          email: u.email,
+          profilePicture: u.profilePicture,
+        });
       }catch(err){
-        console.log("Some error has occured in frontend--->", err);
-      }finally {
-        setAuthLoading(false); // stop loading
+        console.log("Error syncing Clerk user:", err);
+      }finally{
+        setAuthLoading(false);
       }
     }
-    validateUser();
-  },[])
+    syncUser();
+  },[isLoaded, isSignedIn]);
 
   useEffect(() => {
     console.log("Account has been updated:", account);
