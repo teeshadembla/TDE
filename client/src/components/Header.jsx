@@ -5,6 +5,8 @@ import DataProvider from "../context/DataProvider.jsx";
 import axiosInstance from '../config/apiConfig.js'; 
 import ProfileDrawer from './ProfileDrawer.jsx';
 import { ChevronDown, Menu, X } from 'lucide-react';
+import LogoutButton from '../Pages/Auth/LogoutButton.jsx';
+
 
 const Header = () => {
     const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -15,7 +17,6 @@ const Header = () => {
     // Mock navigation function - replace with your actual router
     const navigate = (path) => {
         console.log('Navigating to:', path);
-        // Your actual navigation logic here
         window.location.href = path; // Simple fallback
     };
     
@@ -25,17 +26,6 @@ const Header = () => {
 
     const handleLogin = () => {
         navigate("/login");
-    }
-
-    const handleLogout = async() => {
-        try{
-            const res = await axiosInstance.delete("/api/user/logout");
-            console.log(res);
-            setAccount(null);
-            navigate("/");
-        }catch(err){
-            console.log("Some error has occurred in the frontend while handling log out--->", err);
-        }
     }
 
     // Practice Area dropdown options
@@ -285,12 +275,7 @@ const Header = () => {
                     {/* Auth section */}
                     {account?._id ? (
                         <div className='flex items-center space-x-2 sm:space-x-3'>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                            >
-                                Log Out
-                            </button>
+                            <LogoutButton/>
                             <ProfileDrawer/>
                         </div>
                     ) : (
