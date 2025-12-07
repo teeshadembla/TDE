@@ -37,6 +37,7 @@ import Publications from './Pages/Publications/Publications.jsx';
 import IndividualPaperPage from './components/Publications/IndividualPaperPage.jsx';
 import ArticlePage from "./components/News/ArticlePage.jsx";
 import OnboardingForm from './Pages/OnboardingForm/OnboardingForm.jsx';
+import Setup2FA from "../src/Pages/Auth/setup2FA.jsx";
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -160,6 +161,8 @@ function App() {
 
               {/* User Profile */}
               <Route path='/onboarding/:userId' element={<OnboardingForm/>}></Route>
+
+              <Route path="/setup-2fa" element={<Setup2FA />} />
 
           </Routes>
 
