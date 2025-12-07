@@ -279,6 +279,7 @@ const getMe = async(req, res) =>{
         email: user.email,
         role: user.role,
         profilePicture: user.profilePicture,
+        isVerifiedbyAdmin: user.isVerifiedbyAdmin,
         };
 
         return res.status(200).json({
@@ -433,5 +434,6 @@ const getUserById = async (req, res) => {
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 };
+
 
 export default {signup, login, getMe, logout, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById};

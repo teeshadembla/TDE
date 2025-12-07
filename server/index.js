@@ -20,6 +20,7 @@ import postRouter from "./Routes/postRouter.js";
 import commentRouter from './Routes/commentRouter.js';
 import researchPaperRouter from './Routes/researchPaperRouter.js';
 import fellowProfileRouter from './Routes/fellowProfileRouter.js';
+import adminRouter from './Routes/adminRouter.js';
 /* ----------------------------------------------------------------------------------------------------------------------------------------------- */
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/community", postRouter);
 app.use("/api/comment", commentRouter); 
 app.use("/api/documents", researchPaperRouter);
 app.use("/api/fellow-profile", fellowProfileRouter);
+app.use("/api/admin", adminRouter);
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 

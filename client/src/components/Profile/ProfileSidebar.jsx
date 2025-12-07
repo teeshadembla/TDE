@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Calendar, Users, ExternalLink, Award, Clock, Mail, ChevronRight, Plus, BookOpen, Target, Globe, FileText, AlertCircle, MessageCircle } from 'lucide-react';
+import { User, Calendar, Users, ExternalLink,BadgeCheck, Award, Clock, Mail, ChevronRight, Plus, BookOpen, Target, Globe, FileText, AlertCircle, MessageCircle } from 'lucide-react';
 import { useContext } from 'react';
 import DataProvider from "../../context/DataProvider.jsx";
 
@@ -17,7 +17,7 @@ const ProfileSidebar = ({ user, currentRegistrations, pastRegistrations }) => {
           alt="Profile"
           className="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-gray-100"
         />
-        <h2 className="text-xl font-semibold text-gray-900 mb-1">{account.name}</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-1">{account.name}{account.verified && <BadgeCheck/>}</h2>
         <p className="text-gray-600 text-sm flex items-center justify-center">
           <Mail className="w-4 h-4 mr-2" />
           {account.email}

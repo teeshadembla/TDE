@@ -12,6 +12,7 @@ import ManageWorkgroups from "../../components/AdminProfile/ManageWorkgroups.jsx
 import DataProvider from '../../context/DataProvider.jsx';
 import axiosInstance from '../../config/apiConfig.js';
 import AdminOnboardingTab from '../../components/AdminProfile/AdminOnboardingTab.jsx';
+import UserVerificationTab from '../../components/AdminProfile/UserVerificationTab/UserVerificationTab.jsx';
 
 import { sampleAdminData, tabs } from '../../components/AdminProfile/Utils/adminConstants.js';
 import {useAdminData} from '../../components/AdminProfile/Hooks/useAdminData.js';
@@ -19,6 +20,7 @@ import {useAdminActions} from '../../components/AdminProfile/Hooks/useAdminActio
 
 import AdminHeader from '../../components/AdminProfile/AdminHeader.jsx';
 import AdminInfoSideBar from '../../components/AdminProfile/AdminInfoSideBar.jsx';
+
 
 const AdminProfile = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -172,6 +174,11 @@ const AdminProfile = () => {
 
           {activeTab === 'onboarding' && (
             <AdminOnboardingTab  />
+          )}
+
+          
+          {activeTab === 'user-verification' && (
+            <UserVerificationTab/>
           )}
 
           {activeTab === 'settings' && (

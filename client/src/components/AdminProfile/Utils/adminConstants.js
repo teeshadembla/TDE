@@ -17,7 +17,7 @@ import {
   Settings,
   History,
   Target,
-  Globe,
+  Shield,
   Wrench
 } from 'lucide-react';
 
@@ -148,5 +148,6 @@ export const tabs = [
     { id: 'history', label: 'Past Fellowships', icon: History },
     {id:'onboarding', label: 'Onboarding Tracker', icon: Users},
     { id: 'manage-workgroups', label: 'Manage Workgroups', icon: Wrench },
+    {id: 'user-verification', label: 'User Verification', icon: Shield},
     { id: 'settings', label: 'Settings', icon: Settings }
   ];

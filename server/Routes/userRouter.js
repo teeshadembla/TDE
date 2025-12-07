@@ -26,4 +26,5 @@ userRouter.get("/:id", userController.getUserById);
 
 /* Get fellows by workgroup */
 userRouter.get("/workgroup/:workgroupId", getUsersByWorkgroup);
+
 export default userRouter;

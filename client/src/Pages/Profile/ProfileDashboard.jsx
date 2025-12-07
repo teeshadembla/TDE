@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User,  Award, Clock, Settings, IdCard, ClipboardList} from 'lucide-react';
+import { User, Award, Clock, Settings, IdCard, ClipboardList, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import TabContent from '../../components/Profile/TabContent.jsx';
 import ProfileSidebar from '../../components/Profile/ProfileSidebar.jsx';
 import ProfileSettings from '../../components/Profile/ProfileSettings.jsx';
@@ -81,6 +82,7 @@ const ProfileDashboard = () => {
   const [pastRegistrations, setPastRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const { account } = useContext(DataProvider.DataContext);
+  const navigate = useNavigate();
 
 
 
@@ -136,6 +138,16 @@ const ProfileDashboard = () => {
               <p className="text-gray-600 mt-1">Manage your fellowship registrations and research contributions</p>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/setup-2fa')}
+                className="flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg font-medium text-white transition-all hover:shadow-lg"
+                style={{
+                  background: 'linear-gradient(135deg, #004aad 0%, #062c65 100%)'
+                }}
+              >
+                <Lock className="w-4 h-4" />
+                <span>Setup 2FA</span>
+              </button>
               <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
                 <User className="w-5 h-5" />
               </button>

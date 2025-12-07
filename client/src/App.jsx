@@ -94,6 +94,7 @@ function App() {
           role: u.role,
           email: u.email,
           profilePicture: u.profilePicture,
+          verified: u.isVerifiedbyAdmin,
         });
       }catch(err){
         console.log("Error syncing Clerk user:", err);

@@ -112,12 +112,28 @@ const userSchema = mongoose.Schema({
         "Google Search", "News Article or Blog", "Other"
         ]
     },
+    isVerifiedbyAdmin:{
+        type: Boolean, 
+        required: true,
+        default: false
+    },
+    isRejectedByAdmin:{
+        type: Boolean,
+        required: true,
+        default: true,
+    },
     introduction: {
         type: String,
         maxlength: 500,
         default: null
     }
-})
+}, { timestamps: true })
+
+userSchema.index({ email: 1 });
+userSchema.index({ clerkUserId: 1 });
+userSchema.index({ isVerifiedByAdmin: 1 });
+userSchema.index({ status: 1 });
+
 
 const userModel = mongoose.model("User", userSchema);
 export default userModel;

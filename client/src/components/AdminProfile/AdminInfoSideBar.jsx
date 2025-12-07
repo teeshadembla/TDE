@@ -1,3 +1,4 @@
+import {BadgeCheck } from "lucide-react";
 const AdminInfoSideBar = ({ adminData, adminStats,  account}) => {
     return(
         <div className="w-80 bg-white border-l border-gray-200 p-6 flex-shrink-0">
@@ -7,7 +8,7 @@ const AdminInfoSideBar = ({ adminData, adminStats,  account}) => {
             alt={account.name}
             className="w-20 h-20 rounded-full mx-auto mb-3"
           />
-          <h3 className="text-lg font-semibold text-gray-900">{account.name}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{account.name}{account.verified && <BadgeCheck/>}</h3>
           <p className="text-sm text-gray-600">{account.email}</p>
           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 mt-2">
             {account.role}
