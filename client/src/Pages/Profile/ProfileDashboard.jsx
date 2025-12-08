@@ -9,81 +9,27 @@ import { useContext } from 'react';
 import axiosInstance from '../../config/apiConfig.js';
 
 
-const sampleCurrentRegistrations = [
-  {
-    _id: "60d0fe4f5311236168a109cb",
-    fellowship: {
-      _id: "60d0fe4f5311236168a109cc",
-      title: "Global Policy Fellowship",
-      description: "Advanced program focusing on international policy development and implementation",
-      cycle: "2024-Spring",
-      createdAt: "2024-01-15T00:00:00Z"
-    },
-    workgroup: {
-      _id: "60d0fe4f5311236168a109cd",
-      title: "Economic Development Research",
-      description: "Analyzing sustainable economic growth strategies for emerging markets",
-      researchPapers: ["60d0fe4f5311236168a109ce", "60d0fe4f5311236168a109cf"],
-      slackChannelUrl: "https://thinktank-workspace.slack.com/channels/economic-development-research"
-    },
-    status: "ACCEPTED",
-    createdAt: "2024-03-01T00:00:00Z"
-  }
-];
-
-
-const samplePastRegistrations = [
-  {
-    _id: "60d0fe4f5311236168a109d0",
-    fellowship: {
-      _id: "60d0fe4f5311236168a109d1",
-      title: "International Relations Fellowship",
-      description: "Comprehensive program on diplomatic relations and foreign policy",
-      cycle: "2023-Fall",
-      createdAt: "2023-08-01T00:00:00Z"
-    },
-    workgroup: {
-      _id: "60d0fe4f5311236168a109d2",
-      title: "Diplomatic Studies",
-      description: "Research focused on modern diplomatic practices and international law",
-      researchPapers: ["60d0fe4f5311236168a109d3"],
-      slackChannelUrl: "https://thinktank-workspace.slack.com/channels/diplomatic-studies"
-    },
-    status: "ACCEPTED",
-    createdAt: "2023-09-15T00:00:00Z",
-    completedAt: "2024-02-28T00:00:00Z"
-  },
-  {
-    _id: "60d0fe4f5311236168a109d4",
-    fellowship: {
-      _id: "60d0fe4f5311236168a109d5",
-      title: "Climate Policy Initiative",
-      description: "Focused research program on environmental policy and climate change mitigation",
-      cycle: "2023-Spring",
-      createdAt: "2023-01-01T00:00:00Z"
-    },
-    workgroup: {
-      _id: "60d0fe4f5311236168a109d6",
-      title: "Environmental Policy Research",
-      description: "Developing sustainable environmental policies for urban development",
-      researchPapers: ["60d0fe4f5311236168a109d7", "60d0fe4f5311236168a109d8"],
-      slackChannelUrl: "https://thinktank-workspace.slack.com/channels/environmental-policy"
-    },
-    status: "ACCEPTED",
-    createdAt: "2023-02-20T00:00:00Z",
-    completedAt: "2023-08-15T00:00:00Z"
-  }
-];
-
 
 const ProfileDashboard = () => {
   const [activeTab, setActiveTab] = useState('current');
   const [currentRegistrations, setCurrentRegistrations] = useState([]);
   const [pastRegistrations, setPastRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [is2FAenabled, setIs2FAenabled] = useState(false);
   const { account } = useContext(DataProvider.DataContext);
   const navigate = useNavigate();
 
+
+  useEffect(()=>{
+    const fetchUser = async () =>{
+      const response = await axiosInstance.get(`api/user/get2FADetails/${account._id}`);
+      setIs2FAenabled(response?.data?.isMFAenabled);
+    }
+
+    fetchUser();
+
+
+  },[account._id]);
 
 
     /* Use Effect for fetching user registrations */
@@ -138,7 +84,7 @@ const ProfileDashboard = () => {
               <p className="text-gray-600 mt-1">Manage your fellowship registrations and research contributions</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button
+              {!is2FAenabled && <button
                 onClick={() => navigate('/setup-2fa')}
                 className="flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg font-medium text-white transition-all hover:shadow-lg"
                 style={{
@@ -147,7 +93,7 @@ const ProfileDashboard = () => {
               >
                 <Lock className="w-4 h-4" />
                 <span>Setup 2FA</span>
-              </button>
+              </button>}
               <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
                 <User className="w-5 h-5" />
               </button>

@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'react-toastify';
 import QRCode from 'qrcode';
+import { useContext } from 'react';
+import DataProvider from "../../context/DataProvider.jsx"
+import axiosInstance from '../../config/apiConfig.js';
 
 const Setup2FA = () => {
   const { user, isLoaded } = useUser();
+  const {account} = useContext(DataProvider.DataContext);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [secret, setSecret] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -53,6 +57,8 @@ const Setup2FA = () => {
       // Verify the TOTP code
       await user.verifyTOTP({ code: verificationCode });
       
+      const enabledMFA = await axiosInstance.post("/api/user/enabledMFA", {accountId : account._id});
+
       toast.success('2FA enabled successfully!');
       setTotpEnabled(true);
       

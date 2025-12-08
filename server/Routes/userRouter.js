@@ -27,4 +27,8 @@ userRouter.get("/:id", userController.getUserById);
 /* Get fellows by workgroup */
 userRouter.get("/workgroup/:workgroupId", getUsersByWorkgroup);
 
+userRouter.post("/enabledMFA", authenticateToken, userController.enabledMFA);
+
+userRouter.get("/get2FADetails/:id", authenticateToken, userController.getUserById);
+
 export default userRouter;

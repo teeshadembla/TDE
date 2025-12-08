@@ -122,6 +122,11 @@ const userSchema = mongoose.Schema({
         required: true,
         default: true,
     },
+    isMFAenabled:{
+        type: Boolean,
+        required: true,
+        default: false,
+    },
     introduction: {
         type: String,
         maxlength: 500,

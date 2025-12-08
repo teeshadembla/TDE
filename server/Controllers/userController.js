@@ -435,5 +435,18 @@ const getUserById = async (req, res) => {
     }
 };
 
+const enabledMFA = async(req, res)=>{
+    try{
+        const {accountId} = req.body.accountId;
+        console.log("This is the account Id: ", accountId);
 
-export default {signup, login, getMe, logout, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById};
+        const response = await userModel.findByIdAndUpdate(accountId, {isMFAenabled: true}, {new: true});
+
+        return res.status(200).json({msg: "Successfully updated MFA status", response});
+    }catch(err){
+        console.log("Error occurred while enabling MFA for user---->", err);
+        return res.status(500).json({ msg: "Internal Server Error" });
+    }
+}
+
+export default {signup, login, getMe, logout, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById, enabledMFA};
