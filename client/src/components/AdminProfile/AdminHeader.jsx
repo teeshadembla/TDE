@@ -1,4 +1,10 @@
-const AdminHeader = ({ account, adminData }) => {
+import { useNavigate } from "react-router";
+import {Lock} from 'lucide-react';
+
+const AdminHeader = ({ account, is2FAenabled }) => {
+
+  const navigate = useNavigate();
+
   return (
     <header className="bg-white border-b border-gray-200 px-8 py-6 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -18,6 +24,16 @@ const AdminHeader = ({ account, adminData }) => {
                   className="w-full h-full object-cover"
               />
               </div>
+
+              {!is2FAenabled && 
+                <button onClick={() => navigate('/setup-2fa')}
+                className="flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg font-medium text-white transition-all hover:shadow-lg"
+                style={{
+                  background: 'linear-gradient(135deg, #004aad 0%, #062c65 100%)'
+                }}>
+                  <Lock className="w-4 h-4" />
+                <span>Setup 2FA</span>
+                </button>}
           </div>
         </div>
     </header>

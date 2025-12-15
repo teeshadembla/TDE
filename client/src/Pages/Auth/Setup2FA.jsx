@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+// File: src/Pages/Auth/Setup2FA.jsx
+import React, { useState, useEffect, useContext } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { toast } from 'react-toastify';
 import QRCode from 'qrcode';
-import { useContext } from 'react';
-import DataProvider from "../../context/DataProvider.jsx"
+import DataProvider from "../../context/DataProvider.jsx";
 import axiosInstance from '../../config/apiConfig.js';
 
 const Setup2FA = () => {
@@ -14,6 +14,11 @@ const Setup2FA = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [totpEnabled, setTotpEnabled] = useState(false);
+  
+  // Backup codes state
+  const [backupCodes, setBackupCodes] = useState([]);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
+  const [savedBackupCodes, setSavedBackupCodes] = useState(false);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -55,14 +60,23 @@ const Setup2FA = () => {
     setLoading(true);
     try {
       // Verify the TOTP code
-      await user.verifyTOTP({ code: verificationCode });
+      const result = await user.verifyTOTP({ code: verificationCode });
       
-      const enabledMFA = await axiosInstance.post("/api/user/enabledMFA", {accountId : account._id});
+      console.log("TOTP verification result: ", result);
+      
+      // Get backup codes from Clerk
+      const codes = result.backupCodes || [];
+      console.log("These are the backup codes generated: ", codes);
+      setBackupCodes(codes);
+      
+      // Notify backend that MFA is enabled
+      await axiosInstance.post("/api/user/enabledMFA", {accountId : account._id});
 
       toast.success('2FA enabled successfully!');
       setTotpEnabled(true);
+      setShowBackupCodes(true);
       
-      // Clear the form
+      // Clear the setup form
       setQrCodeUrl('');
       setSecret('');
       setVerificationCode('');
@@ -75,7 +89,7 @@ const Setup2FA = () => {
   };
 
   const disableTOTP = async () => {
-    if (!window.confirm('Are you sure you want to disable 2FA?')) {
+    if (!window.confirm('Are you sure you want to disable 2FA? This will make your account less secure.')) {
       return;
     }
 
@@ -84,6 +98,9 @@ const Setup2FA = () => {
       await user.disableTOTP();
       toast.success('2FA disabled successfully');
       setTotpEnabled(false);
+      setBackupCodes([]);
+      setShowBackupCodes(false);
+      setSavedBackupCodes(false);
     } catch (err) {
       console.error('Error disabling TOTP:', err);
       toast.error(err.errors?.[0]?.message || 'Failed to disable 2FA');
@@ -92,10 +109,96 @@ const Setup2FA = () => {
     }
   };
 
+  const handleDownloadBackupCodes = () => {
+    const codesText = backupCodes.join('\n');
+    const blob = new Blob([`The Digital Economist - Backup Codes\n\nGenerated: ${new Date().toLocaleString()}\n\n${codesText}\n\nKeep these codes safe! You can use them to access your account if you lose your authenticator device.`], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `TDE-backup-codes-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    toast.success('Backup codes downloaded!');
+  };
+
+  const handleCopyBackupCodes = () => {
+    const codesText = backupCodes.join('\n');
+    navigator.clipboard.writeText(codesText);
+    toast.success('Backup codes copied to clipboard!');
+  };
+
+  const handleConfirmSaved = () => {
+    setSavedBackupCodes(true);
+    setShowBackupCodes(false);
+    toast.info('Great! You can now use your backup codes if needed.');
+  };
+
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show backup codes screen after enabling 2FA
+  if (showBackupCodes && backupCodes.length > 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+        <div className="w-full max-w-md bg-neutral-900 p-8 rounded-lg shadow-lg space-y-6 shadow-blue-500">
+          <div className="text-center">
+            <div className="text-4xl mb-3">🔐</div>
+            <h2 className="text-2xl font-semibold">Save Your Backup Codes</h2>
+            <p className="text-sm text-gray-400 mt-2">
+              These codes can be used to access your account if you lose your authenticator device
+            </p>
+          </div>
+
+          <div className="bg-red-900/30 border border-red-500 rounded-lg p-4">
+            <p className="text-red-400 font-semibold text-sm">⚠️ Important!</p>
+            <p className="text-sm text-gray-300 mt-1">
+              Save these codes in a secure location. Each code can only be used once.
+            </p>
+          </div>
+
+          <div className="bg-black border border-gray-600 rounded-lg p-4">
+            <div className="grid grid-cols-2 gap-2 text-center font-mono text-sm">
+              {backupCodes.map((code, index) => (
+                <div key={index} className="p-2 bg-neutral-800 rounded">
+                  {code}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadBackupCodes}
+              className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+            >
+              Download
+            </button>
+            <button
+              onClick={handleCopyBackupCodes}
+              className="flex-1 bg-gray-600 text-white font-semibold py-2 px-4 rounded hover:bg-gray-700 transition"
+            >
+              Copy
+            </button>
+          </div>
+
+          <button
+            onClick={handleConfirmSaved}
+            className="w-full bg-white text-black font-semibold py-2 px-4 rounded hover:bg-gray-300 transition"
+          >
+            I've Saved My Codes
+          </button>
+
+          <p className="text-xs text-center text-gray-400">
+            You won't be able to see these codes again after closing this window
+          </p>
+        </div>
       </div>
     );
   }
@@ -111,6 +214,12 @@ const Setup2FA = () => {
               <p className="text-green-400 font-semibold">✓ 2FA is enabled</p>
               <p className="text-sm text-gray-400 mt-2">
                 Your account is protected with two-factor authentication
+              </p>
+            </div>
+
+            <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-4">
+              <p className="text-sm text-gray-300">
+                <strong>Reminder:</strong> If you lose access to your authenticator app, you can use your backup codes to sign in.
               </p>
             </div>
 
@@ -136,6 +245,13 @@ const Setup2FA = () => {
                     <li>An authenticator app (Google Authenticator, Authy, etc.)</li>
                     <li>Your phone to scan the QR code</li>
                   </ul>
+                </div>
+
+                <div className="bg-yellow-900/30 border border-yellow-500 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2 text-yellow-400">You'll receive backup codes</h3>
+                  <p className="text-sm text-gray-400">
+                    After setup, you'll get backup codes to access your account if you lose your device. Save them securely!
+                  </p>
                 </div>
 
                 <button

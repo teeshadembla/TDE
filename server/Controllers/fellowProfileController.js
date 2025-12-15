@@ -253,7 +253,7 @@ export const getFellowProfileByUserId = async (req, res) => {
 //to fetch drafts
 export const loadDraftFellowProfile = async(req, res) =>{
     try {
-    const userId = req.user._id;
+    const userId = req.params.userId;
 
     // Find existing draft
     const profile = await fellowProfileModel.findOne({
@@ -298,7 +298,7 @@ export const loadDraftFellowProfile = async(req, res) =>{
 //to actually save information
 export const submitFellowProfile = async(req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.params.userId;
         const { hasNewImage, ...profileData } = req.body;
 
         console.log("This is the profile data received:", profileData);

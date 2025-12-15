@@ -167,6 +167,14 @@ const signup = async (req, res) => {
         const newUser = new userModel(userData);
         await newUser.save();
 
+        import('../utils/email/emailIntegration.js').then(module => {
+            const emailIntegration = module.default;
+            emailIntegration.handleUserSignup(newUser).catch(err => {
+                console.error('Welcome email failed:', err);
+                // Don't fail signup if email fails
+            });
+        });
+
         return res.status(200).json({ 
             msg: "User registered successfully!",
             userId: newUser._id 
@@ -424,6 +432,7 @@ const deleteUser = async(req, res) => {
 const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
+        
         const user = await userModel.findById(id);
         if (!user) {
             return res.status(404).json({ msg: "User not found" });
@@ -437,7 +446,7 @@ const getUserById = async (req, res) => {
 
 const enabledMFA = async(req, res)=>{
     try{
-        const {accountId} = req.body.accountId;
+        const accountId = req.body.accountId;
         console.log("This is the account Id: ", accountId);
 
         const response = await userModel.findByIdAndUpdate(accountId, {isMFAenabled: true}, {new: true});
@@ -447,6 +456,44 @@ const enabledMFA = async(req, res)=>{
         console.log("Error occurred while enabling MFA for user---->", err);
         return res.status(500).json({ msg: "Internal Server Error" });
     }
+}  
+
+const forgotPassword = () => async (req, res) => {
+  try {
+    const { email, resetAt } = req.body;
+
+    // Find user by email
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        msg: 'User not found' 
+      });
+    }
+
+    // Update password reset timestamp
+    user.lastPasswordReset = new Date(resetAt);
+    await user.save();
+
+    // Optional: Log security event
+    console.log(`Password reset successful for user: ${email} at ${resetAt}`);
+
+    // Optional: Send notification email to user
+    // await sendPasswordResetConfirmationEmail(email);
+
+    return res.status(200).json({ 
+      success: true, 
+      msg: 'Password reset logged successfully' 
+    });
+
+  } catch (error) {
+    console.error('Error logging password reset:', error);
+    return res.status(500).json({ 
+      success: false, 
+      msg: 'Internal server error' 
+    });
+  }
 }
 
-export default {signup, login, getMe, logout, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById, enabledMFA};
+export default {signup, login, getMe, logout, forgotPassword, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById, enabledMFA};

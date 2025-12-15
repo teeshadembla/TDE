@@ -64,7 +64,9 @@ const fellowshipRegistrationSchema = new mongoose.Schema({
   // Email tracking
   lastReminderSent: { type: Date },
   reminderCount: { type: Number, default: 0 },
-  
+  paymentDeadline: {
+    type: Date
+  },
   // Reference to public profile (once created)
   fellowProfileId: {
     type: mongoose.Schema.Types.ObjectId,

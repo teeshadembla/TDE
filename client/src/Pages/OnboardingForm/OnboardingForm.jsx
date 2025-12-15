@@ -18,8 +18,8 @@ const OnboardingForm = () => {
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [hasNewImage, setHasNewImage] = useState(false); // Track if image changed
-  const [existingImageUrl, setExistingImageUrl] = useState(null); // Store existing S3 URL
+  const [hasNewImage, setHasNewImage] = useState(false); 
+  const [existingImageUrl, setExistingImageUrl] = useState(null); 
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [imgUploadProgress, setImgUploadProgress] = useState(0);

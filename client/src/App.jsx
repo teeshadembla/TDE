@@ -30,14 +30,14 @@ import UserRoute from './Utils/UserRoute.jsx';
 import PracticeArea from './Pages/PracticeArea/PracticeArea.jsx';
 import NewsPage from './Pages/News/NewsPage.jsx';
 import UserProfile from './components/PeopleAtTDE/UserProfile.jsx';
-import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';/* 
-import DocumentUpload from './Pages/Publications/DocumentUpload.jsx'; */
+import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';
 import ResearchPaperUploadForm from './components/DocumentUpload/ResearchPaperUploadForm.jsx';
 import Publications from './Pages/Publications/Publications.jsx';
 import IndividualPaperPage from './components/Publications/IndividualPaperPage.jsx';
 import ArticlePage from "./components/News/ArticlePage.jsx";
 import OnboardingForm from './Pages/OnboardingForm/OnboardingForm.jsx';
-import Setup2FA from "../src/Pages/Auth/setup2FA.jsx";
+import Setup2FA from "../src/Pages/Auth/Setup2FA.jsx";
+import ForgotPassword from './Pages/Auth/ForgotPassword.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -122,6 +122,8 @@ function App() {
             {/* Authentication elements */}
             <Route path='/login' element={<Login/>}></Route>
             <Route path='/signup' element={<Signup/>}></Route>
+            <Route path='/forgot-password' element={<ForgotPassword/>}></Route>
+            <Route path="/setup-2fa" element={<Setup2FA />} />
             {/* ----------------------------------------------------------------------------------------------------------------------------------- */}
           
             {/* Events Dashboard */}
@@ -162,8 +164,6 @@ function App() {
 
               {/* User Profile */}
               <Route path='/onboarding/:userId' element={<OnboardingForm/>}></Route>
-
-              <Route path="/setup-2fa" element={<Setup2FA />} />
 
           </Routes>
 

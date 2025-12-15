@@ -1,4 +1,6 @@
+// File: src/Pages/Auth/Login.jsx
 import React, { useState, useContext } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import axiosInstance from "../../config/apiConfig.js";
 import {toast} from "react-toastify";
 import {useNavigate, Link, useSearchParams} from "react-router-dom";
@@ -25,6 +27,9 @@ const Login = () => {
   // 2FA States
   const [needs2FA, setNeeds2FA] = useState(false);
   const [totpCode, setTotpCode] = useState("");
+  
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateField = (name, value) => {
     if (name === "email") {
@@ -207,21 +212,44 @@ const Login = () => {
           <label htmlFor="password" className="block text-sm font-medium mb-1">
             Password <span className="text-red-500">*</span>
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="********"
-            value={user.password}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-black border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
-            required
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="********"
+              value={user.password}
+              onChange={handleChange}
+              className="w-full p-2 pr-10 rounded bg-black border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </button>
+          </div>
           {errors.password && (
             <p className={`text-sm mt-1 ${errors.password.includes("Strong") ? "text-green-500" : "text-red-500"}`}>
               {errors.password}
             </p>
           )}
+        </div>
+
+        {/* Forgot Password Link */}
+        <div className="text-right">
+          <Link 
+            to="/forgot-password" 
+            className="text-sm text-blue-500 hover:text-blue-400 transition"
+          >
+            Forgot Password?
+          </Link>
         </div>
 
         <button

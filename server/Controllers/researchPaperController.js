@@ -6,8 +6,17 @@ dotenv.config();
 // Step 1: Get presigned URLs (for both PDF and thumbnail)
 export const getPresignedUrl = async (req, res) => {
   try {
-    const { fileName, fileType, fileSize, thumbnailType } = req.body;
+    const { fileName, fileType, fileSize, thumbnailType, user_id } = req.body;
+    console.log(req.body);
 
+    // Add this validation FIRST
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'user_id is required',
+      });
+    }
+    
     // Validation
     if (!fileName || !fileType || !fileSize || !thumbnailType) {
       return res.status(400).json({
@@ -16,6 +25,7 @@ export const getPresignedUrl = async (req, res) => {
       });
     }
 
+    
     // Check PDF file type
     if (fileType !== 'application/pdf') {
       return res.status(400).json({
@@ -23,6 +33,8 @@ export const getPresignedUrl = async (req, res) => {
         message: 'Only PDF files are allowed',
       });
     }
+
+    console.log("fileName and fileType Validation done");
 
     // Check thumbnail file type
     if (!thumbnailType.startsWith('image/')) {
@@ -41,30 +53,34 @@ export const getPresignedUrl = async (req, res) => {
       });
     }
 
+    console.log("Thumbnail validation done");
     // Generate presigned URL for PDF
     const { presignedUrl: pdfPresignedUrl, fileUrl: pdfFileUrl, key: pdfKey } = 
       await generatePresignedUrl(
         process.env.AWS_BUCKET_NAME_PDF,
-        req.user._id,
+        user_id,
         fileName,
         fileType,
         'pdfs' // folder name
       );
 
+      console.log("Presigned Url for PDF created");
     // Generate presigned URL for thumbnail
     const thumbnailFileName = fileName.replace('.pdf', '.jpg');
     const { presignedUrl: thumbnailPresignedUrl, fileUrl: thumbnailFileUrl, key: thumbnailKey } = 
       await generatePresignedUrl(
         process.env.AWS_BUCKET_NAME_PDF,
-        req.user._id,
+        user_id,
         thumbnailFileName,
         thumbnailType,
         'thumbnails' // folder name - bucket policy makes this public
       );
-
+      console.log("Presigned Url for Thumbnail created");
     // Create document record in pending state
+
+    console.log("this is user Id: ", user_id);
     const document = new researchPaperModel({
-      userId: req.user._id,
+      userId: user_id,
       fileName: fileName,
       originalName: fileName,
       s3Url: pdfFileUrl,
@@ -113,7 +129,7 @@ export const getPresignedUrl = async (req, res) => {
 // Step 2: Confirm upload completion
 export const confirmUpload = async (req, res) => {
   try {
-    const { documentId } = req.body;
+    const { documentId, user_id } = req.body;
 
     if (!documentId) {
       return res.status(400).json({
@@ -124,7 +140,7 @@ export const confirmUpload = async (req, res) => {
 
     const document = await researchPaperModel.findOne({
       _id: documentId,
-      userId: req.user._id,
+      userId: user_id,
     });
 
     if (!document) {
@@ -156,9 +172,9 @@ export const confirmUpload = async (req, res) => {
 
 export const getUserDocuments = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, user_id } = req.query;
     
-    const query = { userId: req.user._id };
+    const query = { userId: user_id };
     
     // Filter by status if provided
     if (status) {
@@ -330,7 +346,7 @@ export const deleteDocument = async (req, res) => {
   try {
     const document = await researchPaperModel.findOne({
       _id: req.params.id,
-      userId: req.user._id,
+      userId: user_id,
     });
 
     if (!document) {
@@ -376,11 +392,11 @@ export const deleteDocument = async (req, res) => {
 // Mark upload as failed
 export const markUploadFailed = async (req, res) => {
   try {
-    const { documentId } = req.body;
+    const { documentId , user_id} = req.body;
 
     const document = await researchPaperModel.findOne({
       _id: documentId,
-      userId: req.user._id,
+      userId: user_id,
     });
 
     if (!document) {

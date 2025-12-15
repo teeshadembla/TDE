@@ -1,14 +1,20 @@
+// MUST be first - before all other imports
+import dotenv from 'dotenv'
+dotenv.config();
+
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import { clerkMiddleware } from "@clerk/express";
 import Connection from './db.js';
-import path from 'path'
-import { fileURLToPath } from 'url'
+import path from 'path';
+import { fileURLToPath } from 'url';
+/* Email System Imports */
+import emailProcessor from './Jobs/emailProcessor.js';
+import overduePaymentChecker from './Jobs/overduePaymentChecker.js';
+import { validateEmailConfig } from './utils/emailConfig.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config();
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 import userRouter from './Routes/userRouter.js';
@@ -74,3 +80,40 @@ app.listen(PORT, ()=>{
 })
 
 Connection();
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------- */
+/* Email System Initialization */
+/* ---------------------------------------------------------------------------------------------------------------------------------------------- */
+
+// Initialize email system after database connection
+setTimeout(() => {
+    try {
+        console.log('\n========================================');
+        console.log('📧 INITIALIZING EMAIL SYSTEM');
+        console.log('========================================\n');
+        
+        // Validate email configuration
+        validateEmailConfig();
+        console.log('✅ Email configuration validated\n');
+        
+        // Start email processor (processes scheduled emails every 15 minutes)
+        emailProcessor.startScheduler();
+        console.log('✅ Email processor started (runs every 15 minutes)\n');
+        
+        // Start overdue payment checker (runs daily at 2:00 AM)
+        overduePaymentChecker.start();
+        console.log('✅ Overdue payment checker started (runs daily at 2:00 AM)\n');
+        
+        console.log('========================================');
+        console.log('✅ EMAIL SYSTEM READY');
+        console.log('========================================\n');
+        
+    } catch (error) {
+        console.error('\n========================================');
+        console.error('❌ EMAIL SYSTEM INITIALIZATION FAILED');
+        console.error('========================================');
+        console.error('Error:', error.message);
+        console.error('\n⚠️  Email functionality will not work until configuration is fixed');
+        console.error('   Check your .env file for missing or incorrect values\n');
+    }
+}, 2000); // Wait 2 seconds for DB connection to establish

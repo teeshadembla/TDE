@@ -1,5 +1,5 @@
 // ResearchPaperUploadForm.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { X, Upload, FileText, Image, Plus, Check, AlertCircle, CheckCircle } from 'lucide-react';
 import SingleSelect from './SingleSelect.jsx';
 import MultiSelect from './MultiSelect.jsx';
@@ -10,6 +10,7 @@ import TextInputField from './TextInputField.jsx';
 import DateInputField from './DateInputField.jsx';
 import axios from 'axios';
 import axiosInstance from '../../config/apiConfig';
+import DataProvider from '../../context/DataProvider.jsx';
 
 // API Functions
 const fetchWorkgroups = async () => {
@@ -75,6 +76,7 @@ const ResearchPaperUploadForm = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loadingWorkgroups, setLoadingWorkgroups] = useState(false);
+  const {account} = useContext(DataProvider.DataContext);
   const [loadingAuthors, setLoadingAuthors] = useState(false);
 
   // Fetch workgroups on mount
@@ -189,6 +191,7 @@ const ResearchPaperUploadForm = () => {
           workgroupId: selectedWorkgroup,
           authors: selectedAuthors,
           tags: tags,
+          user_id: account._id,
         }
       );
 
@@ -233,7 +236,7 @@ const ResearchPaperUploadForm = () => {
       // Step 3: Confirm upload with backend
       await axiosInstance.post(
         '/api/documents/confirm-upload',
-        { documentId }
+        { documentId, user_id: account._id }
       );
 
       setSuccess('Research paper uploaded successfully!');

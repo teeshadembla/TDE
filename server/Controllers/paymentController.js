@@ -1,9 +1,11 @@
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
+import userModel from "../Models/userModel.js";
 import {sendApplicationSubmissionEmail, sendPaymentConfirmationEmail} from "../utils/sendMail.js";
 import dotenv from "dotenv";
 dotenv.config();
 import Stripe from "stripe";
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
@@ -146,7 +148,7 @@ export const createPaymentIntent = async (req, res) => {
 };
 
 // UPDATED: Verify Payment
-export const verifyPaymentAndRegister = async (req, res) => {
+/* export const verifyPaymentAndRegister = async (req, res) => {
   console.log("Verifying payment...");
   
   try {
@@ -194,7 +196,64 @@ export const verifyPaymentAndRegister = async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 };
+ */
 
+// UPDATED: Verify Payment
+export const verifyPaymentAndRegister = async (req, res) => {
+  console.log("Verifying payment...");
+  
+  try {
+    const { paymentIntentId } = req.body;
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status === "succeeded") {
+      const { applicationId } = paymentIntent.metadata;
+
+      const application = await fellowshipRegistrationModel
+        .findById(applicationId)
+        .populate('user')
+        .populate('fellowship');
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      // Update application status
+      application.status = "CONFIRMED"; // Final confirmed status
+      application.paymentStatus = "COMPLETED";
+      application.paidAt = new Date();
+      await application.save();
+
+      console.log("Payment confirmed for application:", applicationId);
+
+      // ✅ GET USER AND FELLOWSHIP DATA
+      const user = await userModel.findById(application.user);
+      const fellowship = await fellowshipModel.findById(application.fellowship);
+
+      // ✅ SEND PAYMENT CONFIRMATION + CANCEL REMINDERS
+      await emailIntegration.handlePaymentCompletion(
+        application,
+        user,
+        fellowship,
+        {
+          transactionId: paymentIntent.id,
+          amount: application.amount
+        }
+      );
+
+      res.status(200).json({ 
+        success: true,
+        message: "Payment confirmed! Welcome to the fellowship." 
+      });
+
+    } else {
+      res.status(400).json({ error: "Payment not completed" });
+    }
+  } catch (err) {
+    console.log("Error verifying payment:", err);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
 // NEW: Get Application Details (for payment page)
 export const getApplicationForPayment = async (req, res) => {
   const { applicationId } = req.params;

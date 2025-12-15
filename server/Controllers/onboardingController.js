@@ -59,7 +59,7 @@ const deleteFromS3 = async (key) => {
 /* Save draft with conditional image upload */
 export const getPresignedUrlHeadshot = async(req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.params.userId;
         const { hasNewImage, ...profileData } = req.body;
 
         // Check if profile exists

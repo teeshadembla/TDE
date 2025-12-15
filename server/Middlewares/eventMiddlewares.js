@@ -2,7 +2,7 @@ const isAdmin = async (req, res, next) => {
   try {
     const userId = req.user?._id || req._id;
 
-    if (userId === "68811543bfb6788e458bb89b") {
+    if (userId === "69395caf541181e114939124") {
       return next();
     }
 

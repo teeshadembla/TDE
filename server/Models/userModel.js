@@ -127,6 +127,14 @@ const userSchema = mongoose.Schema({
         required: true,
         default: false,
     },
+    lastPasswordReset: {
+        type: Date,
+        default: null
+    },
+    passwordResetHistory: [{
+        resetAt: Date,
+        ipAddress: String // optional
+    }],
     introduction: {
         type: String,
         maxlength: 500,

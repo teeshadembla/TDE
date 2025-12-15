@@ -20,16 +20,28 @@ const ProfileDashboard = () => {
   const navigate = useNavigate();
 
 
-  useEffect(()=>{
-    const fetchUser = async () =>{
-      const response = await axiosInstance.get(`api/user/get2FADetails/${account._id}`);
+useEffect(() => {
+  console.log("useEffect triggered, account:", account);
+  console.log("account._id:", account?._id);
+  
+  const fetchUser = async () => {
+    try {
+      if (!account?._id) {
+        console.log("Early return - no account ID");
+        return;
+      }
+      
+      console.log("Fetching 2FA details...");
+      const response = await axiosInstance.get(`/api/user/get2FADetails/${account._id}`);
+      console.log("2FA response:", response.data);
       setIs2FAenabled(response?.data?.isMFAenabled);
+    } catch(err) {
+      console.log("This error is occurring while trying to fetch the user-->", err);
     }
+  }
 
-    fetchUser();
-
-
-  },[account._id]);
+  fetchUser();
+}, [account._id]);
 
 
     /* Use Effect for fetching user registrations */
@@ -74,6 +86,7 @@ const ProfileDashboard = () => {
 
   return (
     <div className="w-screen h-screen bg-gray-50 flex">
+      
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}

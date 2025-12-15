@@ -25,6 +25,7 @@ import AdminInfoSideBar from '../../components/AdminProfile/AdminInfoSideBar.jsx
 const AdminProfile = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [adminData, setAdminData] = useState();
+  const [is2FAenabled, setIs2FAenabled] = useState(false);
   const {account} = useContext(DataProvider.DataContext);
 
   const {
@@ -51,21 +52,29 @@ const AdminProfile = () => {
     handleWorkgroupDelete,
   } = useAdminActions(setFellowshipRegistrations);
 
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setAdminData(sampleAdminData);
-      } catch (error) {
-        console.error('Error fetching admin data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAdminData();
-  }, []);
+ useEffect(() => {
+   console.log("useEffect triggered, account:", account);
+   console.log("account._id:", account?._id);
+   console.log(is2FAenabled);
+   
+   const fetchUser = async () => {
+     try {
+       if (!account?._id) {
+         console.log("Early return - no account ID");
+         return;
+       }
+       
+       console.log("Fetching 2FA details...");
+       const response = await axiosInstance.get(`/api/user/get2FADetails/${account._id}`);
+       console.log("2FA response:", response.data);
+       setIs2FAenabled(response?.data?.user?.isMFAenabled);
+     } catch(err) {
+       console.log("This error is occurring while trying to fetch the user-->", err);
+     }
+   }
+ 
+   fetchUser();
+ }, []);
 
   const handleWorkgroupCreate = () => {
     setActiveTab('workgroups'); // Navigate to create workgroup tab
@@ -87,7 +96,7 @@ const AdminProfile = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <AdminHeader account={account} adminData={adminData}/>
+        <AdminHeader account={account} adminData={adminData} is2FAenabled={is2FAenabled}/>
 
         {/* Navigation Tabs - Fixed scrollable container */}
         <div className="bg-white border-b border-gray-200 flex-shrink-0">

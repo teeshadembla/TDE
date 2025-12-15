@@ -31,4 +31,6 @@ userRouter.post("/enabledMFA", authenticateToken, userController.enabledMFA);
 
 userRouter.get("/get2FADetails/:id", authenticateToken, userController.getUserById);
 
+userRouter.post("/forgot-password", userController.forgotPassword);
+
 export default userRouter;

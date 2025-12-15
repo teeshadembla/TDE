@@ -4,6 +4,8 @@ import {
   sendApprovalEmailWithPaymentLink, 
   sendRejectionEmail,
   sendPaymentConfirmationEmail} from "../utils/sendMail.js";
+  import emailIntegration from "../utils/email/emailIntegration.js";
+import userModel from "../Models/userModel.js";
 // Import your email service
 // import { sendApprovalEmailWithPaymentLink, sendRejectionEmail } from "../services/emailService.js";
 
@@ -129,10 +131,49 @@ const reviewFellowshipApplication = async (req, res) => {
   }
 };
 
-// LEGACY: Keep for backward compatibility but update logic
 const acceptFellowshipRegistration = async (req, res) => {
-  req.body = { action: "APPROVED", adminComments: req?.body?.adminComments || "" };
-  return await reviewFellowshipApplication(req, res);
+  try {
+    const { id } = req.params;
+    
+    const application = await fellowshipRegistrationModel
+      .findById(id)
+      .populate('user')
+      .populate('fellowship');
+    
+    if (!application) {
+      return res.status(404).json({ msg: "Application not found" });
+    }
+
+    if (application.status !== "PENDING_REVIEW") {
+      return res.status(400).json({ msg: "Application has already been reviewed" });
+    }
+
+    // Update application status
+    application.status = "APPROVED";
+    application.reviewedAt = new Date();
+    await application.save();
+
+    // Get user and fellowship data
+    const user = await userModel.findById(application.user);
+    const fellowship = await fellowshipModel.findById(application.fellowship);
+
+    // ✅ SEND ACCEPTANCE EMAIL + SCHEDULE REMINDERS
+    await emailIntegration.handleRegistrationApproval(
+      application,
+      user,
+      fellowship
+    );
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Application approved and emails scheduled",
+      application: application 
+    });
+
+  } catch (err) {
+    console.log("Error accepting fellowship application:", err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 const rejectFellowshipRegistration = async (req, res) => {

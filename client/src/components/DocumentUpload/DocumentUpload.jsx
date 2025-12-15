@@ -1,7 +1,8 @@
 // Frontend - DocumentUpload.jsx
-import React, { useState } from 'react';
+import React, { useState, useContext,useEffect } from 'react';
 import axios from 'axios';
 import axiosInstance from '../../config/apiConfig';
+import {DataContext} from '../../context/DataProvider';
 
 const DocumentUpload = () => {
   const [pdfFile, setPdfFile] = useState(null);
@@ -11,6 +12,18 @@ const DocumentUpload = () => {
   const [thumbnailUploadProgress, setThumbnailUploadProgress] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [accountLoaded, setAccountLoaded] = useState(false); 
+  const {account} = useContext(DataContext);
+
+  useEffect(() => {
+    if (account && account._id) {
+      console.log("Account loaded:", account);
+      setAccountLoaded(true);
+    } else {
+      console.log("Account not loaded yet");
+      setAccountLoaded(false);
+    }
+  }, [account]); // Add account as dependency
 
   const handlePdfChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -65,6 +78,11 @@ const DocumentUpload = () => {
       return;
     }
 
+     if (!account || !account._id) { 
+      setError('Account has not been loaded. Please wait and try again.');
+      return;
+    }
+
     setUploading(true);
     setError('');
     setSuccess('');
@@ -80,6 +98,7 @@ const DocumentUpload = () => {
           fileType: pdfFile.type,
           fileSize: pdfFile.size,
           thumbnailType: thumbnailFile.type,
+          user_id: account._id
         },
       );
 
@@ -124,7 +143,7 @@ const DocumentUpload = () => {
       // Step 3: Confirm upload with backend
       await axiosInstance.post(
         '/api/documents/confirm-upload',
-        { documentId },
+        { documentId, user_id: account._id },
       );
 
       setSuccess('Document and thumbnail uploaded successfully!');

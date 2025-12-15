@@ -192,15 +192,28 @@ export default function Step1({ formData, formFunction, setStepValid }) {
         <label htmlFor="password" className="block mb-1 font-medium">
           Password <span className="text-red-600">*</span>
         </label>
-        <input
-          value={formData.password}
-          name="password"
-          type="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
-          className="w-full p-2 rounded bg-black border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
-        />
+        <div className="relative">
+          <input
+            value={formData.password}
+            name="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            onChange={handleChange}
+            required
+            className="w-full p-2 pr-10 rounded bg-black border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+          >
+            {showPassword ? (
+              <EyeOff size={20} />
+            ) : (
+              <Eye size={20} />
+            )}
+          </button>
+        </div>
         {errors.password && (
           <p className={`text-sm mt-1 ${isValid(errors.password) ? "text-green-500" : "text-red-500"}`}>
             {errors.password}
@@ -239,6 +252,7 @@ export default function Step1({ formData, formFunction, setStepValid }) {
 // Step1Clerk.jsx - Step 1 with Clerk Integration
 // ============================================
 import { useState, useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Step1Clerk({ formData, formFunction, setStepValid }) {
   const [errors, setErrors] = useState({
@@ -248,6 +262,7 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
     role: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateField = (name, value) => {
     switch (name) {
@@ -437,15 +452,28 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
         <label htmlFor="password" className="block mb-1 font-medium">
           Password <span className="text-red-600">*</span>
         </label>
-        <input
-          value={formData.password}
-          name="password"
-          type="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
-          className="w-full p-2 rounded bg-black border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
-        />
+        <div className="relative">
+          <input
+            value={formData.password}
+            name="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            onChange={handleChange}
+            required
+            className="w-full p-2 pr-10 rounded bg-black border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+          >
+            {showPassword ? (
+              <EyeOff size={20} />
+            ) : (
+              <Eye size={20} />
+            )}
+          </button>
+        </div>
         {errors.password && (
           <p className={`text-sm mt-1 ${isValid(errors.password) ? "text-green-500" : "text-red-500"}`}>
             {errors.password}
