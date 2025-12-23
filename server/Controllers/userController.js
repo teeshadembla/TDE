@@ -171,7 +171,6 @@ const signup = async (req, res) => {
             const emailIntegration = module.default;
             emailIntegration.handleUserSignup(newUser).catch(err => {
                 console.error('Welcome email failed:', err);
-                // Don't fail signup if email fails
             });
         });
 

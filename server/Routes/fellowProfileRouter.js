@@ -18,7 +18,7 @@ fellowProfileRouter.post('/send-onboarding-reminder/:registrationId', sendOnboar
 
 /* Admin functions */
 
-fellowProfileRouter.get('/getFellowProfile', authenticateToken, getFellowProfileByUserId);
+fellowProfileRouter.get('/getFellowProfile/:userId', authenticateToken, getFellowProfileByUserId);
 
 
 export default fellowProfileRouter;

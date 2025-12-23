@@ -1,11 +1,25 @@
 import express from "express";
 const fellowshipRouter = express.Router();
-import {createPaymentIntent, verifyPaymentAndRegister} from "../Controllers/paymentController.js";
+import fellowshipRegistrationController from "../Controllers/fellowshipRegistrationController.js";
+import {createSetupIntent, submitFellowshipApplication, chargeApprovedApplication, getApplicationForPayment} from "../Controllers/paymentController.js";
+
 import { addNewFellowship, getAllPastFellowships, getFellowshipRegistrationCounts, getAllFutureFellowships, updateFellowship, deleteFellowship } from "../Controllers/fellowshipController.js";
 import { addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup } from "../Controllers/workgroupController.js";
 
-fellowshipRouter.post("/registration/create-payment-intent", createPaymentIntent);
-fellowshipRouter.post("/registration/verifypayment", verifyPaymentAndRegister);
+// NEW ROUTES (for new flow with saved payment methods)
+fellowshipRouter.post("/registration/create-setup-intent", createSetupIntent);
+fellowshipRouter.post("/registration/submitFellowshipApplication", submitFellowshipApplication);
+fellowshipRouter.post("/registration/charge-approved-application", chargeApprovedApplication);
+fellowshipRouter.get("/registration/application/:applicationId", getApplicationForPayment);
+
+// ADD THESE NEW ROUTES
+fellowshipRouter.get("/registration/all-applications", fellowshipRegistrationController.getAllApplications);
+fellowshipRouter.patch("/registration/approve/:id", fellowshipRegistrationController.approveApplication);
+fellowshipRouter.patch("/registration/reject/:id", fellowshipRegistrationController.rejectApplication);
+
+// REMOVE OR COMMENT OUT THESE OLD ROUTES (no longer needed)
+// fellowshipRouter.post("/registration/create-payment-intent", createPaymentIntent);
+// fellowshipRouter.post("/registration/verifypayment", verifyPaymentAndRegister);
 
 /* Routes for admins to add new fellowships */
 fellowshipRouter.post("/addNewFellowship", addNewFellowship);

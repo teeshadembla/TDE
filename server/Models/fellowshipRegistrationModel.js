@@ -72,6 +72,14 @@ const fellowshipRegistrationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'FellowProfile',
     default: null
+  },
+  paymentMethodId: {
+    type: String,
+    default: null
+  },
+  paymentIntentId: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

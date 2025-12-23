@@ -356,6 +356,89 @@ const getYears = async (req, res) => {
   }
 };
 
+// NEW: Get all applications (for admin moderation page)
+const getAllApplications = async (req, res) => {
+  try {
+    const applications = await fellowshipRegistrationModel
+      .find()
+      .populate('user', 'FullName email socialLinks company title')
+      .populate('fellowship', 'cycle')
+      .populate('workgroupId', 'title')
+      .sort({ appliedAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      applications
+    });
+  } catch (err) {
+    console.error("Error fetching applications:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// NEW: Approve application (without charging yet)
+const approveApplication = async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const application = await fellowshipRegistrationModel.findById(id);
+    
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    application.status = "APPROVED";
+    application.reviewedAt = new Date();
+    await application.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Application approved",
+      application
+    });
+  } catch (err) {
+    console.error("Error approving application:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// NEW: Reject application
+const rejectApplication = async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const application = await fellowshipRegistrationModel
+      .findById(id)
+      .populate('user')
+      .populate('fellowship');
+    
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    application.status = "REJECTED";
+    application.reviewedAt = new Date();
+    await application.save();
+
+    // Send rejection email
+    await sendRejectionEmail({
+      to: application.user.email,
+      name: application.user.FullName,
+      fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
+      reason: application.adminComments || "Unfortunately, your application was not accepted at this time."
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: "Application rejected",
+      application
+    });
+  } catch (err) {
+    console.error("Error rejecting application:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export default {
   getAllFellowshipRegistrations,
   reviewFellowshipApplication, // NEW: Main review function
@@ -364,5 +447,8 @@ export default {
   getApplicationsByStatus, // NEW: Better admin dashboard data
   deleteFellowshipRegistration,
   getAllRegistrationsByUser,
-  getYears
+  getYears,
+  getAllApplications,
+  approveApplication,
+  rejectApplication
 };

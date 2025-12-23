@@ -12,13 +12,15 @@ import {generateSignedUrlForViewing} from "./onboardingController.js";
  */
 export const getFellowProfileByUserId = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.params.userId;
+    console.log("Fetching fellow profile for userId:", userId);
 
     // Find fellow profile for this registration
     const profile = await fellowProfileModel.findOne({
       userId: userId,
     });
 
+    console.log("Fetched fellow profile:", profile);
     if (!profile) {
       // No profile exists - user hasn't started onboarding
       return res.status(200).json({ profile: null, isProfile: false });

@@ -1,4 +1,9 @@
+import dotenv from 'dotenv';
 
+// Only load dotenv if running in Node.js (not in browser)
+if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+  dotenv.config();
+}
 
 // Function to get config dynamically (reads env vars at runtime, not import time)
 function getEmailConfig() {

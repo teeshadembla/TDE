@@ -1,3 +1,4 @@
+// fellowshipRegistrationController.js
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
@@ -6,12 +7,60 @@ import dotenv from "dotenv";
 dotenv.config();
 import Stripe from "stripe";
 
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
 
-// NEW: Submit Fellowship Application (No Payment)
+// NEW: Create Setup Intent (for saving card at application time)
+export const createSetupIntent = async (req, res) => {
+  const { userId } = req.body;
+  
+  try {
+    const user = await userModel.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Create or retrieve Stripe customer
+    let stripeCustomerId = user.stripeCustomerId;
+    
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.FullName,
+        metadata: {
+          userId: user._id.toString()
+        }
+      });
+      stripeCustomerId = customer.id;
+      
+      // Save Stripe customer ID to user record
+      user.stripeCustomerId = stripeCustomerId;
+      await user.save();
+    }
+
+    // Create Setup Intent
+    const setupIntent = await stripe.setupIntents.create({
+      customer: stripeCustomerId,
+      payment_method_types: ['card'],
+      metadata: {
+        userId: user._id.toString()
+      }
+    });
+
+    res.status(200).json({
+      clientSecret: setupIntent.client_secret,
+      customerId: stripeCustomerId
+    });
+
+  } catch (err) {
+    console.error("Error creating SetupIntent:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// UPDATED: Submit Fellowship Application (with payment method)
 export const submitFellowshipApplication = async (req, res) => {
   const { 
     userId, 
@@ -21,7 +70,8 @@ export const submitFellowshipApplication = async (req, res) => {
     motivation, 
     organization, 
     position,
-    account
+    account,
+    paymentMethodId // NEW: Saved payment method ID
   } = req.body;
   
   console.log("Submitting application for user:", userId);
@@ -29,7 +79,7 @@ export const submitFellowshipApplication = async (req, res) => {
   try {
     // Find or create fellowship
     let fellowship = await fellowshipModel.findOne({ workGroupId, cycle });
-    const cycleDate = new Date(`${cycle} 15`); // e.g. "June 2026 15"
+    const cycleDate = new Date(`${cycle} 15`);
     const endDate = new Date(cycleDate);
     endDate.setDate(endDate.getDate() + 365);
 
@@ -55,23 +105,22 @@ export const submitFellowshipApplication = async (req, res) => {
       return res.status(400).json({ message: "Already applied for this fellowship" });
     }
 
-    // Create application record (NO PAYMENT YET)
+    // Create application record with saved payment method
     const application = await fellowshipRegistrationModel.create({
       user: userId,
       fellowship: fellowship._id,
-      status: "PENDING_REVIEW", // Changed from "PENDING" to be more specific
+      status: "PENDING_REVIEW",
       userStat: (experience === "0-2" || experience === "3-5") ? "Fellow" : "Senior Fellow",
       workgroupId: workGroupId,
       experience,
       motivation,
       organization,
       position,
-      paymentStatus: "PENDING", // Will change to COMPLETED after payment
-      amount: (experience === "0-2" || experience === "3-5") ? 400000 : 800000
-      
+      paymentStatus: "PENDING",
+      amount: (experience === "0-2" || experience === "3-5") ? 400000 : 800000,
+      paymentMethodId: paymentMethodId // NEW: Store payment method
     });
 
-    // TODO: Send confirmation email to user here
     await sendApplicationSubmissionEmail({
       to: account?.email,
       name: account?.name,
@@ -82,7 +131,7 @@ export const submitFellowshipApplication = async (req, res) => {
     console.log("Email is being sent");
     res.status(201).json({ 
       success: true, 
-      message: "Application submitted successfully. You'll receive an email once it's reviewed.",
+      message: "Application submitted successfully with payment method saved.",
       applicationId: application._id 
     });
 
@@ -92,169 +141,91 @@ export const submitFellowshipApplication = async (req, res) => {
   }
 };
 
-// UPDATED: Create Payment Intent (Only for Approved Applications)
-export const createPaymentIntent = async (req, res) => {
-  console.log("Request body for payment intent:", req.body);
-  console.log(req.body._id);
-  const  applicationId  = req.body._id;
-  console.log("Creating payment Intent for application:", applicationId);
-
+// NEW: Automatically Charge Approved Application
+export const chargeApprovedApplication = async (req, res) => {
+  const { applicationId } = req.body;
+  
   try {
     const application = await fellowshipRegistrationModel
       .findById(applicationId)
-      .populate('fellowship')
-      .populate('user');
+      .populate('user')
+      .populate('fellowship');
     
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    if (application.status != "APPROVED" ) {
-      return res.status(400).json({ message: "Application must be approved before payment" });
+    if (application.status !== "APPROVED") {
+      return res.status(400).json({ message: "Application must be approved" });
     }
 
     if (application.paymentStatus === "COMPLETED") {
       return res.status(400).json({ message: "Payment already completed" });
     }
 
-    // Create PaymentIntent
-    const amount = application.experience === "0-2" || application.experience === "3-5" ? 400000 : 800000;
+    if (!application.paymentMethodId) {
+      return res.status(400).json({ message: "No payment method on file" });
+    }
+
+    const user = await userModel.findById(application.user);
     
+    if (!user.stripeCustomerId) {
+      return res.status(400).json({ message: "No Stripe customer found" });
+    }
+
+    // Charge the saved payment method
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: application?.amount || amount,
+      amount: application.amount,
       currency: "usd",
+      customer: user.stripeCustomerId,
+      payment_method: application.paymentMethodId,
+      off_session: true, // Charge without customer present
+      confirm: true, // Automatically confirm
       metadata: {
         applicationId: application._id.toString(),
-        userId: application.user._id.toString(),
+        userId: user._id.toString(),
         fellowshipId: application.fellowship._id.toString(),
-        workgroupId: application.workgroupId._id.toString(),
       },
     });
 
-    // Update application with payment intent
+    // Update application
+    application.status = "CONFIRMED";
+    application.paymentStatus = "COMPLETED";
+    application.paidAt = new Date();
     application.paymentIntentId = paymentIntent.id;
-    //application.amount = amount;
     await application.save();
 
-    return res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
-      amount: amount / 100, // Send amount in dollars for frontend display
+    // Send confirmation email
+    await sendPaymentConfirmationEmail({
+      to: user.email,
+      name: user.FullName,
+      fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
+      applicationId: application._id,
+      amount: application.amount / 100
+    });
+
+    res.status(200).json({ 
+      success: true,
+      message: "Payment charged successfully",
+      paymentIntent: paymentIntent
     });
 
   } catch (err) {
-    console.error("Error creating PaymentIntent:", err);
+    console.error("Error charging payment:", err);
+    
+    // Handle payment failures
+    if (err.type === 'StripeCardError') {
+      return res.status(400).json({ 
+        message: "Payment failed: " + err.message,
+        requiresAction: err.code === 'authentication_required'
+      });
+    }
+    
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// UPDATED: Verify Payment
-/* export const verifyPaymentAndRegister = async (req, res) => {
-  console.log("Verifying payment...");
-  
-  try {
-    const { paymentIntentId } = req.body;
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-    if (paymentIntent.status === "succeeded") {
-      const { applicationId } = paymentIntent.metadata;
-
-      const application = await fellowshipRegistrationModel
-        .findById(applicationId)
-        .populate('user')
-        .populate('fellowship');
-
-      if (!application) {
-        return res.status(404).json({ error: "Application not found" });
-      }
-
-      // Update application status
-      application.status = "CONFIRMED"; // Final confirmed status
-      application.paymentStatus = "COMPLETED";
-      application.paidAt = new Date();
-      await application.save();
-
-      console.log("Payment confirmed for application:", applicationId);
-
-      // TODO: Send payment confirmation email
-      await sendPaymentConfirmationEmail({
-        to: application.user.email,
-        name: application.user.FullName,
-        fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
-        applicationId: application._id
-      });
-
-      res.status(200).json({ 
-        success: true,
-        message: "Payment confirmed! Welcome to the fellowship." 
-      });
-
-    } else {
-      res.status(400).json({ error: "Payment not completed" });
-    }
-  } catch (err) {
-    console.log("Error verifying payment:", err);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
-};
- */
-
-// UPDATED: Verify Payment
-export const verifyPaymentAndRegister = async (req, res) => {
-  console.log("Verifying payment...");
-  
-  try {
-    const { paymentIntentId } = req.body;
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-    if (paymentIntent.status === "succeeded") {
-      const { applicationId } = paymentIntent.metadata;
-
-      const application = await fellowshipRegistrationModel
-        .findById(applicationId)
-        .populate('user')
-        .populate('fellowship');
-
-      if (!application) {
-        return res.status(404).json({ error: "Application not found" });
-      }
-
-      // Update application status
-      application.status = "CONFIRMED"; // Final confirmed status
-      application.paymentStatus = "COMPLETED";
-      application.paidAt = new Date();
-      await application.save();
-
-      console.log("Payment confirmed for application:", applicationId);
-
-      // ✅ GET USER AND FELLOWSHIP DATA
-      const user = await userModel.findById(application.user);
-      const fellowship = await fellowshipModel.findById(application.fellowship);
-
-      // ✅ SEND PAYMENT CONFIRMATION + CANCEL REMINDERS
-      await emailIntegration.handlePaymentCompletion(
-        application,
-        user,
-        fellowship,
-        {
-          transactionId: paymentIntent.id,
-          amount: application.amount
-        }
-      );
-
-      res.status(200).json({ 
-        success: true,
-        message: "Payment confirmed! Welcome to the fellowship." 
-      });
-
-    } else {
-      res.status(400).json({ error: "Payment not completed" });
-    }
-  } catch (err) {
-    console.log("Error verifying payment:", err);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
-};
-// NEW: Get Application Details (for payment page)
+// KEPT: Get Application Details (for viewing application info)
 export const getApplicationForPayment = async (req, res) => {
   const { applicationId } = req.params;
 
@@ -268,29 +239,20 @@ export const getApplicationForPayment = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    if (application.status !== "APPROVED") {
-      return res.status(400).json({ 
-        message: "This application is not approved for payment",
-        status: application.status 
-      });
-    }
-
-    if (application.paymentStatus === "COMPLETED") {
-      return res.status(400).json({ 
-        message: "Payment already completed for this application" 
-      });
-    }
-
-    const amount = application.experience === "0-2" || application.experience === "3-5" ? 4000 : 8000;
+    const amount = application.amount / 100; // Convert cents to dollars
 
     res.status(200).json({
       application: {
         id: application._id,
         fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
         userStat: application.userStat,
-        amount: amount, // in dollars
+        amount: amount,
         status: application.status,
-        paymentStatus: application.paymentStatus
+        paymentStatus: application.paymentStatus,
+        experience: application.experience,
+        motivation: application.motivation,
+        organization: application.organization,
+        position: application.position
       }
     });
 
@@ -299,3 +261,6 @@ export const getApplicationForPayment = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// REMOVED: createPaymentIntent - No longer needed since we charge automatically
+// REMOVED: verifyPaymentAndRegister - No longer needed since we charge automatically

@@ -139,6 +139,10 @@ const userSchema = mongoose.Schema({
         type: String,
         maxlength: 500,
         default: null
+    },
+    stripeCustomerId: {
+        type: String,
+        default: null
     }
 }, { timestamps: true })
 
