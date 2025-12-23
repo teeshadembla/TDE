@@ -35,7 +35,8 @@ const AdminProfile = () => {
     fellowshipRegistrations,
     setFellowshipRegistrations,
     loading,
-    setLoading
+    setLoading,
+    refreshApplications // ADD THIS - you'll need to export it from useAdminData
   } = useAdminData();
   
 
@@ -157,6 +158,7 @@ const AdminProfile = () => {
             <ApplicationsModeration
               applications={fellowshipRegistrations}
               onStatusChange={handleStatusChange}
+              onRefresh={refreshApplications} // ADD THIS PROP
             />
           )}
 

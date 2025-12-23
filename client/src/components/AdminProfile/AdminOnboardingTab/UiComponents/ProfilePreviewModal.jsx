@@ -56,13 +56,7 @@ const ProfilePreviewModal = ({ profile, onClose, onApprove, onRequestRevision })
               <div>
                 <span className='text-neutral-500'>Submitted:</span>
                 <span className='text-white ml-2'>
-                  {new Date(profile.submittedAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div>
-                <span className='text-neutral-500'>Cohort:</span>
-                <span className='text-white ml-2'>
-                  {profile.fellowshipRegistrationId?.fellowship?.cycle || 'N/A'}
+                  {new Date(profile.updatedAt).toLocaleDateString()}
                 </span>
               </div>
             </div>

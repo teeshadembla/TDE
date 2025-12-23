@@ -1,6 +1,8 @@
 import React from 'react';
 import { AlertCircle, Clock, CheckCircle, AlertTriangle, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import DataProvider from '../../context/DataProvider.jsx';
 
 /**
  * OnboardingStatusBanner Component
@@ -13,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
  */
 const OnboardingStatusBanner = ({ registration, fellowProfile }) => {
   const navigate = useNavigate();
+  const {account} = useContext(DataProvider.DataContext);
 
   if (!registration) return null;
 
@@ -27,7 +30,7 @@ const OnboardingStatusBanner = ({ registration, fellowProfile }) => {
   if (state === 'APPROVED') return null;
 
   const handleStartOnboarding = () => {
-    navigate(`/onboarding/${registration._id}`);
+    navigate(`/onboarding/${account._id}`);
   };
 
   // State-specific configurations

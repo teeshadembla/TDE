@@ -34,7 +34,7 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
         let firstPendingReg = null;
         
         try {
-          const response = await axiosInstance.get(`/api/fellow-profile/getFellowProfile`);
+          const response = await axiosInstance.get(`/api/fellow-profile/getFellowProfile/${account._id}`);
           const profile = response.data.profile;
           setFellowProfile(profile);
           

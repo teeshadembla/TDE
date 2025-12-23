@@ -103,7 +103,7 @@ function App() {
       }
     }
     syncUser();
-  },[isLoaded, isSignedIn]);
+  },[isLoaded, isSignedIn, user]);
 
   useEffect(() => {
     console.log("Account has been updated:", account);
