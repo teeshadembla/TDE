@@ -168,10 +168,31 @@ const handleFellowProfileUpdate = async ({to, name, fellowprofile, updateStatus}
     html
   });
 }
+
+
+const handle2FASetupEmail = async ({to, name}) => {
+  const subject = `2FA Setup Successful - Enhance Your Account Security`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2c3e50;">Two-Factor Authentication Enabled</h2>
+      <p>Dear ${name},</p>
+      <p>We are pleased to inform you that Two-Factor Authentication (2FA) has been successfully set up for your account.</p>
+      <p>This additional layer of security helps protect your account from unauthorized access.</p>
+      <p>If you did not initiate this setup or have any concerns, please contact our support team immediately.</p>
+      <br>
+      <p>Best regards,<br>The Digital Economist Team</p>
+    </div>
+  `;
+  await transporter.sendMail({
+    from: `"The Digital Economist" <${process.env.EMAIL_USER}>`,
+    to,
+  })
+}
 export { 
   sendApplicationSubmissionEmail,
   sendApprovalEmailWithPaymentLink, 
   sendRejectionEmail,
   sendPaymentConfirmationEmail,
-  handleFellowProfileUpdate
+  handleFellowProfileUpdate,
+  handle2FASetupEmail
 };

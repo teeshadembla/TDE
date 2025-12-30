@@ -1,5 +1,6 @@
 import fellowProfileModel from "../Models/fellowProfileModel.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
+import userModel from "../Models/userModel.js";
 import generatePresignedUrl from '../utils/s3presigned.js';
 import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -67,6 +68,9 @@ export const getPresignedUrlHeadshot = async(req, res) => {
         let profile = await fellowProfileModel.findOne({
             userId: userId
         });
+
+        //fetch user details
+        let userDetails = await userModel.findById(userId);
 
         // Prepare response object
         let responseData = {
@@ -182,8 +186,8 @@ export const getPresignedUrlHeadshot = async(req, res) => {
         }
 
         await handleFellowProfileUpdate({
-            to: (await userModel.findById(userId)).email,
-            name: (await userModel.findById(userId)).FullName,
+            to: userDetails.email,
+            name: profile.displayName || (await userModel.findById(userId)).FullName,
             fellowprofile: profile,
             updateStatus: 'DRAFT'
         })

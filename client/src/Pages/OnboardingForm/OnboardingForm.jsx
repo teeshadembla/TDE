@@ -9,7 +9,7 @@ import DynamicList from '../../components/OnboardingForm/UiComponents/DynamicLis
 import PortfolioItem from '../../components/OnboardingForm/UiComponents/PortfolioItem';
 import ProgressIndicator from '../../components/OnboardingForm/UiComponents/ProgressIndicator';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
 
 const OnboardingForm = () => {
   const { userId } = useParams();

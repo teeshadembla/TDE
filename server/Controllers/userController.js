@@ -9,6 +9,7 @@ import fellowshipModel from "../Models/fellowshipModel.js";
 import { uploadToS3 } from '../utils/s3config.js';
 import  clerkClient  from "../utils/clerkConfig.js";
 import dotenv from "dotenv";
+import { handle2FASetupEmail } from "../utils/sendMail.js";
 dotenv.config();
 
 // ============================================
@@ -450,6 +451,10 @@ const enabledMFA = async(req, res)=>{
 
         const response = await userModel.findByIdAndUpdate(accountId, {isMFAenabled: true}, {new: true});
 
+        await handle2FASetupEmail({
+            to: response.email,
+            name: response.FullName
+        })
         return res.status(200).json({msg: "Successfully updated MFA status", response});
     }catch(err){
         console.log("Error occurred while enabling MFA for user---->", err);
