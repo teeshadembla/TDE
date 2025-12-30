@@ -2,7 +2,7 @@ import fellowProfileModel from "../Models/fellowProfileModel.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import mongoose from "mongoose";
 import userModel from "../Models/userModel.js";
-import { sendApplicationSubmissionEmail } from "../utils/sendMail.js";
+import { sendApplicationSubmissionEmail, handleFellowProfileUpdate } from "../utils/sendMail.js";
 import {generateSignedUrlForViewing} from "./onboardingController.js";
 
 /**
@@ -168,6 +168,13 @@ export const getFellowProfileByUserId = async (req, res) => {
           });
         }
 
+         await handleFellowProfileUpdate({
+          to: (await userModel.findById(profile.userId)).email, 
+          name: (await userModel.findById(profile.userId)).FullName,
+          fellowprofile: profile,
+          updateStatus: 'ACCEPTED'
+        })
+
         return res.status(200).json({ message: 'Profile approved successfully' });
       } catch (error) {
         console.error('Error approving profile:', error);
@@ -202,6 +209,13 @@ export const getFellowProfileByUserId = async (req, res) => {
             onboardingStatus: 'IN_PROGRESS'
           });
         }
+
+        await handleFellowProfileUpdate({
+          to: (await userModel.findById(profile.userId)).email, 
+          name: (await userModel.findById(profile.userId)).FullName,
+          fellowprofile: profile,
+          updateStatus: 'REVIEW_NEEDED'
+        })
 
         return res.status(200).json({ message: 'Revision requested successfully' });
       } catch (error) {
@@ -429,6 +443,13 @@ export const submitFellowProfile = async(req, res) => {
             
             responseData.profileId = profile._id;
         }
+
+        await handleFellowProfileUpdate({
+          to: (await userModel.findById(userId)).email, 
+          name: (await userModel.findById(userId)).FullName,
+          fellowprofile: profile,
+          updateStatus: 'SUBMITTED'
+        })
 
         res.status(200).json(responseData);
 

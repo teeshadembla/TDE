@@ -58,7 +58,7 @@ const fellowProfileSchema = new mongoose.Schema({
   // MODERATION FIELDS
   status: {
     type: String,
-    enum: ['DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'REVISION_NEEDED', 'APPROVED'],
+    enum: ['DRAFT', 'SUBMITTED', 'REVISION_NEEDED', 'APPROVED'],
     default: 'DRAFT'
   },
   adminComments: [{

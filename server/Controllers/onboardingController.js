@@ -5,6 +5,7 @@ import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import mongoose from "mongoose";
 import dotenv from 'dotenv';
+import { handleFellowProfileUpdate } from "../utils/sendMail.js";
 dotenv.config();
 
 // Helper to generate signed URL for viewing
@@ -179,6 +180,13 @@ export const getPresignedUrlHeadshot = async(req, res) => {
             
             responseData.profileId = profile._id;
         }
+
+        await handleFellowProfileUpdate({
+            to: (await userModel.findById(userId)).email,
+            name: (await userModel.findById(userId)).FullName,
+            fellowprofile: profile,
+            updateStatus: 'DRAFT'
+        })
 
         res.status(200).json(responseData);
 

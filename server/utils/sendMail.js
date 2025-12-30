@@ -128,9 +128,50 @@ const sendPaymentConfirmationEmail = async ({ to, name, fellowshipName, amount }
   });
 };
 
+
+
+const handleFellowProfileUpdate = async ({to, name, fellowprofile, updateStatus}) =>{
+  const conditionalRenderingforUpdateStatus = {
+    APPROVED: `
+      <p>The fellow profile for <strong>${fellowprofile.name}</strong> has been accepted</p>
+      <p>Congratulations! Your fellow profile has been approved and is now live on our platform.</p>
+      `,
+    REVIEW_NEEDED: `
+    <p>The fellow profile for <strong>${fellowprofile.name}</strong> has been reverted to you for some changes before acceptance.</p>
+      <p>We appreciate your efforts and encourage you to visit the mentioned link and make necessary changes. Here is the link ${process.env.FRONTEND_URL}/user/profile</p>
+      `,
+    SUBMITTED: `
+      <p>The fellow profile for <strong>${fellowprofile.name}</strong> has been submitted successfully!</p>
+      <p>Our team will review your profile and get back to you shortly.</p>
+      `,
+    DRAFT: `
+      p>The fellow profile for <strong>${fellowprofile.name}</strong> has been submitted successfully in drafts!</p>
+      <p>Visit the website to submit your details for review on ${process.env.FRONTEND_URL}/user/profile</p>`,
+  }
+
+  const subject = `Fellow Profile Update = ${fellowprofile.name}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2c3e50;">Fellow Profile Update Notification</h2>
+      <p>Dear ${name},</p>
+      <p>If you have any questions or need further information, please feel free to reach out.</p>
+      ${conditionalRenderingforUpdateStatus[updateStatus]}
+      <br>
+      <p>Best regards,<br>The Digital Economist Team</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: `"The Digital Economist" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html
+  });
+}
 export { 
   sendApplicationSubmissionEmail,
   sendApprovalEmailWithPaymentLink, 
   sendRejectionEmail,
-  sendPaymentConfirmationEmail 
+  sendPaymentConfirmationEmail,
+  handleFellowProfileUpdate
 };
