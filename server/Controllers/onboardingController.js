@@ -7,6 +7,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import mongoose from "mongoose";
 import dotenv from 'dotenv';
 import { handleFellowProfileUpdate } from "../utils/sendMail.js";
+import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
 dotenv.config();
 
 // Helper to generate signed URL for viewing
@@ -59,145 +60,135 @@ const deleteFromS3 = async (key) => {
 };
 
 /* Save draft with conditional image upload */
-export const getPresignedUrlHeadshot = async(req, res) => {
-    try {
-        const userId = req.params.userId;
-        const { hasNewImage, ...profileData } = req.body;
+export const getPresignedUrlHeadshot = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { hasNewImage, ...profileData } = req.body;
 
-        // Check if profile exists
-        let profile = await fellowProfileModel.findOne({
-            userId: userId
-        });
+    let profile = await fellowProfileModel.findOne({ userId });
+    const userDetails = await userModel.findById(userId);
 
-        //fetch user details
-        let userDetails = await userModel.findById(userId);
+    let responseData = {
+      msg: "Draft saved successfully",
+      profileId: profile?._id,
+      status: profile?.status || "DRAFT",
+    };
 
-        // Prepare response object
-        let responseData = {
-            msg: 'Draft saved successfully',
-            profileId: profile?._id,
-            status: profile?.status || 'DRAFT'
-        };
+    /* ---------------- Image handling ---------------- */
+    if (hasNewImage) {
+      const { fileName, fileType, fileSize } = profileData;
 
-        // Handle image upload ONLY if there's a new image
-        if (hasNewImage) {
-            const { fileName, fileType, fileSize } = profileData;
+      if (!fileType || !fileType.startsWith("image/")) {
+        return res.status(400).json({ msg: "File uploaded must be an image" });
+      }
 
-            // Validate image
-            if (!fileType || !fileType.startsWith('image/')) {
-                return res.status(400).json({ msg: "File uploaded must be an image" });
-            }
+      if (fileSize > 10 * 1024 * 1024) {
+        return res.status(400).json({ msg: "File size must be less than 10MB" });
+      }
 
-            if (fileSize > (10 * 1024 * 1024)) {
-                return res.status(400).json({ msg: "File size must be less than 10MB" });
-            }
+      if (profile?.professionalHeadshotKey) {
+        await deleteFromS3(profile.professionalHeadshotKey);
+      }
 
-            // Delete old image from S3 if it exists
-            if (profile && profile.professionalHeadshotKey) {
-                const oldKey = profile.professionalHeadshotKey;
-                console.log(`Deleting old image: ${oldKey}`);
-                await deleteFromS3(oldKey);
-            }
+      const { presignedUrl, fileUrl, key } = await generatePresignedUrl(
+        process.env.AWS_BUCKET_NAME_PUBP,
+        userId,
+        fileName,
+        fileType,
+        "uploads"
+      );
 
-            // Generate presigned URL
-            const { presignedUrl, fileUrl, key } = await generatePresignedUrl(
-                process.env.AWS_BUCKET_NAME_PUBP,
-                userId,
-                fileName,
-                fileType,
-                'uploads'
-            );
+      responseData.presignedUrl = presignedUrl;
+      responseData.key = key;
 
-            // Add image upload data to response
-            responseData.presignedUrl = presignedUrl;
-            responseData.key = key;
-            
-            // Store the KEY, not the full URL
-            profileData.professionalHeadshotUrl = fileUrl;
-            profileData.professionalHeadshotKey = key;
-            
-            // Reset image upload status to pending
-            profileData.imageUploadStatus = 'pending';
-        }
-
-        // Update or create profile
-        if (profile) {
-            // Build update object with only provided fields
-            const updateData = {};
-            
-            if (profileData.displayName !== undefined) updateData.displayName = profileData.displayName;
-            if (profileData.headline !== undefined) updateData.headline = profileData.headline;
-            if (profileData.bio !== undefined) updateData.bio = profileData.bio;
-            if (profileData.professionalHeadshotUrl !== undefined) updateData.professionalHeadshotUrl = profileData.professionalHeadshotUrl;
-            if (profileData.professionalHeadshotKey !== undefined) updateData.professionalHeadshotKey = profileData.professionalHeadshotKey;
-            if (profileData.currentRole !== undefined) updateData.currentRole = profileData.currentRole;
-            if (profileData.expertise !== undefined) updateData.expertise = profileData.expertise;
-            if (profileData.socialLinks !== undefined) updateData.socialLinks = profileData.socialLinks;
-            if (profileData.portfolioItems !== undefined) updateData.portfolioItems = profileData.portfolioItems;
-            if (profileData.imageUploadStatus !== undefined) updateData.imageUploadStatus = profileData.imageUploadStatus;
-
-            // Reset status to DRAFT if it was REVISION_NEEDED
-            if (profile.status === 'REVISION_NEEDED') {
-                updateData.status = 'DRAFT';
-            }
-
-            profile = await fellowProfileModel.findByIdAndUpdate(
-                profile._id, 
-                updateData, 
-                { new: true }
-            );
-            
-            responseData.profileId = profile._id;
-            responseData.status = profile.status;
-        } else {
-            // Create new profile
-            profile = new fellowProfileModel({
-                userId: userId,
-                displayName: profileData.displayName || '',
-                headline: profileData.headline || '',
-                bio: profileData.bio || '',
-                professionalHeadshotUrl: profileData.professionalHeadshotUrl || '',
-                professionalHeadshotKey: profileData.professionalHeadshotKey || '',
-                currentRole: profileData.currentRole || { title: '', organization: '' },
-                expertise: profileData.expertise || ['', '', ''],
-                socialLinks: profileData.socialLinks || {
-                    linkedin: '',
-                    twitter: '',
-                    github: '',
-                    website: ''
-                },
-                portfolioItems: profileData.portfolioItems || [],
-                imageUploadStatus: profileData.imageUploadStatus || 'pending',
-                status: 'DRAFT'
-            });
-
-            await profile.save();
-            
-            // Update registration onboarding status
-            await fellowshipRegistrationModel.findByIdAndUpdate(
-                userId, //update using User ID
-                { 
-                    onboardingStatus: "IN_PROGRESS", 
-                    onboardingStartedAt: new Date() 
-                }
-            );
-            
-            responseData.profileId = profile._id;
-        }
-
-        await handleFellowProfileUpdate({
-            to: userDetails.email,
-            name: profile.displayName || (await userModel.findById(userId)).FullName,
-            fellowprofile: profile,
-            updateStatus: 'DRAFT'
-        })
-
-        res.status(200).json(responseData);
-
-    } catch(err) {
-        console.log("Error saving draft:", err);
-        return res.status(500).json({ msg: "Internal Server Error" });
+      profileData.professionalHeadshotUrl = fileUrl;
+      profileData.professionalHeadshotKey = key;
+      profileData.imageUploadStatus = "pending";
     }
+
+    /* ---------------- Update or create profile ---------------- */
+    if (profile) {
+      const updateData = {};
+
+      const fields = [
+        "displayName",
+        "headline",
+        "bio",
+        "professionalHeadshotUrl",
+        "professionalHeadshotKey",
+        "currentRole",
+        "expertise",
+        "socialLinks",
+        "portfolioItems",
+        "imageUploadStatus",
+      ];
+
+      fields.forEach((field) => {
+        if (profileData[field] !== undefined) {
+          updateData[field] = profileData[field];
+        }
+      });
+
+      if (profile.status === "REVISION_NEEDED") {
+        updateData.status = "DRAFT";
+      }
+
+      profile = await fellowProfileModel.findByIdAndUpdate(
+        profile._id,
+        updateData,
+        { new: true }
+      );
+
+      responseData.profileId = profile._id;
+      responseData.status = profile.status;
+    } else {
+      profile = new fellowProfileModel({
+        userId,
+        displayName: profileData.displayName || "",
+        headline: profileData.headline || "",
+        bio: profileData.bio || "",
+        professionalHeadshotUrl: profileData.professionalHeadshotUrl || "",
+        professionalHeadshotKey: profileData.professionalHeadshotKey || "",
+        currentRole: profileData.currentRole || { title: "", organization: "" },
+        expertise: profileData.expertise || ["", "", ""],
+        socialLinks: profileData.socialLinks || {
+          linkedin: "",
+          twitter: "",
+          github: "",
+          website: "",
+        },
+        portfolioItems: profileData.portfolioItems || [],
+        imageUploadStatus: profileData.imageUploadStatus || "pending",
+        status: "DRAFT",
+      });
+
+      await profile.save();
+
+      await fellowshipRegistrationModel.findByIdAndUpdate(userId, {
+        onboardingStatus: "IN_PROGRESS",
+        onboardingStartedAt: new Date(),
+      });
+
+      responseData.profileId = profile._id;
+    }
+
+    /* ---------------- Email (fire-and-forget) ---------------- */
+    sendEmail({
+      to: userDetails.email,
+      ...fellowProfileUpdateTemplate({
+        name: userDetails.FullName,
+        fellowProfileName: profile.displayName,
+        status: "DRAFT",
+      }),
+    }).catch((err) =>
+      console.error("Fellow profile draft email failed:", err)
+    );
+
+    return res.status(200).json(responseData);
+  } catch (err) {
+    console.error("Error saving draft:", err);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
 };
 
 /* Confirm image upload to S3 */

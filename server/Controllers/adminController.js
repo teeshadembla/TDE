@@ -1,172 +1,175 @@
 import userModel from "../Models/userModel.js";
-import {sendApprovalEmail} from "../utils/verificationEmailService.js";
+import {
+  sendEmail,
+  accountApprovalTemplate,
+} from "../services/email/index.js";
 
-export const fetchNonVerifiedUsers =  async (req, res) => {
+/* ============================
+   Fetch users (admin review)
+============================ */
+export const fetchNonVerifiedUsers = async (req, res) => {
   try {
     const { status, sort, search } = req.query;
 
-    // Build query
     let query = {};
 
-    // Filter by status
-    if (status && status !== 'all') {
-      if (status === 'pending') {
-        query.isVerifiedbyAdmin = false;
-      } else if (status === 'approved') {
-        query.isVerifiedbyAdmin = true;
-      }
+    if (status && status !== "all") {
+      if (status === "pending") query.isVerifiedbyAdmin = false;
+      if (status === "approved") query.isVerifiedbyAdmin = true;
     }
 
-    // Search by name or email
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
       ];
     }
 
-    // Determine sort order
-    let sortOption = { createdAt: -1 }; // Default: recent first
-    if (sort === 'oldest') {
-      sortOption = { createdAt: 1 }; // Oldest first
-    }
+    const sortOption = sort === "oldest"
+      ? { createdAt: 1 }
+      : { createdAt: -1 };
 
-    // Fetch users
-    const users = await userModel.find(query)
-      .select('-__v')
+    const users = await userModel
+      .find(query)
+      .select("-__v")
       .sort(sortOption)
       .lean();
 
-    return res.status(200).json({msg:"Successfully fetched users", users} );
+    return res.status(200).json({
+      msg: "Successfully fetched users",
+      users,
+    });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch users',
-      message: error.message 
+    console.error("Error fetching users:", error);
+    return res.status(500).json({
+      error: "Failed to fetch users",
+      message: error.message,
     });
   }
-}
+};
 
-export const verifyUserByAdmin =  async (req, res) => {
+/* ============================
+   Verify user by admin
+============================ */
+export const verifyUserByAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { sendEmail = true } = req.body;
+    const { sendEmail: shouldSendEmail = true } = req.body;
 
-    // Find user
     const user = await userModel.findById(id);
 
     if (!user) {
-      return res.status(404).json({ 
-        error: 'User not found',
-        message: 'User does not exist' 
+      return res.status(404).json({
+        error: "User not found",
+        message: "User does not exist",
       });
     }
 
-    // Check if already verified
     if (user.isVerifiedbyAdmin) {
-      return res.status(400).json({ 
-        error: 'Already verified',
-        message: 'User is already verified' 
+      return res.status(400).json({
+        error: "Already verified",
+        message: "User is already verified",
       });
     }
 
-    // Update user
     user.isVerifiedbyAdmin = true;
-
+    user.verifiedAt = new Date();
     await user.save();
 
-    // Send email notification
-    let emailResult = null;
-    if (sendEmail) {
-      emailResult = await sendApprovalEmail(user);
-      
-      if (!emailResult.success) {
-        console.error('Email failed but user was verified:', emailResult.error);
-      }
+    /* ---------------- Email (fire-and-forget) ---------------- */
+    if (shouldSendEmail) {
+      sendEmail({
+        to: user.email,
+        ...accountApprovalTemplate({
+          name: user.name || user.FullName,
+        }),
+      }).catch((err) =>
+        console.error("Account approval email failed:", err)
+      );
     }
 
-    res.json({
+    return res.json({
       success: true,
-      message: 'User verified successfully',
+      message: "User verified successfully",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         isVerifiedbyAdmin: user.isVerifiedbyAdmin,
-        status: user.status,
-        verifiedAt: user.verifiedAt
+        verifiedAt: user.verifiedAt,
       },
-      emailSent: emailResult?.success || false
+      emailTriggered: shouldSendEmail,
     });
   } catch (error) {
-    console.error('Error verifying user:', error);
-    res.status(500).json({ 
-      error: 'Failed to verify user',
-      message: error.message 
-    });
-  }
-}
-
-export const rejectUserByAdmin = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Find user
-    const user = await userModel.findById(id);
-
-    if (!user) {
-      return res.status(404).json({ 
-        error: 'User not found',
-        message: 'User does not exist' 
-      });
-    }
-
-    // Check if already approved
-    if (user.isVerifiedbyAdmin) {
-      return res.status(400).json({ 
-        error: 'Cannot reject',
-        message: 'Cannot reject an already approved user' 
-      });
-    }
-
-    user.isVerifiedbyAdmin = false;
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'User rejected',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      }
-    });
-  } catch (error) {
-    console.error('Error rejecting user:', error);
-    res.status(500).json({ 
-      error: 'Failed to reject user',
-      message: error.message 
-    });
-  }
-}
-
-export const getPendingVerificationUsers = async (req, res) => {
-  try {
-    const pendingUsers = await User.find({
-      isVerifiedbyAdmin: false,
-    })
-    .select('-__v')
-    .sort({ createdAt: -1 }) // Recent first
-    .lean();
-
-    res.json(pendingUsers);
-  } catch (error) {
-    console.error('Error fetching pending users:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch pending users',
-      message: error.message 
+    console.error("Error verifying user:", error);
+    return res.status(500).json({
+      error: "Failed to verify user",
+      message: error.message,
     });
   }
 };
 
+/* ============================
+   Reject user by admin
+============================ */
+export const rejectUserByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await userModel.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+        message: "User does not exist",
+      });
+    }
+
+    if (user.isVerifiedbyAdmin) {
+      return res.status(400).json({
+        error: "Cannot reject",
+        message: "Cannot reject an already approved user",
+      });
+    }
+
+    user.isVerifiedbyAdmin = false;
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "User rejected",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error rejecting user:", error);
+    return res.status(500).json({
+      error: "Failed to reject user",
+      message: error.message,
+    });
+  }
+};
+
+/* ============================
+   Get pending verification users
+============================ */
+export const getPendingVerificationUsers = async (req, res) => {
+  try {
+    const pendingUsers = await userModel
+      .find({ isVerifiedbyAdmin: false })
+      .select("-__v")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json(pendingUsers);
+  } catch (error) {
+    console.error("Error fetching pending users:", error);
+    return res.status(500).json({
+      error: "Failed to fetch pending users",
+      message: error.message,
+    });
+  }
+};

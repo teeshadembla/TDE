@@ -1,187 +1,135 @@
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
-import {
-  sendApprovalEmailWithPaymentLink, 
-  sendRejectionEmail,
-  sendPaymentConfirmationEmail} from "../utils/sendMail.js";
-  import emailIntegration from "../utils/email/emailIntegration.js";
 import userModel from "../Models/userModel.js";
-// Import your email service
-// import { sendApprovalEmailWithPaymentLink, sendRejectionEmail } from "../services/emailService.js";
 
+import {
+  sendEmail,
+  applicationApprovalTemplate,
+  applicationRejectionTemplate,
+} from "../services/email/index.js";
 
-// UPDATED: Get all applications for admin review
+/* ============================
+   Get all applications for user
+============================ */
 const getAllFellowshipRegistrations = async (req, res) => {
   const { id } = req.params;
+
   try {
     const registrations = await fellowshipRegistrationModel
-      .find({ status: { $in: ["PENDING_REVIEW", "APPROVED", "CONFIRMED"] }, user: id }) // Fixed: changed userId to user
+      .find({
+        status: { $in: ["PENDING_REVIEW", "APPROVED", "CONFIRMED"] },
+        user: id,
+      })
       .populate("fellowship", "cycle startDate endDate")
       .populate("user", "FullName email company title")
       .populate("workgroupId", "title description")
-      .sort({ appliedAt: -1 }); // Most recent first
+      .sort({ appliedAt: -1 });
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    today.setHours(0, 0, 0, 0);
 
-    const currReg = registrations.filter(reg => {
-      const fellowship = reg.fellowship;
-      const startDate = new Date(fellowship?.startDate);
-      const endDate = new Date(fellowship?.endDate);
-      
-      // Set dates to start of day for comparison
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-      
-      // Current fellowships: either upcoming (startDate > today) or ongoing (startDate <= today AND endDate >= today)
-      return startDate > today || (startDate <= today && endDate >= today);
-    });
+    const current = [];
+    const past = [];
 
-    const pastReg = registrations.filter(reg => {
-      const fellowship = reg.fellowship;
-      const endDate = new Date(fellowship?.endDate);
-      
-      // Set date to start of day for comparison
-      endDate.setHours(0, 0, 0, 0);
-      
-      // Past fellowships: endDate < today
-      return endDate < today;
-    });
+    registrations.forEach((reg) => {
+      const start = new Date(reg.fellowship?.startDate);
+      const end = new Date(reg.fellowship?.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
 
-    return res.status(200).json({ 
-      current: currReg, 
-      past: pastReg,
-      total: registrations.length,
-      counts: {
-        current: currReg.length,
-        past: pastReg.length
+      if (start > today || (start <= today && end >= today)) {
+        current.push(reg);
+      } else {
+        past.push(reg);
       }
     });
+
+    return res.status(200).json({
+      current,
+      past,
+      total: registrations.length,
+      counts: { current: current.length, past: past.length },
+    });
   } catch (error) {
-    console.error('Error fetching fellowship registrations:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching fellowship registrations:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// UPDATED: Approve/Reject Fellowship Application
+/* ============================
+   Review application (approve / reject)
+============================ */
 const reviewFellowshipApplication = async (req, res) => {
   const { id } = req.params;
-  const { action, adminComments } = req.body; // action: "APPROVED" or "REJECTED"
-  
+  const { action, adminComments } = req.body;
+
   try {
     const application = await fellowshipRegistrationModel
       .findById(id)
-      .populate('user')
-      .populate('fellowship');
-    
+      .populate("user")
+      .populate("fellowship");
+
     if (!application) {
       return res.status(404).json({ msg: "Application not found" });
     }
 
     if (application.status !== "PENDING_REVIEW") {
-      return res.status(400).json({ msg: "Application has already been reviewed" });
+      return res.status(400).json({ msg: "Application already reviewed" });
     }
 
-    // Update application
     application.status = action;
     application.adminComments = adminComments;
     application.reviewedAt = new Date();
     await application.save();
 
-    // Send appropriate email
+    const user = application.user;
+
     if (action === "APPROVED") {
-      const paymentAmount = application.experience === "0-2" || application.experience === "3-5" ? 4000 : 8000;
-      
-      // TODO: Uncomment when email service is set up
-      
-      await sendApprovalEmailWithPaymentLink({
-        to: application.user.email,
-        name: application.user.FullName,
-        fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
-        applicationId: application._id,
-        paymentAmount
-      });
-     
-      
-      console.log(`Approval email should be sent to ${application.user.email}`);
-      
-    } else if (action === "REJECTED") {
-      // TODO: Uncomment when email service is set up
-      
-      await sendRejectionEmail({
-        to: application.user.email,
-        name: application.user.FullName,
-        fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
-        reason: adminComments
-      });
-     
-      
-      console.log(`Rejection email should be sent to ${application.user.email}`);
+      const paymentAmount =
+        application.experience === "0-2" || application.experience === "3-5"
+          ? 4000
+          : 8000;
+
+      sendEmail({
+        to: user.email,
+        ...applicationApprovalTemplate({
+          name: user.FullName,
+          fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
+          applicationId: application._id,
+          paymentAmount,
+        }),
+      }).catch((err) =>
+        console.error("Approval email failed:", err)
+      );
     }
 
-    res.status(200).json({ 
-      success: true, 
+    if (action === "REJECTED") {
+      sendEmail({
+        to: user.email,
+        ...applicationRejectionTemplate({
+          name: user.FullName,
+          fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
+          reason: adminComments,
+        }),
+      }).catch((err) =>
+        console.error("Rejection email failed:", err)
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
       message: `Application ${action.toLowerCase()}`,
-      application: application 
-    });
-
-  } catch (err) {
-    console.log("Error reviewing fellowship application:", err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const acceptFellowshipRegistration = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const application = await fellowshipRegistrationModel
-      .findById(id)
-      .populate('user')
-      .populate('fellowship');
-    
-    if (!application) {
-      return res.status(404).json({ msg: "Application not found" });
-    }
-
-    if (application.status !== "PENDING_REVIEW") {
-      return res.status(400).json({ msg: "Application has already been reviewed" });
-    }
-
-    // Update application status
-    application.status = "APPROVED";
-    application.reviewedAt = new Date();
-    await application.save();
-
-    // Get user and fellowship data
-    const user = await userModel.findById(application.user);
-    const fellowship = await fellowshipModel.findById(application.fellowship);
-
-    // ✅ SEND ACCEPTANCE EMAIL + SCHEDULE REMINDERS
-    await emailIntegration.handleRegistrationApproval(
       application,
-      user,
-      fellowship
-    );
-
-    return res.status(200).json({ 
-      success: true, 
-      message: "Application approved and emails scheduled",
-      application: application 
     });
-
   } catch (err) {
-    console.log("Error accepting fellowship application:", err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error reviewing fellowship application:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-const rejectFellowshipRegistration = async (req, res) => {
-  req.body = { action: "REJECTED", adminComments: req?.body?.adminComments || "" };
-  return await reviewFellowshipApplication(req, res);
-};
-
-// UPDATED: Get applications by status for admin dashboard
+/* ============================
+   Get applications by status (admin dashboard)
+============================ */
 const getApplicationsByStatus = async (req, res) => {
   try {
     const pendingReview = await fellowshipRegistrationModel
@@ -212,7 +160,7 @@ const getApplicationsByStatus = async (req, res) => {
       .populate("workgroupId", "title")
       .sort({ reviewedAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       pendingReview,
       approved,
       confirmed,
@@ -221,168 +169,128 @@ const getApplicationsByStatus = async (req, res) => {
         pendingReview: pendingReview.length,
         approved: approved.length,
         confirmed: confirmed.length,
-        rejected: rejected.length
-      }
+        rejected: rejected.length,
+      },
     });
   } catch (error) {
-    console.error('Error fetching applications by status:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching applications by status:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
+/* ============================
+   Delete registration
+============================ */
 const deleteFellowshipRegistration = async (req, res) => {
   try {
     const { id } = req.params;
     const registration = await fellowshipRegistrationModel.findById(id);
-    
+
     if (!registration) {
       return res.status(404).json({ msg: "Registration not found" });
     }
 
     await fellowshipRegistrationModel.findByIdAndDelete(id);
     return res.status(200).json({ msg: "Registration deleted successfully" });
-    
   } catch (err) {
-    console.log("Error deleting fellowship registration:", err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error deleting fellowship registration:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// UPDATED: Get user's applications with better status handling
+/* ============================
+   Get registrations by user
+============================ */
 const getAllRegistrationsByUser = async (req, res) => {
   const { userId } = req.params;
-  
+
   try {
     const currentDate = new Date();
-    
-    // Get all registrations for user
-    const allRegistrations = await fellowshipRegistrationModel
-      .find({ user: userId})
+
+    const registrations = await fellowshipRegistrationModel
+      .find({ user: userId })
       .populate("fellowship", "cycle startDate endDate")
       .populate("workgroupId", "title description")
       .sort({ appliedAt: -1 });
 
-    // Categorize registrations
     const categorized = {
       pendingReview: [],
       approved: [],
       confirmed: [],
       rejected: [],
       current: [],
-      past: []
+      past: [],
     };
-    
-        
 
-    allRegistrations.forEach(reg => {
-      
-      const endDate = new Date(reg?.fellowship?.endDate);
-      // First categorize by status
-      switch (reg.status) {
-        case "PENDING_REVIEW":
-          categorized.pendingReview.push(reg);
-          if (endDate >= currentDate) {
-              categorized.current.push(reg);
-            } else{
-              categorized.past.push(reg);
-            }
-          break;
-        case "APPROVED":
-          categorized.approved.push(reg);
-          if (endDate >= currentDate) {
-              categorized.current.push(reg);
-            } else{
-              categorized.past.push(reg);
-            }
-          break;
-        case "CONFIRMED":
-          categorized.confirmed.push(reg);
-          if (endDate >= currentDate) {
-              categorized.current.push(reg);
-            } else{
-              categorized.past.push(reg);
-            }
-        case "REJECTED":
-          categorized.rejected.push(reg);
-          break;
-        
+    registrations.forEach((reg) => {
+      const endDate = new Date(reg.fellowship?.endDate);
+
+      if (endDate >= currentDate) {
+        categorized.current.push(reg);
+      } else {
+        categorized.past.push(reg);
       }
+
+      categorized[reg.status.toLowerCase()]?.push(reg);
     });
 
     return res.status(200).json({ registrations: categorized });
-    
   } catch (err) {
-    console.log("Error getting user registrations:", err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error getting user registrations:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Keep existing getYears function as is
+/* ============================
+   Get fellowship years
+============================ */
 const getYears = async (req, res) => {
   try {
-    const uniqueYears = await fellowshipModel.aggregate([
+    const years = await fellowshipModel.aggregate([
       {
         $addFields: {
-          year: {
-            $arrayElemAt: [
-              { $split: ['$cycle', '-'] },
-              -1
-            ]
-          }
-        }
+          year: { $arrayElemAt: [{ $split: ["$cycle", "-"] }, -1] },
+        },
       },
-      {
-        $group: {
-          _id: '$year'
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          year: '$_id'
-        }
-      },
-      {
-        $sort: { year: -1 }
-      }
+      { $group: { _id: "$year" } },
+      { $project: { _id: 0, year: "$_id" } },
+      { $sort: { year: -1 } },
     ]);
 
-    const years = uniqueYears.map(item => item.year);
-    return res.status(200).json({ years: years });
-    
+    return res.status(200).json({ years: years.map((y) => y.year) });
   } catch (err) {
-    console.log("Error:", err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching years:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// NEW: Get all applications (for admin moderation page)
+/* ============================
+   Get all applications (admin)
+============================ */
 const getAllApplications = async (req, res) => {
   try {
     const applications = await fellowshipRegistrationModel
       .find()
-      .populate('user', 'FullName email socialLinks company title')
-      .populate('fellowship', 'cycle')
-      .populate('workgroupId', 'title')
+      .populate("user", "FullName email socialLinks company title")
+      .populate("fellowship", "cycle")
+      .populate("workgroupId", "title")
       .sort({ appliedAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      applications
-    });
+    return res.status(200).json({ success: true, applications });
   } catch (err) {
     console.error("Error fetching applications:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-// NEW: Approve application (without charging yet)
+/* ============================
+   Approve application (no payment)
+============================ */
 const approveApplication = async (req, res) => {
   const { id } = req.params;
-  
+
   try {
     const application = await fellowshipRegistrationModel.findById(id);
-    
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
@@ -391,27 +299,29 @@ const approveApplication = async (req, res) => {
     application.reviewedAt = new Date();
     await application.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Application approved",
-      application
+      application,
     });
   } catch (err) {
     console.error("Error approving application:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-// NEW: Reject application
+/* ============================
+   Reject application
+============================ */
 const rejectApplication = async (req, res) => {
   const { id } = req.params;
-  
+
   try {
     const application = await fellowshipRegistrationModel
       .findById(id)
-      .populate('user')
-      .populate('fellowship');
-    
+      .populate("user")
+      .populate("fellowship");
+
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
@@ -420,35 +330,38 @@ const rejectApplication = async (req, res) => {
     application.reviewedAt = new Date();
     await application.save();
 
-    // Send rejection email
-    await sendRejectionEmail({
+    sendEmail({
       to: application.user.email,
-      name: application.user.FullName,
-      fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
-      reason: application.adminComments || "Unfortunately, your application was not accepted at this time."
-    });
-    
-    res.status(200).json({
+      ...applicationRejectionTemplate({
+        name: application.user.FullName,
+        fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
+        reason:
+          application.adminComments ||
+          "Unfortunately, your application was not accepted at this time.",
+      }),
+    }).catch((err) =>
+      console.error("Rejection email failed:", err)
+    );
+
+    return res.status(200).json({
       success: true,
       message: "Application rejected",
-      application
+      application,
     });
   } catch (err) {
     console.error("Error rejecting application:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
 export default {
   getAllFellowshipRegistrations,
-  reviewFellowshipApplication, // NEW: Main review function
-  acceptFellowshipRegistration, // LEGACY: For backward compatibility
-  rejectFellowshipRegistration, // LEGACY: For backward compatibility
-  getApplicationsByStatus, // NEW: Better admin dashboard data
+  reviewFellowshipApplication,
+  getApplicationsByStatus,
   deleteFellowshipRegistration,
   getAllRegistrationsByUser,
   getYears,
   getAllApplications,
   approveApplication,
-  rejectApplication
+  rejectApplication,
 };

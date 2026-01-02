@@ -10,6 +10,8 @@ import { uploadToS3 } from '../utils/s3config.js';
 import  clerkClient  from "../utils/clerkConfig.js";
 import dotenv from "dotenv";
 import { handle2FASetupEmail } from "../utils/sendMail.js";
+import { sendEmail, twoFAEnabledTemplate } from "../services/email/index.js";
+
 dotenv.config();
 
 // ============================================
@@ -444,23 +446,42 @@ const getUserById = async (req, res) => {
     }
 };
 
-const enabledMFA = async(req, res)=>{
-    try{
-        const accountId = req.body.accountId;
-        console.log("This is the account Id: ", accountId);
 
-        const response = await userModel.findByIdAndUpdate(accountId, {isMFAenabled: true}, {new: true});
+export const enabledMFA = async (req, res) => {
+  try {
+    const { accountId } = req.body;
+    console.log("This is the account Id:", accountId);
 
-        await handle2FASetupEmail({
-            to: response.email,
-            name: response.FullName
-        })
-        return res.status(200).json({msg: "Successfully updated MFA status", response});
-    }catch(err){
-        console.log("Error occurred while enabling MFA for user---->", err);
-        return res.status(500).json({ msg: "Internal Server Error" });
+    const user = await userModel.findByIdAndUpdate(
+      accountId,
+      { isMFAenabled: true },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
     }
-}  
+
+    /* ---------------- Email (fire-and-forget) ---------------- */
+    sendEmail({
+      to: user.email,
+      ...twoFAEnabledTemplate({
+        name: user.FullName,
+      }),
+    }).catch((err) =>
+      console.error("2FA enabled email failed:", err)
+    );
+
+    return res.status(200).json({
+      msg: "Successfully updated MFA status",
+      response: user,
+    });
+  } catch (err) {
+    console.error("Error occurred while enabling MFA for user:", err);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+ 
 
 const forgotPassword = () => async (req, res) => {
   try {

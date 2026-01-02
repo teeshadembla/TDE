@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import userModel from "../Models/userModel.js";
 import { sendApplicationSubmissionEmail, handleFellowProfileUpdate } from "../utils/sendMail.js";
 import {generateSignedUrlForViewing} from "./onboardingController.js";
+import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
+
 
 /**
  * @route   GET /api/fellow-profile/:registrationId
@@ -140,47 +142,67 @@ export const getFellowProfileByUserId = async (req, res) => {
      * @desc    Approve a fellow profile and make it public
      * @access  Private (admin)
      */
-    export const approveFellowProfile = async (req, res) => {
-      try {
-        const { profileId } = req.params;
-        const adminId = req.user?._id;
+    import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
 
-        const profile = await fellowProfileModel.findById(profileId);
-        if (!profile) return res.status(404).json({ message: 'Profile not found' });
+export const approveFellowProfile = async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const adminId = req.user?._id;
 
-        if (profile.status === 'APPROVED') {
-          return res.status(400).json({ message: 'Profile already approved' });
+    const profile = await fellowProfileModel.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    if (profile.status === "APPROVED") {
+      return res.status(400).json({ message: "Profile already approved" });
+    }
+
+    profile.status = "APPROVED";
+    profile.approvedAt = new Date();
+    profile.isPublic = true;
+
+    if (adminId) {
+      profile.approvedBy = adminId;
+    }
+
+    await profile.save();
+
+    // Update fellowship registration onboarding status
+    if (profile.fellowshipRegistrationId) {
+      await fellowshipRegistrationModel.findByIdAndUpdate(
+        profile.fellowshipRegistrationId,
+        {
+          onboardingStatus: "APPROVED",
+          onboardingCompletedAt: new Date(),
+          fellowProfileId: profile._id,
         }
+      );
+    }
 
-        profile.status = 'APPROVED';
-        profile.approvedAt = new Date();
-        if (adminId) profile.approvedBy = adminId;
-        profile.isPublic = true;
+    /* ---------------- Email (fire-and-forget) ---------------- */
+    const user = await userModel.findById(profile.userId);
 
-        await profile.save();
+    sendEmail({
+      to: user.email,
+      ...fellowProfileUpdateTemplate({
+        name: user.FullName,
+        fellowProfileName: profile.displayName,
+        status: "APPROVED",
+      }),
+    }).catch((err) =>
+      console.error("Fellow profile approval email failed:", err)
+    );
 
-        // Update fellowship registration onboarding status if exists
-        if (profile.fellowshipRegistrationId) {
-          await fellowshipRegistrationModel.findByIdAndUpdate(profile.fellowshipRegistrationId, {
-            onboardingStatus: 'APPROVED',
-            onboardingCompletedAt: new Date(),
-            fellowProfileId: profile._id
-          });
-        }
-
-         await handleFellowProfileUpdate({
-          to: (await userModel.findById(profile.userId)).email, 
-          name: (await userModel.findById(profile.userId)).FullName,
-          fellowprofile: profile,
-          updateStatus: 'ACCEPTED'
-        })
-
-        return res.status(200).json({ message: 'Profile approved successfully' });
-      } catch (error) {
-        console.error('Error approving profile:', error);
-        return res.status(500).json({ message: 'Server error approving profile', error: error.message });
-      }
-    };
+    return res.status(200).json({ message: "Profile approved successfully" });
+  } catch (error) {
+    console.error("Error approving profile:", error);
+    return res.status(500).json({
+      message: "Server error approving profile",
+      error: error.message,
+    });
+  }
+};
 
     /**
      * @route   POST /api/admin/onboarding-profiles/:profileId/request-revision
@@ -210,12 +232,19 @@ export const getFellowProfileByUserId = async (req, res) => {
           });
         }
 
-        await handleFellowProfileUpdate({
-          to: (await userModel.findById(profile.userId)).email, 
-          name: (await userModel.findById(profile.userId)).FullName,
-          fellowprofile: profile,
-          updateStatus: 'REVIEW_NEEDED'
-        })
+        const user = await userModel.findById(profile.userId);
+
+        sendEmail({
+          to: user.email,
+          ...fellowProfileUpdateTemplate({
+            name: user.FullName,
+            fellowProfileName: profile.name,
+            status: "REVIEW_NEEDED",
+          }),
+        }).catch(err => {
+          console.error("Fellow profile revision email failed:", err);
+        });
+
 
         return res.status(200).json({ message: 'Revision requested successfully' });
       } catch (error) {
@@ -229,37 +258,54 @@ export const getFellowProfileByUserId = async (req, res) => {
      * @desc    Send a reminder email to a user who hasn't started onboarding
      * @access  Private (admin)
      */
-    export const sendOnboardingReminder = async (req, res) => {
-      try {
-        const { registrationId } = req.params;
+    import { sendEmail, applicationSubmissionTemplate } from "../services/email/index.js";
 
-        const registration = await fellowshipRegistrationModel.findById(registrationId).populate('user', 'email FullName').populate('fellowship');
-        if (!registration) return res.status(404).json({ message: 'Registration not found' });
+export const sendOnboardingReminder = async (req, res) => {
+  try {
+    const { registrationId } = req.params;
 
-        // update reminder metadata
-        registration.lastReminderSent = new Date();
-        registration.reminderCount = (registration.reminderCount || 0) + 1;
-        await registration.save();
+    const registration = await fellowshipRegistrationModel
+      .findById(registrationId)
+      .populate("user", "email FullName")
+      .populate("fellowship");
 
-        // attempt to send an email (uses existing application submission template as a simple reminder)
-        try {
-          const to = registration.user?.email;
-          const name = registration.user?.FullName || '';
-          const fellowshipName = registration.fellowship?.name || 'the fellowship';
-          if (to) {
-            await sendApplicationSubmissionEmail({ to, name, fellowshipName });
-          }
-        } catch (mailErr) {
-          // don't fail the whole request on email errors; log and continue
-          console.error('Reminder email failed:', mailErr);
-        }
+    if (!registration) {
+      return res.status(404).json({ message: "Registration not found" });
+    }
 
-        return res.status(200).json({ message: 'Reminder recorded and email attempted' });
-      } catch (error) {
-        console.error('Error sending onboarding reminder:', error);
-        return res.status(500).json({ message: 'Server error sending reminder', error: error.message });
-      }
-    };
+    // Update reminder metadata
+    registration.lastReminderSent = new Date();
+    registration.reminderCount = (registration.reminderCount || 0) + 1;
+    await registration.save();
+
+    /* ---------------- Email (fire-and-forget) ---------------- */
+    const to = registration.user?.email;
+    const name = registration.user?.FullName || "";
+    const fellowshipName = registration.fellowship?.name || "the fellowship";
+
+    if (to) {
+      sendEmail({
+        to,
+        ...applicationSubmissionTemplate({
+          name,
+          fellowshipName,
+        }),
+      }).catch((err) =>
+        console.error("Onboarding reminder email failed:", err)
+      );
+    }
+
+    return res.status(200).json({
+      message: "Reminder recorded and email attempted",
+    });
+  } catch (error) {
+    console.error("Error sending onboarding reminder:", error);
+    return res.status(500).json({
+      message: "Server error sending reminder",
+      error: error.message,
+    });
+  }
+};
 
 /**
  * @route   GET /api/fellow-profile/draft/:registrationId
@@ -312,149 +358,145 @@ export const loadDraftFellowProfile = async(req, res) =>{
 }
 
 //to actually save information
-export const submitFellowProfile = async(req, res) => {
-    try {
-        const userId = req.params.userId;
-        const { hasNewImage, ...profileData } = req.body;
+import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
 
-        console.log("This is the profile data received:", profileData);
+export const submitFellowProfile = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { hasNewImage, ...profileData } = req.body;
 
-        
-        // Check if profile exists
-        let profile = await fellowProfileModel.findOne({
-            userId: userId
-        });
+    console.log("This is the profile data received:", profileData);
 
-        // Prepare response object
-        let responseData = {
-            msg: 'Draft saved successfully',
-            profileId: profile?._id,
-            status: profile?.status || 'COMPLETED',
-            presignedUrl: null,
-            key: null,
-        };
+    let profile = await fellowProfileModel.findOne({ userId });
 
-        // Handle image upload ONLY if there's a new image
-        if (hasNewImage) {
-            const { fileName, fileType, fileSize } = profileData;
+    let responseData = {
+      msg: "Draft saved successfully",
+      profileId: profile?._id,
+      status: profile?.status || "COMPLETED",
+      presignedUrl: null,
+      key: null,
+    };
 
-            // Validate image
-            if (!fileType || !fileType.startsWith('image/')) {
-                return res.status(400).json({ msg: "File uploaded must be an image" });
-            }
+    /* ---------------- Image handling ---------------- */
+    if (hasNewImage) {
+      const { fileName, fileType, fileSize } = profileData;
 
-            if (fileSize > (10 * 1024 * 1024)) {
-                return res.status(400).json({ msg: "File size must be less than 10MB" });
-            }
+      if (!fileType || !fileType.startsWith("image/")) {
+        return res.status(400).json({ msg: "File uploaded must be an image" });
+      }
 
-            // Delete old image from S3 if it exists
-            if (profile && profile.professionalHeadshotKey) {
-                const oldKey = profile.professionalHeadshotKey;
-                console.log(`Deleting old image: ${oldKey}`);
-                await deleteFromS3(oldKey);
-            }
+      if (fileSize > 10 * 1024 * 1024) {
+        return res.status(400).json({ msg: "File size must be less than 10MB" });
+      }
 
-            // Generate presigned URL
-            const { presignedUrl, fileUrl, key } = await generatePresignedUrl(
-                process.env.AWS_BUCKET_NAME_PUBP,
-                userId,
-                fileName,
-                fileType,
-                'uploads'
-            );
+      if (profile?.professionalHeadshotKey) {
+        await deleteFromS3(profile.professionalHeadshotKey);
+      }
 
-            console.log({ presignedUrl, fileUrl, key });
+      const { presignedUrl, fileUrl, key } = await generatePresignedUrl(
+        process.env.AWS_BUCKET_NAME_PUBP,
+        userId,
+        fileName,
+        fileType,
+        "uploads"
+      );
 
-            // Add image upload data to response
-            responseData.presignedUrl = presignedUrl;
-            responseData.key = key;
-            
-            // Store the KEY, not the full URL
-            profileData.professionalHeadshotUrl = fileUrl;
-            profileData.professionalHeadshotKey = key;
-            
-            // Reset image upload status to pending
-            profileData.imageUploadStatus = 'pending';
-        }
+      responseData.presignedUrl = presignedUrl;
+      responseData.key = key;
 
-        // Update or create profile
-        if (profile) {
-            // Build update object with only provided fields
-            const updateData = {};
-            
-            if (profileData.displayName !== undefined) updateData.displayName = profileData.displayName;
-            if (profileData.headline !== undefined) updateData.headline = profileData.headline;
-            if (profileData.bio !== undefined) updateData.bio = profileData.bio;
-            if (profileData.professionalHeadshotUrl !== undefined) updateData.professionalHeadshotUrl = profileData.professionalHeadshotUrl;
-            if (profileData.professionalHeadshotKey !== undefined) updateData.professionalHeadshotKey = profileData.professionalHeadshotKey;
-            if (profileData.currentRole !== undefined) updateData.currentRole = profileData.currentRole;
-            if (profileData.expertise !== undefined) updateData.expertise = profileData.expertise;
-            if (profileData.socialLinks !== undefined) updateData.socialLinks = profileData.socialLinks;
-            if (profileData.portfolioItems !== undefined) updateData.portfolioItems = profileData.portfolioItems;
-            if (profileData.imageUploadStatus !== undefined) updateData.imageUploadStatus = profileData.imageUploadStatus;
-
-            // Reset status to DRAFT if it was REVISION_NEEDED
-            if (profile.status === 'REVISION_NEEDED') {
-                updateData.status = 'DRAFT';
-            }
-
-            updateData.status = 'SUBMITTED';
-
-            profile = await fellowProfileModel.findByIdAndUpdate(
-                profile._id, 
-                updateData, 
-                { new: true }
-            );
-            
-            responseData.profileId = profile._id;
-            responseData.status = profile.status;
-        } else {
-            // Create new profile
-            profile = new fellowProfileModel({
-                userId: userId,
-                displayName: profileData.displayName || '',
-                headline: profileData.headline || '',
-                bio: profileData.bio || '',
-                professionalHeadshotUrl: profileData.professionalHeadshotUrl || '',
-                professionalHeadshotKey: profileData.professionalHeadshotKey || '',
-                currentRole: profileData.currentRole || { title: '', organization: '' },
-                expertise: profileData.expertise || ['', '', ''],
-                socialLinks: profileData.socialLinks || {
-                    linkedin: '',
-                    twitter: '',
-                    github: '',
-                    website: ''
-                },
-                portfolioItems: profileData.portfolioItems || [],
-                imageUploadStatus: profileData.imageUploadStatus || 'pending',
-                status: 'COMPLETED'
-            });
-
-            await profile.save();
-            
-            // Update registration onboarding status
-            await fellowshipRegistrationModel.findByIdAndUpdate(
-                user, //update using user id, means all of the user's registrations will show onboarding in progress
-                { 
-                    onboardingStatus: "IN_PROGRESS", 
-                    onboardingStartedAt: new Date() 
-                }
-            );
-            
-            responseData.profileId = profile._id;
-        }
-
-        await handleFellowProfileUpdate({
-          to: (await userModel.findById(userId)).email, 
-          name: (await userModel.findById(userId)).FullName,
-          fellowprofile: profile,
-          updateStatus: 'SUBMITTED'
-        })
-
-        res.status(200).json(responseData);
-
-    } catch(err) {
-        console.log("Error saving draft:", err);
-        return res.status(500).json({ msg: "Internal Server Error" });
+      profileData.professionalHeadshotUrl = fileUrl;
+      profileData.professionalHeadshotKey = key;
+      profileData.imageUploadStatus = "pending";
     }
+
+    /* ---------------- Update or create profile ---------------- */
+    if (profile) {
+      const updateData = {};
+
+      const fields = [
+        "displayName",
+        "headline",
+        "bio",
+        "professionalHeadshotUrl",
+        "professionalHeadshotKey",
+        "currentRole",
+        "expertise",
+        "socialLinks",
+        "portfolioItems",
+        "imageUploadStatus",
+      ];
+
+      fields.forEach((field) => {
+        if (profileData[field] !== undefined) {
+          updateData[field] = profileData[field];
+        }
+      });
+
+      if (profile.status === "REVISION_NEEDED") {
+        updateData.status = "DRAFT";
+      }
+
+      updateData.status = "SUBMITTED";
+
+      profile = await fellowProfileModel.findByIdAndUpdate(
+        profile._id,
+        updateData,
+        { new: true }
+      );
+
+      responseData.profileId = profile._id;
+      responseData.status = profile.status;
+    } else {
+      profile = new fellowProfileModel({
+        userId,
+        displayName: profileData.displayName || "",
+        headline: profileData.headline || "",
+        bio: profileData.bio || "",
+        professionalHeadshotUrl: profileData.professionalHeadshotUrl || "",
+        professionalHeadshotKey: profileData.professionalHeadshotKey || "",
+        currentRole: profileData.currentRole || { title: "", organization: "" },
+        expertise: profileData.expertise || ["", "", ""],
+        socialLinks: profileData.socialLinks || {
+          linkedin: "",
+          twitter: "",
+          github: "",
+          website: "",
+        },
+        portfolioItems: profileData.portfolioItems || [],
+        imageUploadStatus: profileData.imageUploadStatus || "pending",
+        status: "COMPLETED",
+      });
+
+      await profile.save();
+
+      await fellowshipRegistrationModel.findByIdAndUpdate(
+        userId,
+        {
+          onboardingStatus: "IN_PROGRESS",
+          onboardingStartedAt: new Date(),
+        }
+      );
+
+      responseData.profileId = profile._id;
+    }
+
+    /* ---------------- Email (fire-and-forget) ---------------- */
+    const user = await userModel.findById(userId);
+
+    sendEmail({
+      to: user.email,
+      ...fellowProfileUpdateTemplate({
+        name: user.FullName,
+        fellowProfileName: profile.displayName,
+        status: "SUBMITTED",
+      }),
+    }).catch((err) =>
+      console.error("Fellow profile submitted email failed:", err)
+    );
+
+    return res.status(200).json(responseData);
+  } catch (err) {
+    console.error("Error saving draft:", err);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
 };
