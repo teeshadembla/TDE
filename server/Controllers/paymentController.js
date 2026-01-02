@@ -3,7 +3,7 @@ import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.j
 import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
 import {sendApplicationSubmissionEmail, sendPaymentConfirmationEmail} from "../utils/sendMail.js";
-import { sendEmail, applicationSubmissionTemplate } from "../services/email/index.js";
+import { sendEmail, applicationSubmittedTemplate } from "../utils/NewEmail/index.js";
 import dotenv from "dotenv";
 dotenv.config();
 import Stripe from "stripe";
@@ -73,7 +73,6 @@ export const submitFellowshipApplication = async (req, res) => {
     motivation,
     organization,
     position,
-    account,
     paymentMethodId
   } = req.body;
 
@@ -130,12 +129,14 @@ export const submitFellowshipApplication = async (req, res) => {
       paymentMethodId,
     });
 
+    const {name , email} = await userModel.findById(userId).select("FullName email");
+    console.log("Sending application confirmation email to:", email ," name : " , name)
     /* ---------------- Email (fire-and-forget) ---------------- */
-    if (account?.email) {
+    if (email) {
       sendEmail({
-        to: account.email,
-        ...applicationSubmissionTemplate({
-          name: account.name,
+        to: email,
+        ...applicationSubmittedTemplate({
+          name: name,
           fellowshipName: `${workGroupId} - Cycle ${cycle}`,
         }),
       }).catch((err) =>
@@ -156,7 +157,7 @@ export const submitFellowshipApplication = async (req, res) => {
 };
 
 // NEW: Automatically Charge Approved Application
-import { sendEmail, paymentConfirmationTemplate } from "../services/email/index.js";
+import {  paymentConfirmationTemplate } from "../utils/NewEmail/index.js";
 
 export const chargeApprovedApplication = async (req, res) => {
   const { applicationId } = req.body;

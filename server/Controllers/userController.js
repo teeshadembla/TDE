@@ -10,7 +10,7 @@ import { uploadToS3 } from '../utils/s3config.js';
 import  clerkClient  from "../utils/clerkConfig.js";
 import dotenv from "dotenv";
 import { handle2FASetupEmail } from "../utils/sendMail.js";
-import { sendEmail, twoFAEnabledTemplate } from "../services/email/index.js";
+import { sendEmail, twoFAEnabledTemplate } from "../utils/NewEmail/index.js";
 
 dotenv.config();
 

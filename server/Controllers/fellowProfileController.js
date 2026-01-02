@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import userModel from "../Models/userModel.js";
 import { sendApplicationSubmissionEmail, handleFellowProfileUpdate } from "../utils/sendMail.js";
 import {generateSignedUrlForViewing} from "./onboardingController.js";
-import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
+import { sendEmail, fellowProfileUpdateTemplate } from "../utils/NewEmail/index.js";
 
 
 /**
@@ -142,7 +142,6 @@ export const getFellowProfileByUserId = async (req, res) => {
      * @desc    Approve a fellow profile and make it public
      * @access  Private (admin)
      */
-    import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
 
 export const approveFellowProfile = async (req, res) => {
   try {
@@ -258,7 +257,6 @@ export const approveFellowProfile = async (req, res) => {
      * @desc    Send a reminder email to a user who hasn't started onboarding
      * @access  Private (admin)
      */
-    import { sendEmail, applicationSubmissionTemplate } from "../services/email/index.js";
 
 export const sendOnboardingReminder = async (req, res) => {
   try {
@@ -358,7 +356,6 @@ export const loadDraftFellowProfile = async(req, res) =>{
 }
 
 //to actually save information
-import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
 
 export const submitFellowProfile = async (req, res) => {
   try {

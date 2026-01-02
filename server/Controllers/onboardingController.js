@@ -7,7 +7,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import mongoose from "mongoose";
 import dotenv from 'dotenv';
 import { handleFellowProfileUpdate } from "../utils/sendMail.js";
-import { sendEmail, fellowProfileUpdateTemplate } from "../services/email/index.js";
+import { sendEmail, fellowProfileUpdateTemplate } from "../utils/NewEmail/index.js";
 dotenv.config();
 
 // Helper to generate signed URL for viewing

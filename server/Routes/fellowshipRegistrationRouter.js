@@ -11,8 +11,8 @@ fellowshipRegistrationRouter.post("/submitFellowshipApplication", submitFellowsh
 fellowshipRegistrationRouter.get("/getFellowshipRegistrations/:id", fellowshipregistrationController.getAllFellowshipRegistrations);
 
 /* Application Moderation Endpoints */
-fellowshipRegistrationRouter.post("/rejectedFellowshipRegistration/:id", fellowshipregistrationController.rejectFellowshipRegistration);
-fellowshipRegistrationRouter.post("/acceptedFellowshipRegistration/:id", fellowshipregistrationController.acceptFellowshipRegistration);
+fellowshipRegistrationRouter.post("/rejectedFellowshipRegistration/:id", fellowshipregistrationController.rejectApplication);
+fellowshipRegistrationRouter.post("/acceptedFellowshipRegistration/:id", fellowshipregistrationController.approveApplication);
 fellowshipRegistrationRouter.delete("/deleteFellowshipRegistration/:id", fellowshipregistrationController.deleteFellowshipRegistration);
 
 fellowshipRegistrationRouter.get("/getAllRegistrationsByUser/:userId", fellowshipregistrationController.getAllRegistrationsByUser);

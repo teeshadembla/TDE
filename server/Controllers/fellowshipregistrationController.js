@@ -6,7 +6,7 @@ import {
   sendEmail,
   applicationApprovalTemplate,
   applicationRejectionTemplate,
-} from "../services/email/index.js";
+} from "../utils/NewEmail/index.js";
 
 /* ============================
    Get all applications for user

@@ -2,7 +2,7 @@ import userModel from "../Models/userModel.js";
 import {
   sendEmail,
   accountApprovalTemplate,
-} from "../services/email/index.js";
+} from "../utils/NewEmail/index.js";
 
 /* ============================
    Fetch users (admin review)
