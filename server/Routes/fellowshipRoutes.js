@@ -1,6 +1,6 @@
 import express from "express";
 const fellowshipRouter = express.Router();
-import fellowshipRegistrationController from "../Controllers/fellowshipRegistrationController.js";
+import fellowshipRegistrationController from "../Controllers/fellowshipregistrationController.js";
 import {createSetupIntent, submitFellowshipApplication, chargeApprovedApplication, getApplicationForPayment} from "../Controllers/paymentController.js";
 
 import { addNewFellowship, getAllPastFellowships, getFellowshipRegistrationCounts, getAllFutureFellowships, updateFellowship, deleteFellowship } from "../Controllers/fellowshipController.js";
