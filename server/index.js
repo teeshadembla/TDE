@@ -1,4 +1,3 @@
-// MUST be first - before all other imports
 import dotenv from 'dotenv'
 dotenv.config();
 

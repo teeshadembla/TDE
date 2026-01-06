@@ -57,7 +57,7 @@ export default function ProfileDrawer() {
   );
 
   return (
-    <div className='w-10 mt-5 ml-1'>
+    <div className='w-10 mb-1 ml-1'>
       <Button onClick={toggleDrawer(true)}><AccountCircleIcon sx={{color: "white"}} fontSize='large'></AccountCircleIcon></Button>
       <Drawer anchor="right" open={open} onClose={toggleDrawer(false)} PaperProps={{
           sx: {

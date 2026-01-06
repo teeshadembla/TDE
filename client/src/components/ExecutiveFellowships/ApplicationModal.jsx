@@ -334,17 +334,7 @@ const ApplicationForm = ({ onClose }) => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Proposed Start Date *</label>
-                    <input
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                      disabled={isSubmitting}
-                      className="w-full border-2 border-gray-200 p-4 rounded-lg focus:outline-none focus:border-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
+                  
                 </div>
 
                 {/* Workgroups */}
@@ -492,9 +482,6 @@ const ApplicationForm = ({ onClose }) => {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Fellowship fees: $4,000 (0-5 years experience) or $8,000 (5+ years experience)
-                  </p>
                 </div>
 
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">

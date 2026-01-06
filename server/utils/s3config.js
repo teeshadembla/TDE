@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
 
-dotenv.config();
+
 
 // Configure AWS SDK
 const s3 = new AWS.S3({
