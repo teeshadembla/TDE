@@ -90,7 +90,7 @@ const ApplicationForm = ({ onClose }) => {
   const validateForm = () => {
     const requiredFields = [
       'organization', 'position', 'experience', 'motivation',
-      'workGroupId', 'linkedin', 'startDate', 'cycle'
+      'workGroupId', 'linkedin',  'cycle'
     ];
     
     for (const field of requiredFields) {
