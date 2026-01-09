@@ -5,8 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "nodemon index.js",
-    "start": "node index.js"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "start": "nodemon index.js"
   },
   "author": "Teesha Dembla",
   "license": "ISC",
@@ -36,5 +37,15 @@
     "react-router-dom": "^7.9.5",
     "react-toastify": "^11.0.5",
     "stripe": "^18.4.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "transform": {}
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

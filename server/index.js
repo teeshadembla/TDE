@@ -60,7 +60,16 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
- 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+}); 
+
 app.use("/api/user", userRouter);
 app.use("/api/events", eventRouter);
 app.use("/api/user-event", registerRouter);
@@ -71,6 +80,7 @@ app.use("/api/comment", commentRouter);
 app.use("/api/documents", researchPaperRouter);
 app.use("/api/fellow-profile", fellowProfileRouter);
 app.use("/api/admin", adminRouter);
+
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 
@@ -83,14 +93,16 @@ app.get(/^(?!\/api).*/, (req, res) => {
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 
-const PORT = process.env.PORT;
-
-app.listen(PORT, ()=>{
-    console.log(`Server is listening on ${PORT}`);
-    console.log(process.env.CLERK_SECRET_KEY);
-})
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 Connection();
+
+export default app;
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 /* Email System Initialization */
