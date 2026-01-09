@@ -12,11 +12,12 @@ import {
   getAllPapers,
   findSimilarPapers,
 } from '../Controllers/researchPaperController.js';
+import {uploadLimiter} from '../utils/Production/rateLimiter.js';
 import authenticateToken from '../Controllers/tokenControllers.js';
 
 const researchPaperRouter = express.Router();
 
-researchPaperRouter.post('/presigned-url', authenticateToken, getPresignedUrl);
+researchPaperRouter.post('/presigned-url', uploadLimiter,authenticateToken, getPresignedUrl);
 researchPaperRouter.post('/confirm-upload', authenticateToken, confirmUpload);
 researchPaperRouter.get('/getPapers', authenticateToken, getAllPapers);
 researchPaperRouter.get('/', authenticateToken, getUserDocuments);

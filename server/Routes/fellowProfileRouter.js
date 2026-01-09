@@ -1,11 +1,12 @@
 import express from "express";
 import {submitFellowProfile, loadDraftFellowProfile, adminGetOnboardingProfiles, approveFellowProfile, requestRevisionOnProfile, sendOnboardingReminder, getFellowProfileByUserId} from "../Controllers/fellowProfileController.js";
 import { confirmUploadHeadshot, getPresignedUrlHeadshot, deleteHeadshot } from "../Controllers/onboardingController.js";
+import { uploadLimiter } from "../utils/Production/rateLimiter.js";
 import { fetchProfilesToReview, checkIfOnboarded } from "../Controllers/fellowProfileAdminController.js";
 import authenticateToken from "../Controllers/tokenControllers.js";
 const fellowProfileRouter = express.Router();
 
-fellowProfileRouter.post('/presigned-url/headshot/:userId',authenticateToken, getPresignedUrlHeadshot);
+fellowProfileRouter.post('/presigned-url/headshot/:userId',authenticateToken, uploadLimiter , getPresignedUrlHeadshot);
 fellowProfileRouter.put('/headshot/confirmUpload', authenticateToken, confirmUploadHeadshot);
 fellowProfileRouter.get('/getDraft/:userId', authenticateToken, loadDraftFellowProfile);
 fellowProfileRouter.delete('/headshot/delete/:userId', authenticateToken, deleteHeadshot);

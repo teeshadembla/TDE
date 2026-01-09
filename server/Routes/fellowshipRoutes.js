@@ -17,9 +17,6 @@ fellowshipRouter.get("/registration/all-applications", fellowshipRegistrationCon
 fellowshipRouter.patch("/registration/approve/:id", fellowshipRegistrationController.approveApplication);
 fellowshipRouter.patch("/registration/reject/:id", fellowshipRegistrationController.rejectApplication);
 
-// REMOVE OR COMMENT OUT THESE OLD ROUTES (no longer needed)
-// fellowshipRouter.post("/registration/create-payment-intent", createPaymentIntent);
-// fellowshipRouter.post("/registration/verifypayment", verifyPaymentAndRegister);
 
 /* Routes for admins to add new fellowships */
 fellowshipRouter.post("/addNewFellowship", addNewFellowship);

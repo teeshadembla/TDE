@@ -3,11 +3,13 @@ dotenv.config();
 
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { clerkMiddleware } from "@clerk/express";
 import Connection from './db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { globalLimiter } from './utils/Production/rateLimiter.js';
 /* Email System Imports */
 import emailProcessor from './Jobs/emailProcessor.js';
 import overduePaymentChecker from './Jobs/overduePaymentChecker.js';
@@ -29,6 +31,9 @@ import adminRouter from './Routes/adminRouter.js';
 /* ----------------------------------------------------------------------------------------------------------------------------------------------- */
 
 const app = express();
+app.set("trust proxy", 1);
+app.disable('x-powered-by');
+app.use(globalLimiter);
 app.use(cookieParser());
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
@@ -38,14 +43,21 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 app.use(
   clerkMiddleware({
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
     secretKey: process.env.CLERK_SECRET_KEY,
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
  

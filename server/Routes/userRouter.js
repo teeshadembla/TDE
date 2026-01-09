@@ -3,11 +3,12 @@ import userController from '../Controllers/userController.js';
 import authenticateToken from '../Controllers/tokenControllers.js';
 import {getUsersByWorkgroup} from "../Controllers/workgroupController.js";
 import { uploadProfilePicture } from '../utils/multerConfig.js';
+import { uploadLimiter , authLimiter} from '../utils/Production/rateLimiter.js';
 const userRouter = express.Router({mergeParams:true});
 
-userRouter.post("/signup", uploadProfilePicture.single('profilePicture') ,userController.signup);
-userRouter.post("/login", userController.login);
-userRouter.delete("/logout",authenticateToken, userController.logout);
+userRouter.post("/signup",uploadLimiter, uploadProfilePicture.single('profilePicture') ,userController.signup);
+userRouter.post("/login", authLimiter ,userController.login);
+userRouter.delete("/logout", authLimiter,authenticateToken, userController.logout);
 userRouter.get("/me", userController.getMe);
 
 userRouter.get("/stats", authenticateToken, userController.getUserStats);
