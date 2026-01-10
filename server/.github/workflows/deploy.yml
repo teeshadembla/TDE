@@ -1,0 +1,44 @@
+# .github/workflows/deploy.yml
+
+name: Deploy to Production
+
+# Only run when code is pushed to main branch
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Get the code
+      - name: Get the code
+        uses: actions/checkout@v4
+      
+      # Step 2: Run tests first (don't deploy broken code!)
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run tests
+        run: npm test
+      
+      # Step 3: If tests pass, deploy!
+      - name: Deploy to Render
+        if: success()  # Only if previous steps worked
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      
+      # Step 4: Wait for deployment
+      - name: Wait for deployment
+        run: sleep 30
+      
+      # Step 5: Check if app is healthy
+      - name: Health check
+        run: |
+          curl -f https://tde-2.onrender.com/health || exit 1

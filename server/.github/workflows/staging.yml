@@ -1,0 +1,38 @@
+# .github/workflows/staging.yml
+
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]  # Deploy staging when pushing to 'develop' branch
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+      
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Deploy to Staging
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
+      
+      - name: Wait for deployment
+        run: sleep 30
+      
+      - name: Health check
+        run: |
+          curl -f https://tde-2.onrender.com/health || exit 1
