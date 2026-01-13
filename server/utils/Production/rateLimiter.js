@@ -1,18 +1,16 @@
-import rateLimit from "express-rate-limit";
-import RedisStore from "rate-limit-redis";
+import { rateLimit } from "express-rate-limit";
+import { RedisStore } from "rate-limit-redis";
 import redisClient from "../redisClient.js";
 
-/* Helper to create isolated Redis stores */
-const createStore = (prefix) =>
-  new RedisStore({
+const createStore = (prefix) => {
+  // Only use Redis store if client exists
+  if (!redisClient) {
+    return undefined; // Uses in-memory store as fallback
+  }
+  
+  return new RedisStore({
     sendCommand: (...args) => redisClient.sendCommand(args),
-    prefix, // IMPORTANT
-  });
-
-const rateLimitHandler = (message) => (req, res) => {
-  res.status(429).json({
-    success: false,
-    message,
+    prefix,
   });
 };
 
