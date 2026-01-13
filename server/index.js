@@ -60,7 +60,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
-// Health check endpoint
+// Health check endpoint - place this BEFORE other routes to avoid middleware interference
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok',
@@ -100,7 +100,14 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
   });
 }
 
-Connection();
+// Initialize database connection asynchronously
+(async () => {
+  try {
+    await Connection();
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+  }
+})();
 
 export default app;
 
