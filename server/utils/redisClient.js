@@ -1,13 +1,21 @@
-import { createClient } from "redis";
+import { createClient } from 'redis';
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL,
-});
+let redisClient = null;
 
-redisClient.on("error", (err) => {
-  console.error("Redis error:", err);
-});
+// Only connect if NOT in test mode
+if (process.env.NODE_ENV !== 'test') {
+    redisClient = createClient({
+        url: process.env.REDIS_URL,
+    });
 
-await redisClient.connect();
+    redisClient.on("error", (err) => {
+        console.error("Redis error:", err);
+    });
+
+    await redisClient.connect();
+} else {
+    // In test mode, create a mock client
+    console.log('Test mode: Redis connection skipped');
+}
 
 export default redisClient;
