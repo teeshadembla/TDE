@@ -30,8 +30,10 @@ jobs:
       
       # Step 3: Install your app's dependencies
       - name: Install dependencies
+        working-directory: ./server
         run: npm install
       
       # Step 4: Run your tests
       - name: Run tests
+        working-directory: ./server
         run: npm test
