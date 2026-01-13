@@ -13,6 +13,12 @@ const createStore = (prefix) => {
     prefix,
   });
 };
+const rateLimitHandler = (message) => (req, res) => {
+  res.status(429).json({
+    success: false,
+    message,
+  });
+};
 
 
 /* Global limiter */
