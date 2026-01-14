@@ -100,14 +100,7 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
   });
 }
 
-// Initialize database connection asynchronously
-(async () => {
-  try {
-    await Connection();
-  } catch (error) {
-    console.error('Failed to connect to database:', error);
-  }
-})();
+Connection();
 
 export default app;
 
