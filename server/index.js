@@ -49,12 +49,14 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
-app.use(
-  clerkMiddleware({
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-    secretKey: process.env.CLERK_SECRET_KEY,
-  })
-);
+if (process.env.NODE_ENV !== 'test') {
+  app.use(
+    clerkMiddleware({
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+      secretKey: process.env.CLERK_SECRET_KEY,
+    })
+  );
+}
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
@@ -100,7 +102,10 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
   });
 }
 
-Connection();
+if (process.env.NODE_ENV !== 'test') {
+  Connection();
+}
+
 
 export default app;
 
@@ -109,6 +114,7 @@ export default app;
 /* ---------------------------------------------------------------------------------------------------------------------------------------------- */
 
 // Initialize email system after database connection
+if(process.env.NODE_ENV !== test){
 setTimeout(() => {
     try {
         console.log('\n========================================');
@@ -139,4 +145,5 @@ setTimeout(() => {
         console.error('\n⚠️  Email functionality will not work until configuration is fixed');
         console.error('   Check your .env file for missing or incorrect values\n');
     }
-}, 2000); // Wait 2 seconds for DB connection to establish
+}, 2000);
+} // Wait 2 seconds for DB connection to establish
