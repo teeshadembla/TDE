@@ -1,6 +1,7 @@
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
+import logger from "../utils/logger.js";
 
 import {
   sendEmail,
@@ -51,7 +52,7 @@ const getAllFellowshipRegistrations = async (req, res) => {
       counts: { current: current.length, past: past.length },
     });
   } catch (error) {
-    console.error("Error fetching fellowship registrations:", error);
+    logger.error({userId: req.params.id, errorMsg: error.message, stack: error.stack}, "Error fetching fellowship registrations");
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -70,10 +71,12 @@ const reviewFellowshipApplication = async (req, res) => {
       .populate("fellowship");
 
     if (!application) {
+      logger.warn({applicationId: id}, "Application review failed: Application not found");
       return res.status(404).json({ msg: "Application not found" });
     }
 
     if (application.status !== "PENDING_REVIEW") {
+      logger.warn({applicationId: id, currentStatus: application.status}, "Application review failed: Already reviewed");
       return res.status(400).json({ msg: "Application already reviewed" });
     }
 
@@ -99,7 +102,7 @@ const reviewFellowshipApplication = async (req, res) => {
           paymentAmount,
         }),
       }).catch((err) =>
-        console.error("Approval email failed:", err)
+        logger.error({applicationId: id, userId: user._id, errorMsg: err.message}, "Application approval email failed")
       );
     }
 
@@ -112,17 +115,18 @@ const reviewFellowshipApplication = async (req, res) => {
           reason: adminComments,
         }),
       }).catch((err) =>
-        console.error("Rejection email failed:", err)
+        logger.error({applicationId: id, userId: user._id, errorMsg: err.message}, "Application rejection email failed")
       );
     }
 
+    logger.info({applicationId: id, action, userId: user._id}, "Fellowship application reviewed successfully");
     return res.status(200).json({
       success: true,
       message: `Application ${action.toLowerCase()}`,
       application,
     });
   } catch (err) {
-    console.error("Error reviewing fellowship application:", err);
+    logger.error({applicationId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error reviewing fellowship application");
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -173,7 +177,7 @@ const getApplicationsByStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching applications by status:", error);
+    logger.error({errorMsg: error.message, stack: error.stack}, "Error fetching applications by status");
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -187,13 +191,15 @@ const deleteFellowshipRegistration = async (req, res) => {
     const registration = await fellowshipRegistrationModel.findById(id);
 
     if (!registration) {
+      logger.warn({registrationId: id}, "Deletion failed: Registration not found");
       return res.status(404).json({ msg: "Registration not found" });
     }
 
     await fellowshipRegistrationModel.findByIdAndDelete(id);
+    logger.info({registrationId: id}, "Fellowship registration deleted successfully");
     return res.status(200).json({ msg: "Registration deleted successfully" });
   } catch (err) {
-    console.error("Error deleting fellowship registration:", err);
+    logger.error({registrationId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error deleting fellowship registration");
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -236,7 +242,7 @@ const getAllRegistrationsByUser = async (req, res) => {
 
     return res.status(200).json({ registrations: categorized });
   } catch (err) {
-    console.error("Error getting user registrations:", err);
+    logger.error({userId: req.params.userId, errorMsg: err.message, stack: err.stack}, "Error fetching user registrations");
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -259,7 +265,7 @@ const getYears = async (req, res) => {
 
     return res.status(200).json({ years: years.map((y) => y.year) });
   } catch (err) {
-    console.error("Error fetching years:", err);
+    logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching fellowship years");
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -278,7 +284,7 @@ const getAllApplications = async (req, res) => {
 
     return res.status(200).json({ success: true, applications });
   } catch (err) {
-    console.error("Error fetching applications:", err);
+    logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching all applications");
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -292,6 +298,7 @@ const approveApplication = async (req, res) => {
   try {
     const application = await fellowshipRegistrationModel.findById(id);
     if (!application) {
+      logger.warn({applicationId: id}, "Approval failed: Application not found");
       return res.status(404).json({ message: "Application not found" });
     }
 
@@ -299,13 +306,14 @@ const approveApplication = async (req, res) => {
     application.reviewedAt = new Date();
     await application.save();
 
+    logger.info({applicationId: id}, "Application approved successfully");
     return res.status(200).json({
       success: true,
       message: "Application approved",
       application,
     });
   } catch (err) {
-    console.error("Error approving application:", err);
+    logger.error({applicationId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error approving application");
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -323,6 +331,7 @@ const rejectApplication = async (req, res) => {
       .populate("fellowship");
 
     if (!application) {
+      logger.warn({applicationId: id}, "Rejection failed: Application not found");
       return res.status(404).json({ message: "Application not found" });
     }
 
@@ -340,16 +349,17 @@ const rejectApplication = async (req, res) => {
           "Unfortunately, your application was not accepted at this time.",
       }),
     }).catch((err) =>
-      console.error("Rejection email failed:", err)
+      logger.error({applicationId: id, userId: application.user._id, errorMsg: err.message}, "Application rejection email failed")
     );
 
+    logger.info({applicationId: id, userId: application.user._id}, "Application rejected successfully");
     return res.status(200).json({
       success: true,
       message: "Application rejected",
       application,
     });
   } catch (err) {
-    console.error("Error rejecting application:", err);
+    logger.error({applicationId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error rejecting application");
     return res.status(500).json({ message: "Server error" });
   }
 };

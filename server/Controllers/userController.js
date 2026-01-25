@@ -8,6 +8,7 @@ import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.j
 import fellowshipModel from "../Models/fellowshipModel.js";
 import { uploadToS3 } from '../utils/s3config.js';
 import  clerkClient  from "../utils/clerkConfig.js";
+import logger from "../utils/logger.js";
 import dotenv from "dotenv";
 import { handle2FASetupEmail } from "../utils/sendMail.js";
 import { sendEmail, twoFAEnabledTemplate } from "../utils/NewEmail/index.js";
@@ -60,23 +61,10 @@ const signup = async (req, res) => {
             clerkUserId 
         } = value;
 
-        console.log("Data coming from request body--->", {
-            FullName,
-            email,
-            role,
-            socialLinks,
-            followedTopicsArray,
-            isSubscribedToNewsletter,
-            location,
-            title,
-            department,
-            company,
-            expertiseArray,
-            discoverySource,
-            clerkUserId
-        });
+        logger.debug({email, role, discoverySource}, "User signup data validated");
 
         if (!FullName || !email || !role || !discoverySource) {
+            logger.warn({FullName, email, role, discoverySource}, "Signup failed: Missing required fields");
             return res.status(401).json({
                 msg: "Incomplete fields, Kindly fill all the required fields"
             });
@@ -84,6 +72,7 @@ const signup = async (req, res) => {
 
         // Check if Clerk user ID is provided
         if (!clerkUserId) {
+            logger.warn({email}, "Signup failed: No Clerk user ID provided");
             return res.status(401).json({
                 msg: "Authentication error. Please try signing up again."
             });
@@ -92,28 +81,27 @@ const signup = async (req, res) => {
         // Check for uniqueness of email
         const isUniqueEmail = await userModel.findOne({ email: email });
         if (isUniqueEmail) {
+            logger.warn({email}, "Signup failed: Email already exists");
             return res.status(402).json({
                 msg: `An account with ${email} exists. Try Signing up with another email`
             });
         }
 
-        // Note: Password is already hashed by Clerk, so we don't need to hash it again
-        // We can store a reference or skip storing password entirely
-        console.log("User authenticated through Clerk, proceeding to save additional data.");
+        logger.debug({clerkUserId, email}, "User authenticated through Clerk, proceeding to save additional data");
 
         let profilePictureUrl = null;
         if (req.file) {
             try {
-                console.log("Uploading profile picture to S3...");
+                logger.debug({fileName: req.file.originalname}, "Uploading profile picture to S3");
                 profilePictureUrl = await uploadToS3(
                     req.file.buffer,
                     req.file.originalname,
                     req.file.mimetype,
                     'profile-pictures'
                 );
-                console.log("Profile picture uploaded successfully:", profilePictureUrl);
+                logger.debug({email, profilePictureUrl}, "Profile picture uploaded successfully");
             } catch (uploadError) {
-                console.error("Error uploading profile picture:", uploadError);
+                logger.error({email, errorMsg: uploadError.message, stack: uploadError.stack}, "Error uploading profile picture");
                 return res.status(500).json({
                     msg: "Failed to upload profile picture. Please try again."
                 });
@@ -136,7 +124,7 @@ const signup = async (req, res) => {
                 }
             });
         } catch (clerkError) {
-            console.error("Error updating Clerk user metadata:", clerkError);
+            logger.error({clerkUserId, email, errorMsg: clerkError.message}, "Error updating Clerk user metadata");
             // Continue anyway, as the main data will be in your database
         }
 
@@ -165,15 +153,15 @@ const signup = async (req, res) => {
             discoverySource: discoverySource,
         };
 
-        console.log("The new user that we are going to create: ", userData);
-
         const newUser = new userModel(userData);
         await newUser.save();
+
+        logger.info({userId: newUser._id, email}, "User registered successfully");
 
         import('../utils/email/emailIntegration.js').then(module => {
             const emailIntegration = module.default;
             emailIntegration.handleUserSignup(newUser).catch(err => {
-                console.error('Welcome email failed:', err);
+                logger.error({userId: newUser._id, errorMsg: err.message}, "Welcome email failed");
             });
         });
 
@@ -182,7 +170,7 @@ const signup = async (req, res) => {
             userId: newUser._id 
         });
     } catch (err) {
-        console.log("This error has occurred in the backend while registering user---->", err);
+        logger.error({errorMsg: err.message, stack: err.stack}, "Error during user signup");
         return res.status(500).json({ msg: "Internal Server Error has occurred" });
     }
 };
@@ -190,19 +178,21 @@ const signup = async (req, res) => {
 const login = async(req, res)=>{
     try{
         const {email, password} = req.body;
-        console.log(req);
         
         if(!email || !password){
+            logger.warn({email}, "Login failed: Missing email or password");
             return res.status(400).json({msg: "Fields are incomplete, kindly fill all fields and try again."});
         }
 
         const currUser = await userModel.findOne({email: email});
         if(!currUser){
+            logger.warn({email}, "Login failed: User not found");
             return res.status(401).json({msg: "User with this email ID does not exist."});
         }
 
         const match = bcrypt.compare(password, currUser.password);
         if(!match){
+            logger.warn({email}, "Login failed: Invalid password");
             return res.status(403).json({msg: "The password you entered is wrong."});
         }
 
@@ -234,6 +224,7 @@ const login = async(req, res)=>{
             }
         )
 
+        logger.info({userId: currUser._id, email}, "User logged in successfully");
         return res.status(200).json({
             userData: {_id: currUser._id, email: currUser.email, name:currUser.FullName , role:currUser.role},
             msg:"User logged in successfully",
@@ -241,7 +232,7 @@ const login = async(req, res)=>{
         })
 
     }catch(err){
-        console.log("This error has occurred in the backend while executing login callback--->", err);
+        logger.error({email: req.body.email, errorMsg: err.message, stack: err.stack}, "Error during login");
         return res.status(500).json({msg: "Internal Server Error"});
     }
 }
@@ -249,38 +240,37 @@ const login = async(req, res)=>{
 const logout = async(req,res)=>{
     try{
         const refreshToken = req.cookies.refreshToken;
-        console.log("Refresh token has been fetched");
         if (!refreshToken) {
-        return res.status(400).json({ msg: "Refresh token missing" });
+            logger.warn({}, "Logout failed: Refresh token missing");
+            return res.status(400).json({ msg: "Refresh token missing" });
         }
 
-        console.log("refresh token is being deleted now");
         await tokenModel.deleteOne({ token: refreshToken });
 
-        console.log("Clearing cookies now");
         res.clearCookie('accessToken');
         res.clearCookie('refreshToken');
 
-    return res.status(200).json({ msg: "Logged out successfully" });
+        logger.info({}, "User logged out successfully");
+        return res.status(200).json({ msg: "Logged out successfully" });
     }catch(err){
+        logger.error({errorMsg: err.message, stack: err.stack}, "Error during logout");
         return res.status(500).json({msg:"Internal Server error"});
     }
 }
 
 const getMe = async(req, res) =>{
     try{
-        console.log("Getting existing user");
         const {userId} = getAuth(req);
 
-        console.log(userId);
-
         if (!userId) {
+            logger.warn({}, "getMe failed: User not authenticated");
             return res.status(401).json({ msg: "Not authenticated" });
         }
         const user = await userModel.findOne({ clerkUserId: userId });
 
         if (!user) {
-        return res.status(404).json({ msg: "User not found in database" });
+            logger.warn({userId}, "getMe failed: User not found in database");
+            return res.status(404).json({ msg: "User not found in database" });
         }
 
         const cleanUser = {
@@ -292,13 +282,14 @@ const getMe = async(req, res) =>{
         isVerifiedbyAdmin: user.isVerifiedbyAdmin,
         };
 
+        logger.debug({userId, userDbId: user._id}, "User authenticated and retrieved");
         return res.status(200).json({
         msg: "User is authenticated",
         user: cleanUser,
         });
         
     }catch(err){
-        console.error("Error in getMe:", err);
+        logger.error({errorMsg: err.message, stack: err.stack}, "Error in getMe");
         return res.status(500).json({msg:"Internal Server Error"});
     }
 }
@@ -364,9 +355,10 @@ const getUserStats = async (req, res) => {
 
         const uniqueParticipants = await fellowshipRegistrationModel.distinct('user').length;
 
+        logger.debug({monthlyRevenue: monthlyRevenue[0]?.total, totalRevenue: totalRevenue[0]?.total, totalFellowships: fellowships, activeFellowships, monthlyApplications}, "User stats retrieved successfully");
         return res.status(200).json({ totalRevenue: totalRevenue[0]?.total || 0 , monthlyRevenue: monthlyRevenue[0]?.total || 0, totalFellowships: fellowships, activeFellowships: activeFellowships, monthlyApplications: monthlyApplications, pendingApplications: pendingApplications, totalUsers: uniqueParticipants });
     }catch(err){
-        console.log("Error occurred in the backend callback of fetching user stats--->", err);
+        logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching user stats");
         return res.status(500).json({msg: "Internal Server Error"});
     }
 }
@@ -376,9 +368,10 @@ const getUserStats = async (req, res) => {
 const getCoreTeamMembers = async (req, res) => {
     try {
         const coreTeamMembers = await userModel.find({ role: "core" });
+        logger.debug({memberCount: coreTeamMembers.length}, "Core team members retrieved successfully");
         return res.status(200).json({ coreTeamMembers });
     } catch (err) {
-        console.log("Error occurred in the backend callback of fetching core team members--->", err);
+        logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching core team members");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 }
@@ -388,9 +381,10 @@ const getCoreTeamMembers = async (req, res) => {
 const getFellows = async(req, res) => {
     try{
         const fellows = await userModel.find({ role: { $in: ["fellow", "chair"] }}).populate('workGroupId', 'title description');
+        logger.debug({fellowCount: fellows.length}, "Fellows retrieved successfully");
         return res.status(200).json({ fellows });
     }catch(err){
-        console.log("Error occurred in the backend callback of fetching fellows--->", err);
+        logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching fellows");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 }
@@ -398,17 +392,18 @@ const getFellows = async(req, res) => {
 /* Update User Profile */
 const updateUser = async(req, res)=>{
     try{
-        console.log("Updating the user here and now....");
         const { id } = req.params;
         const updateData = req.body;
-        console.log("The update data is:", updateData);
+        logger.debug({userId: id}, "Updating user profile");
         const user = await userModel.findByIdAndUpdate(id, updateData, { new: true });
         if (!user) {
+            logger.warn({userId: id}, "User update failed: User not found");
             return res.status(404).json({ msg: "User not found" });
         }
+        logger.info({userId: id}, "User profile updated successfully");
         return res.status(200).json({ user });
     }catch(err){
-        console.log("Error occurred while updating user profile---->", err);
+        logger.error({userId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error updating user profile");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 }
@@ -417,14 +412,17 @@ const updateUser = async(req, res)=>{
 const deleteUser = async(req, res) => {
     try{
         const {id} = req.params;
+        logger.debug({userId: id}, "Attempting to delete user account");
         const user = await userModel.findByIdAndDelete(id);
         if (!user) {
+            logger.warn({userId: id}, "User deletion failed: User not found");
             return res.status(404).json({ msg: "User not found" });
         }
+        logger.info({userId: id}, "User account deleted successfully");
         return res.status(200).json({ msg: "User deleted successfully" });
 
     }catch(err){
-        console.log("Error occurred while deleting user profile---->", err);
+        logger.error({userId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error deleting user account");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 }
@@ -434,14 +432,16 @@ const deleteUser = async(req, res) => {
 const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        
+        logger.debug({userId: id}, "Fetching user by ID");
         const user = await userModel.findById(id);
         if (!user) {
+            logger.warn({userId: id}, "User not found");
             return res.status(404).json({ msg: "User not found" });
         }
+        logger.debug({userId: id}, "User retrieved successfully");
         return res.status(200).json({ user });
     } catch (err) {
-        console.log("Error occurred while fetching user by ID---->", err);
+        logger.error({userId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error fetching user by ID");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 };
@@ -450,7 +450,7 @@ const getUserById = async (req, res) => {
 export const enabledMFA = async (req, res) => {
   try {
     const { accountId } = req.body;
-    console.log("This is the account Id:", accountId);
+    logger.debug({userId: accountId}, "Enabling MFA for user account");
 
     const user = await userModel.findByIdAndUpdate(
       accountId,
@@ -459,6 +459,7 @@ export const enabledMFA = async (req, res) => {
     );
 
     if (!user) {
+      logger.warn({userId: accountId}, "MFA enable failed: User not found");
       return res.status(404).json({ msg: "User not found" });
     }
 
@@ -469,9 +470,10 @@ export const enabledMFA = async (req, res) => {
         name: user.FullName,
       }),
     }).catch((err) =>
-      console.error("2FA enabled email failed:", err)
+      logger.error({userId: accountId, errorMsg: err.message}, "2FA enabled email failed")
     );
 
+    logger.info({userId: accountId}, "MFA enabled successfully");
     return res.status(200).json({
       msg: "Successfully updated MFA status",
       response: user,
@@ -486,11 +488,13 @@ export const enabledMFA = async (req, res) => {
 const forgotPassword = () => async (req, res) => {
   try {
     const { email, resetAt } = req.body;
+    logger.debug({email}, "Processing password reset request");
 
     // Find user by email
     const user = await userModel.findOne({ email });
 
     if (!user) {
+      logger.warn({email}, "Password reset failed: User not found");
       return res.status(404).json({ 
         success: false, 
         msg: 'User not found' 
@@ -502,7 +506,7 @@ const forgotPassword = () => async (req, res) => {
     await user.save();
 
     // Optional: Log security event
-    console.log(`Password reset successful for user: ${email} at ${resetAt}`);
+    logger.info({email, resetAt}, "Password reset logged successfully");
 
     // Optional: Send notification email to user
     // await sendPasswordResetConfirmationEmail(email);
@@ -513,7 +517,7 @@ const forgotPassword = () => async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error logging password reset:', error);
+    logger.error({email: req.body.email, errorMsg: error.message, stack: error.stack}, "Error logging password reset");
     return res.status(500).json({ 
       success: false, 
       msg: 'Internal server error' 

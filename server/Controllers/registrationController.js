@@ -1,5 +1,6 @@
 import registrationModel from "../Models/regitrationsModel.js";
 import { registrationValidationSchema } from "../SchemaValidation/registrationValidationSchema.js";
+import { logger } from "../utils/logger.js";
 const registerUser = async (req, res) => {
   try {
     // Joi validation
@@ -20,10 +21,11 @@ const registerUser = async (req, res) => {
   } catch (err) {
     // Duplicate error handling
     if (err.code === 11000) {
+      logger.warn({eventId: req.body.eventId, userId: req.body.userId}, "User already registered for this event");
       return res.status(409).json({ msg: "User already registered for this event" });
     }
 
-    console.error("Error in registration:", err);
+    logger.error({userId: req.body.userId, eventId: req.body.eventId, errorMsg: err.message, stack: err.stack}, "Error in registration");
     return res.status(500).json({ msg: "Internal Server Error while registering user" });
   }
 };
@@ -32,24 +34,23 @@ const registerUser = async (req, res) => {
 const isExistRegistration = async(req,res)=>{
   try{
     const {userId, eventId} = req.params;
-    //console.log("user:", userId);
-    //console.log("Event:", eventId);
+    logger.debug({userId, eventId}, "Checking if user registered for event");
 
     const response = await registrationModel.find({user: userId, event: eventId});
-    //console.log("This is the existing registration: ",response);
 
     if (response.length===0) {
+      logger.debug({userId, eventId}, "User is not registered for this event");
       return res.status(200).json({
         msg: "User is not registered for this event",
         isRegistered: false
       });
     }
     
-
+    logger.debug({userId, eventId}, "User already registered for event");
     return res.status(200).json({msg: "Already registered", isRegistered: true});
 
   }catch(err){
-    console.log("Some error occurred in backend callback of isExistingregistration--->", err);
+    logger.error({userId: req.params.userId, eventId: req.params.eventId, errorMsg: err.message, stack: err.stack}, "Error checking existing registration");
     return res.status(500).json({msg:"Internal Server Error, Kindly try again."});
   }
 }
@@ -57,15 +58,17 @@ const isExistRegistration = async(req,res)=>{
 const getUserEvents = async(req, res) =>{
   try{
     const {userId} = req.params;
+    logger.debug({userId}, "Fetching registered events for user");
     const response = await registrationModel.find({user: userId}).populate('event');
-/*     console.log(`There are all user no. ${userId}'s events---->`,response);
- */    
+    
     if(!response){
+      logger.warn({userId}, "Invalid userId or no events registered");
       return res.status(400).json({msg: "Invalid Id, or User has no registered yet"});
     }
+    logger.debug({userId, eventCount: response.length}, "User events retrieved successfully");
     return res.status(200).json({msg:"Registered Events Found", registeredEvents: response});
   }catch(err){
-    console.log("Some error occurred in the backend callback of getting user specific events---->", err);
+    logger.error({userId: req.params.userId, errorMsg: err.message, stack: err.stack}, "Error fetching user events");
     return res.status(500).json({msg: "Internal Server Error"});
   }
 }
@@ -73,22 +76,25 @@ const getUserEvents = async(req, res) =>{
 const unregisterUser = async(req, res)=>{
   try{
     const {userId, eventId} = req.params;
+    logger.debug({userId, eventId}, "Unregistering user from event");
     const response = await registrationModel.deleteOne({user: userId, event: eventId});
 
     if(response.deletedCount === 0){
+      logger.warn({userId, eventId}, "Unregistration failed: Invalid user or event");
       return res.status(404).json({msg: "Invalid user or event, registration does not exist."});
     }
 
+    logger.info({userId, eventId}, "User unregistered from event successfully");
     return res.status(200).json({msg:"Registration deleted successfully"});
   }catch(err){
-    console.log("Some error occurred in the backend callback of unregistering user--->", err);
+    logger.error({userId: req.params.userId, eventId: req.params.eventId, errorMsg: err.message, stack: err.stack}, "Error unregistering user");
     return res.status(500).json({msg: "Internal Server Error"});
   }
 }
 
 const getRegistrationCounts = async (req, res) => {
   try {
-    console.log("getting registration counts now");
+    logger.debug({}, "Fetching registration counts by event");
     const counts = await registrationModel.aggregate([
       {
         $group: {
@@ -99,16 +105,15 @@ const getRegistrationCounts = async (req, res) => {
     ]);
 
     // Convert to object: { eventId: count }
-    console.log("These our details of count", counts);
     const result = {};
     counts.forEach(c => {
       result[c._id] = c.count;
     });
 
-    console.log(result);
+    logger.debug({eventCounts: Object.keys(result).length}, "Registration counts retrieved successfully");
     return res.status(200).json({ registrationCounts: result });
   } catch (err) {
-    console.error("Error fetching registration counts:", err);
+    logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching registration counts");
     res.status(500).json({ message: "Internal server error" });
   }
 };

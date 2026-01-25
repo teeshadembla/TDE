@@ -4,6 +4,7 @@ import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
 import {sendApplicationSubmissionEmail, sendPaymentConfirmationEmail} from "../utils/sendMail.js";
 import { sendEmail, applicationSubmittedTemplate } from "../utils/NewEmail/index.js";
+import { logger } from "../utils/logger.js";
 import dotenv from "dotenv";
 dotenv.config();
 import Stripe from "stripe";
@@ -56,7 +57,7 @@ export const createSetupIntent = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Error creating SetupIntent:", err);
+    logger.error({userId: req.body.userId, errorMsg: err.message, stack: err.stack}, "Error creating SetupIntent");
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -76,7 +77,7 @@ export const submitFellowshipApplication = async (req, res) => {
     paymentMethodId
   } = req.body;
 
-  console.log("Submitting application for user:", userId);
+  logger.debug({userId}, "Submitting fellowship application");
 
   try {
     /* ---------------- Fellowship lookup / creation ---------------- */
@@ -130,7 +131,7 @@ export const submitFellowshipApplication = async (req, res) => {
     });
 
     const {name , email} = await userModel.findById(userId).select("FullName email");
-    console.log("Sending application confirmation email to:", email ," name : " , name)
+    logger.debug({userId, email}, "Sending application confirmation email");
     /* ---------------- Email (fire-and-forget) ---------------- */
     if (email) {
       sendEmail({
@@ -140,7 +141,7 @@ export const submitFellowshipApplication = async (req, res) => {
           fellowshipName: `${workGroupId} - Cycle ${cycle}`,
         }),
       }).catch((err) =>
-        console.error("Application submission email failed:", err)
+        logger.error({userId, email, errorMsg: err.message}, "Application submission email failed")
       );
     }
 
@@ -151,7 +152,7 @@ export const submitFellowshipApplication = async (req, res) => {
       applicationId: application._id,
     });
   } catch (err) {
-    console.error("Error submitting application:", err);
+    logger.error({userId: req.body.userId, errorMsg: err.message, stack: err.stack}, "Error submitting fellowship application");
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -221,7 +222,7 @@ export const chargeApprovedApplication = async (req, res) => {
         amount: application.amount / 100,
       }),
     }).catch((err) =>
-      console.error("Payment confirmation email failed:", err)
+      logger.error({userId: user._id, applicationId, errorMsg: err.message}, "Payment confirmation email failed")
     );
 
     return res.status(200).json({
@@ -230,7 +231,7 @@ export const chargeApprovedApplication = async (req, res) => {
       paymentIntent,
     });
   } catch (err) {
-    console.error("Error charging payment:", err);
+    logger.error({applicationId: req.body.applicationId, errorMsg: err.message, stack: err.stack}, "Error charging payment");
 
     if (err.type === "StripeCardError") {
       return res.status(400).json({
@@ -275,7 +276,7 @@ export const getApplicationForPayment = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Error fetching application:", err);
+    logger.error({applicationId: req.params.applicationId, errorMsg: err.message, stack: err.stack}, "Error fetching application for payment");
     res.status(500).json({ message: "Server error" });
   }
 };

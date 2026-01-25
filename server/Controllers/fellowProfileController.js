@@ -2,6 +2,7 @@ import fellowProfileModel from "../Models/fellowProfileModel.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import mongoose from "mongoose";
 import userModel from "../Models/userModel.js";
+import logger from "../utils/logger.js";
 import { sendApplicationSubmissionEmail, handleFellowProfileUpdate } from "../utils/sendMail.js";
 import {generateSignedUrlForViewing} from "./onboardingController.js";
 import { sendEmail, fellowProfileUpdateTemplate } from "../utils/NewEmail/index.js";
@@ -15,26 +16,26 @@ import { sendEmail, fellowProfileUpdateTemplate } from "../utils/NewEmail/index.
 export const getFellowProfileByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
-    console.log("Fetching fellow profile for userId:", userId);
 
     // Find fellow profile for this registration
     const profile = await fellowProfileModel.findOne({
       userId: userId,
     });
 
-    console.log("Fetched fellow profile:", profile);
     if (!profile) {
       // No profile exists - user hasn't started onboarding
+      logger.debug({userId}, "Fetching fellow profile failed: No profile found");
       return res.status(200).json({ profile: null, isProfile: false });
     }
 
     // Return profile with basic info (don't need full data for status check)
+    logger.debug({userId, profileId: profile._id}, "Fellow profile retrieved successfully");
     return res.status(200).json({
       profile: profile,
       isProfile: true,
     });
   } catch (error) {
-    console.error('Error fetching fellow profile:', error);
+    logger.error({userId: req.params.userId, errorMsg: error.message, stack: error.stack}, "Error fetching fellow profile");
     return res.status(500).json({ message: 'Server error fetching profile', error: error.message });
   }
 };
@@ -100,6 +101,7 @@ export const getFellowProfileByUserId = async (req, res) => {
             status: 'PENDING'
           }));
 
+          logger.debug({tab, profilesCount: profiles.length, stats}, "Admin onboarding profiles retrieved for not-started tab");
           return res.status(200).json({ profiles, stats });
         }
 
@@ -130,9 +132,10 @@ export const getFellowProfileByUserId = async (req, res) => {
           profiles = profiles.filter(p => p.status === 'SUBMITTED' || p.status === 'REVISION_NEEDED' );
         }
 
+        logger.debug({tab, profilesCount: profiles.length, stats}, "Admin onboarding profiles retrieved successfully");
         return res.status(200).json({ profiles, stats });
       } catch (error) {
-        console.error('Error in adminGetOnboardingProfiles:', error);
+        logger.error({errorMsg: error.message, stack: error.stack}, "Error fetching admin onboarding profiles");
         return res.status(500).json({ message: 'Server error fetching onboarding profiles', error: error.message });
       }
     };
@@ -150,10 +153,12 @@ export const approveFellowProfile = async (req, res) => {
 
     const profile = await fellowProfileModel.findById(profileId);
     if (!profile) {
+      logger.warn({profileId}, "Profile approval failed: Profile not found");
       return res.status(404).json({ message: "Profile not found" });
     }
 
     if (profile.status === "APPROVED") {
+      logger.warn({profileId}, "Profile approval failed: Profile already approved");
       return res.status(400).json({ message: "Profile already approved" });
     }
 
@@ -179,7 +184,7 @@ export const approveFellowProfile = async (req, res) => {
       );
     }
 
-    /* ---------------- Email (fire-and-forget) ---------------- */
+    /* Fire-and-forget email dispatch */
     const user = await userModel.findById(profile.userId);
 
     sendEmail({
@@ -190,12 +195,13 @@ export const approveFellowProfile = async (req, res) => {
         status: "APPROVED",
       }),
     }).catch((err) =>
-      console.error("Fellow profile approval email failed:", err)
+      logger.error({profileId, userId: profile.userId, errorMsg: err.message}, "Fellow profile approval email failed")
     );
 
+    logger.info({profileId, adminId, userId: profile.userId}, "Fellow profile approved successfully");
     return res.status(200).json({ message: "Profile approved successfully" });
   } catch (error) {
-    console.error("Error approving profile:", error);
+    logger.error({profileId: req.params.profileId, errorMsg: error.message, stack: error.stack}, "Error approving profile");
     return res.status(500).json({
       message: "Server error approving profile",
       error: error.message,
@@ -214,10 +220,16 @@ export const approveFellowProfile = async (req, res) => {
         const { comments } = req.body;
         const adminId = req.user?._id;
 
-        if (!comments || !comments.trim()) return res.status(400).json({ message: 'Comments are required to request a revision' });
+        if (!comments || !comments.trim()) {
+          logger.warn({profileId}, "Revision request failed: Comments are missing");
+          return res.status(400).json({ message: 'Comments are required to request a revision' });
+        }
 
         const profile = await fellowProfileModel.findById(profileId);
-        if (!profile) return res.status(404).json({ message: 'Profile not found' });
+        if (!profile) {
+          logger.warn({profileId}, "Revision request failed: Profile not found");
+          return res.status(404).json({ message: 'Profile not found' });
+        }
 
         profile.adminComments = profile.adminComments || [];
         profile.adminComments.push({ comment: comments, createdBy: adminId, createdAt: new Date() });
@@ -241,13 +253,13 @@ export const approveFellowProfile = async (req, res) => {
             status: "REVIEW_NEEDED",
           }),
         }).catch(err => {
-          console.error("Fellow profile revision email failed:", err);
+          logger.error({profileId, userId: profile.userId, errorMsg: err.message}, "Fellow profile revision email failed");
         });
 
-
+        logger.info({profileId, adminId, userId: profile.userId}, "Revision requested successfully");
         return res.status(200).json({ message: 'Revision requested successfully' });
       } catch (error) {
-        console.error('Error requesting revision:', error);
+        logger.error({profileId: req.params.profileId, errorMsg: error.message, stack: error.stack}, "Error requesting revision");
         return res.status(500).json({ message: 'Server error requesting revision', error: error.message });
       }
     };
@@ -268,6 +280,7 @@ export const sendOnboardingReminder = async (req, res) => {
       .populate("fellowship");
 
     if (!registration) {
+      logger.warn({registrationId}, "Reminder send failed: Registration not found");
       return res.status(404).json({ message: "Registration not found" });
     }
 
@@ -276,7 +289,7 @@ export const sendOnboardingReminder = async (req, res) => {
     registration.reminderCount = (registration.reminderCount || 0) + 1;
     await registration.save();
 
-    /* ---------------- Email (fire-and-forget) ---------------- */
+    /* Fire-and-forget email dispatch */
     const to = registration.user?.email;
     const name = registration.user?.FullName || "";
     const fellowshipName = registration.fellowship?.name || "the fellowship";
@@ -289,15 +302,16 @@ export const sendOnboardingReminder = async (req, res) => {
           fellowshipName,
         }),
       }).catch((err) =>
-        console.error("Onboarding reminder email failed:", err)
+        logger.error({registrationId, userId: registration.user?._id, errorMsg: err.message}, "Onboarding reminder email failed")
       );
     }
 
+    logger.info({registrationId, userId: registration.user?._id, reminderCount: registration.reminderCount}, "Onboarding reminder recorded successfully");
     return res.status(200).json({
       message: "Reminder recorded and email attempted",
     });
   } catch (error) {
-    console.error("Error sending onboarding reminder:", error);
+    logger.error({registrationId: req.params.registrationId, errorMsg: error.message, stack: error.stack}, "Error sending onboarding reminder");
     return res.status(500).json({
       message: "Server error sending reminder",
       error: error.message,
@@ -321,6 +335,7 @@ export const loadDraftFellowProfile = async(req, res) =>{
     });
 
     if (!profile) {
+      logger.debug({userId}, "No draft found for user");
       return res.status(404).json({ 
         message: 'No draft found' 
       });
@@ -328,6 +343,7 @@ export const loadDraftFellowProfile = async(req, res) =>{
 
     const viewableLinkHeadshot = await generateSignedUrlForViewing(profile.professionalHeadshotKey);
     // Return the profile data
+    logger.debug({userId, profileId: profile._id}, "Draft fellow profile loaded successfully");
     res.status(200).json({
       displayName: profile.displayName || '',
       headline: profile.headline || '',
@@ -347,7 +363,7 @@ export const loadDraftFellowProfile = async(req, res) =>{
     });
 
   } catch (error) {
-    console.error('Error loading draft:', error);
+    logger.error({userId: req.params.userId, errorMsg: error.message, stack: error.stack}, "Error loading draft fellow profile");
     res.status(500).json({ 
       message: 'Server error while loading draft',
       error: error.message 
@@ -362,8 +378,6 @@ export const submitFellowProfile = async (req, res) => {
     const userId = req.params.userId;
     const { hasNewImage, ...profileData } = req.body;
 
-    console.log("This is the profile data received:", profileData);
-
     let profile = await fellowProfileModel.findOne({ userId });
 
     let responseData = {
@@ -374,15 +388,17 @@ export const submitFellowProfile = async (req, res) => {
       key: null,
     };
 
-    /* ---------------- Image handling ---------------- */
+    /* Image handling logic */
     if (hasNewImage) {
       const { fileName, fileType, fileSize } = profileData;
 
       if (!fileType || !fileType.startsWith("image/")) {
+        logger.warn({userId, fileType}, "Profile submission failed: Invalid file type");
         return res.status(400).json({ msg: "File uploaded must be an image" });
       }
 
       if (fileSize > 10 * 1024 * 1024) {
+        logger.warn({userId, fileSize}, "Profile submission failed: File too large");
         return res.status(400).json({ msg: "File size must be less than 10MB" });
       }
 
@@ -406,7 +422,7 @@ export const submitFellowProfile = async (req, res) => {
       profileData.imageUploadStatus = "pending";
     }
 
-    /* ---------------- Update or create profile ---------------- */
+    /* Update or create profile */
     if (profile) {
       const updateData = {};
 
@@ -443,6 +459,8 @@ export const submitFellowProfile = async (req, res) => {
 
       responseData.profileId = profile._id;
       responseData.status = profile.status;
+
+      logger.info({userId, profileId: profile._id, previousStatus: profile.status}, "Fellow profile updated successfully");
     } else {
       profile = new fellowProfileModel({
         userId,
@@ -475,9 +493,11 @@ export const submitFellowProfile = async (req, res) => {
       );
 
       responseData.profileId = profile._id;
+
+      logger.info({userId, profileId: profile._id}, "New fellow profile created successfully");
     }
 
-    /* ---------------- Email (fire-and-forget) ---------------- */
+    /* Fire-and-forget email dispatch */
     const user = await userModel.findById(userId);
 
     sendEmail({
@@ -488,12 +508,12 @@ export const submitFellowProfile = async (req, res) => {
         status: "SUBMITTED",
       }),
     }).catch((err) =>
-      console.error("Fellow profile submitted email failed:", err)
+      logger.error({userId, profileId: profile._id, errorMsg: err.message}, "Fellow profile submitted email failed")
     );
 
     return res.status(200).json(responseData);
   } catch (err) {
-    console.error("Error saving draft:", err);
+    logger.error({userId: req.params.userId, errorMsg: err.message, stack: err.stack}, "Error saving fellow profile");
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 };

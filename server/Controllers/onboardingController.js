@@ -1,6 +1,7 @@
 import fellowProfileModel from "../Models/fellowProfileModel.js";
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import userModel from "../Models/userModel.js";
+import logger from "../utils/logger.js";
 import generatePresignedUrl from '../utils/s3presigned.js';
 import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -51,11 +52,10 @@ const deleteFromS3 = async (key) => {
         });
         
         await s3Client.send(command);
-        console.log(`Successfully deleted: ${key}`);
-        return true;
-    } catch (error) {
-        console.error(`Error deleting from S3: ${key}`, error);
-        return false;
+    logger.debug({s3Key: key}, "Successfully deleted object from S3");
+    return true;
+  } catch (error) {
+    logger.error({s3Key: key, errorMsg: error.message}, "Error deleting from S3");
     }
 };
 
@@ -79,10 +79,12 @@ export const getPresignedUrlHeadshot = async (req, res) => {
       const { fileName, fileType, fileSize } = profileData;
 
       if (!fileType || !fileType.startsWith("image/")) {
+        logger.warn({userId, fileType}, "Draft save failed: Invalid file type");
         return res.status(400).json({ msg: "File uploaded must be an image" });
       }
 
       if (fileSize > 10 * 1024 * 1024) {
+        logger.warn({userId, fileSize}, "Draft save failed: File too large");
         return res.status(400).json({ msg: "File size must be less than 10MB" });
       }
 
@@ -172,7 +174,7 @@ export const getPresignedUrlHeadshot = async (req, res) => {
       responseData.profileId = profile._id;
     }
 
-    /* ---------------- Email (fire-and-forget) ---------------- */
+    /* Fire-and-forget email dispatch */
     sendEmail({
       to: userDetails.email,
       ...fellowProfileUpdateTemplate({
@@ -181,12 +183,13 @@ export const getPresignedUrlHeadshot = async (req, res) => {
         status: "DRAFT",
       }),
     }).catch((err) =>
-      console.error("Fellow profile draft email failed:", err)
+      logger.error({userId, profileId: profile._id, errorMsg: err.message}, "Fellow profile draft email failed")
     );
 
+    logger.info({userId, profileId: profile._id}, "Fellow profile draft saved successfully");
     return res.status(200).json(responseData);
   } catch (err) {
-    console.error("Error saving draft:", err);
+    logger.error({userId: req.params.userId, errorMsg: err.message, stack: err.stack}, "Error saving draft");
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 };
@@ -203,16 +206,18 @@ export const confirmUploadHeadshot = async(req, res) => {
         );
 
         if (!profile) {
+            logger.warn({documentId}, "Upload confirmation failed: Profile not found");
             return res.status(404).json({ msg: "Profile not found." });
         }
         
+        logger.info({documentId, profileId: profile._id}, "Upload status updated successfully");
         return res.status(200).json({ 
             msg: "Upload status updated successfully.",
             url: profile.professionalHeadshotUrl,
             key: profile.professionalHeadshotKey 
         });
     } catch(err) {
-        console.log("Error confirming upload:", err);
+        logger.error({documentId: req.body.documentId, errorMsg: err.message, stack: err.stack}, "Error confirming upload");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 };
@@ -227,6 +232,7 @@ export const getDraft = async(req, res) => {
         });
 
         if (!profile) {
+            logger.debug({userId}, "No draft found for user");
             return res.status(404).json({ msg: "No draft found" });
         }
 
@@ -239,9 +245,10 @@ export const getDraft = async(req, res) => {
             );
         }
 
+        logger.debug({userId, profileId: profile._id}, "Draft profile loaded successfully");
         return res.status(200).json(profileData);
     } catch(err) {
-        console.log("Error fetching draft:", err);
+        logger.error({userId: req.user._id, errorMsg: err.message, stack: err.stack}, "Error fetching draft");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 };
@@ -258,6 +265,7 @@ export const getPublicProfile = async(req, res) => {
         });
 
         if (!profile) {
+            logger.debug({profileId}, "Public profile not found or not public");
             return res.status(404).json({ msg: "Profile not found or not public" });
         }
 
@@ -269,9 +277,10 @@ export const getPublicProfile = async(req, res) => {
             );
         }
 
+        logger.debug({profileId}, "Public profile loaded successfully");
         return res.status(200).json(profileData);
     } catch(err) {
-        console.log("Error fetching public profile:", err);
+        logger.error({profileId: req.params.profileId, errorMsg: err.message, stack: err.stack}, "Error fetching public profile");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 };
@@ -286,10 +295,12 @@ export const deleteHeadshot = async(req, res) => {
         });
 
         if (!profile) {
+            logger.warn({userId}, "Headshot deletion failed: Profile not found");
             return res.status(404).json({ msg: "Profile not found" });
         }
 
         if (!profile.professionalHeadshotKey) {
+            logger.warn({userId}, "Headshot deletion failed: No image to delete");
             return res.status(400).json({ msg: "No image to delete" });
         }
 
@@ -297,6 +308,7 @@ export const deleteHeadshot = async(req, res) => {
         const deleted = await deleteFromS3(profile.professionalHeadshotKey);
 
         if (!deleted) {
+            logger.error({userId}, "Headshot deletion failed: S3 deletion failed");
             return res.status(500).json({ msg: "Failed to delete image from S3" });
         }
 
@@ -305,11 +317,12 @@ export const deleteHeadshot = async(req, res) => {
         profile.imageUploadStatus = 'pending';
         await profile.save();
 
+        logger.info({userId, profileId: profile._id}, "Headshot deleted successfully");
         return res.status(200).json({ 
             msg: "Image deleted successfully" 
         });
     } catch(err) {
-        console.log("Error deleting headshot:", err);
+        logger.error({userId: req.user._id, errorMsg: err.message, stack: err.stack}, "Error deleting headshot");
         return res.status(500).json({ msg: "Internal Server Error" });
     }
 };
