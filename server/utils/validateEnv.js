@@ -48,6 +48,9 @@ const requiredEnvVars = [
 ];
 
 export function validateEnv() {
+    if (process.env.NODE_ENV === 'test') {
+    return; 
+  }
   const missing = requiredEnvVars.filter(
     (key) => !process.env[key]
   );
