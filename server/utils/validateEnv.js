@@ -1,8 +1,4 @@
 const requiredEnvVars = [
-  'MONGO_URI',
-  'CLERK_SECRET_KEY',
-  'CLERK_PUBLISHABLE_KEY',
-  'FRONTEND_URL',
   'MONGO_USER',
   'MONGO_PASS',
   'EMAIL_PASS',

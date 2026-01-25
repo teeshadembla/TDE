@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 import Connection, { disconnectDB } from './db.js';
 import { globalLimiter } from './utils/Production/rateLimiter.js';
 import logger from './utils/logger.js';
-import { validateEnv } from './config/env.js';
+import { validateEnv } from './utils/validateEnv.js';
 import { httpLogger } from './middleware/httpLogger.js';
 
 /* Email System Imports */

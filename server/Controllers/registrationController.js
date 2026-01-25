@@ -1,6 +1,6 @@
 import registrationModel from "../Models/regitrationsModel.js";
 import { registrationValidationSchema } from "../SchemaValidation/registrationValidationSchema.js";
-import { logger } from "../utils/logger.js";
+import logger  from "../utils/logger.js";
 const registerUser = async (req, res) => {
   try {
     // Joi validation

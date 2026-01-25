@@ -1,7 +1,7 @@
 import userModel from "../Models/userModel.js";
 import workgroupModel from "../Models/workgroupModel.js";
 import { workgroupValidationSchema } from "../SchemaValidation/workgroupValidationSchema.js";
-import { logger } from "../utils/logger.js";
+import  logger  from "../utils/logger.js";
 
 const addNewWorkgroup = async(req, res)=>{
     try{

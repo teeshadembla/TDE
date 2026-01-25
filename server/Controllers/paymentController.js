@@ -4,7 +4,7 @@ import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
 import {sendApplicationSubmissionEmail, sendPaymentConfirmationEmail} from "../utils/sendMail.js";
 import { sendEmail, applicationSubmittedTemplate } from "../utils/NewEmail/index.js";
-import { logger } from "../utils/logger.js";
+import  logger  from "../utils/logger.js";
 import dotenv from "dotenv";
 dotenv.config();
 import Stripe from "stripe";
