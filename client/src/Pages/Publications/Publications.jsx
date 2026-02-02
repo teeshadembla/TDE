@@ -6,9 +6,9 @@ import ResearchDisplay from '../../components/Publications/ResearchDisplay.jsx';
 const Publications = () => {
     return (
         <>
-        <div className='bg-black pl-[64px] text-base overflow-x-hidden'> 
+        <div className='bg-black font-montserrat pl-[64px] text-base overflow-x-hidden'> 
             <div className='grid grid-cols-2  gap-y-[48px] flex-row max-w-none h-[40em] pl-[5%] pr-0 text-base overflow-x-hidden overflow-y-hidden relative bg-[radial-gradient(circle_farthest-side_at_100%_-30%,#062c65,#000)]'>
-                <div className="flex flex-col justify-center items-start gap-x-[30px] gap-y-[30px] h-[640px] w-[436.1px] text-base overflow-y-hidden z-[99] static">
+                <div className="flex flex-col font-montserrat justify-center items-start gap-x-[30px] gap-y-[30px] h-[640px] w-[436.1px] text-base overflow-y-hidden z-[99] static">
                     <h1 className='font-montserrat flex justify-center items-stretch w-[15ch] mt-0 mb-0 font-semibold text-white z-[1] relative text-[2.7em]'>
                         Explore Expert Insights, Strategic Research, and Global Thought Leadership
                     </h1>
