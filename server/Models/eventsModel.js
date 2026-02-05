@@ -9,8 +9,15 @@ const eventsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    type:{
+      type:String,
+      required:true,  
+    },
     image:{
         type: String,
+    },
+    locationType:{
+        type:String,
     },
     location: {
         type: String, 
@@ -41,6 +48,10 @@ const eventsSchema = new mongoose.Schema({
         link:{
             type: String,
         }
+    }],
+    tags:
+    [{
+        type:String,
     }],
     createdBy:{
         type: mongoose.Schema.Types.ObjectId,

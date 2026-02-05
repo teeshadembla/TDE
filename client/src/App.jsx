@@ -113,7 +113,7 @@ function App() {
   return (
     <BrowserRouter>
       <Header></Header>
-        <div className="App">
+        <div className="App font-montserrat pt-16 sm:pt-20 lg:pt-24">
           <Routes>
             <Route path='/' element={<HomePage/>}></Route>
             <Route path='/about' element={<AboutUs/>}></Route>

@@ -51,11 +51,11 @@ const Header = () => {
 
 
     return (
-        <div className='h-16 sm:h-20 lg:h-24 font-montserrat lg:w-screen md:w-screen sm:w-screen bg-black flex relative z-[100]'>
+        <div className='fixed top-0 left-0 h-16 sm:h-20 lg:h-24 w-full font-montserrat bg-black flex z-[100]'>
             
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className='lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50' onClick={() => setMobileMenuOpen(false)}>
+                <div className='lg:hidden fixed inset-0 bg-black bg-opacity-50 z-200' onClick={() => setMobileMenuOpen(false)}>
                     <div className='bg-white w-64 h-full shadow-lg' onClick={(e) => e.stopPropagation()}>
                         <div className='p-4 border-b'>
                             <button 
