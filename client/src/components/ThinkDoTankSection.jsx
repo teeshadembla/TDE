@@ -37,17 +37,17 @@ const ThinkDoTankSection = () => {
     {
       image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/68aa3017d9cb05f8b18ea77d_Architects%20Meeting%20Event%20Art-p-500.webp",
       title: "Build Knowledge",
-      description: "We turn bold ideas into grounded strategies. Our research-driven insights provide the foundation for transformative action across industries and sectors."
+      description: "We turn bold ideas into grounded strategies. Our research-driven insights help you navigate complexity and shape what’s next. As a partner, you gain access to our Center of Excellence—your hub for real-time, human-centered intelligence."
     },
     {
       image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/68aa3017e24f9d20775aaad2_Several%20Speakers%20on%20Stage-p-500.webp",
       title: "Convene Experts",
-      description: "We bring the right minds to your mission. From global visionaries to domain specialists, we connect diverse perspectives to solve complex challenges."
+      description: "We bring the right minds to your mission. From global visionaries to domain specialists, we curate expert networks and deliver personalized support through a dedicated engagement team—so you’re never building alone."
     },
     {
       image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/68aa308a18fb9e7e7d31fbe5_Silhouettes%20of%20People%20in%20Business-p-500.webp",
       title: "Establish Leadership",
-      description: "Lead with purpose—and results. We help you activate cutting-edge technologies and innovative frameworks to drive meaningful change in your organization."
+      description: "Lead with purpose—and results. We help you activate cutting-edge technologies and economic models to scale impact, drive systems change, and advance the well-being of both people and the planet."
     }
   ];
 

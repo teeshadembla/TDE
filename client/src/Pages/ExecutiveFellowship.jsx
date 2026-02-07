@@ -11,6 +11,7 @@ import DataProvider from '../context/DataProvider.jsx';
 import ThematicWorkgroups from '../components/ExecutiveFellowships/ThematicWorkgroups.jsx';
 import FellowshipTimeline from '../components/ExecutiveFellowships/FellowshipTimeline.jsx';
 import {toast} from "react-toastify";
+import Footer from '../components/Footer.jsx';
 
 const ExecutiveFellowship = ({authLoading}) => {
   const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
@@ -51,10 +52,9 @@ const ExecutiveFellowship = ({authLoading}) => {
       <HeroSection onApplyClick={handleApplyClick} />
       <BenefitsSection />
       <ThematicWorkgroups/>
-      <FellowshipTimeline />
-      <TestimonialsSection />
+      <FellowshipTimeline onApplyClick={handleApplyClick}/>
       <FAQSection />
-      <CTASection onApplyClick={handleApplyClick} />
+      <Footer/>
       <ApplicationModal
         isOpen={isApplicationFormOpen}
         onClose={() => setIsApplicationFormOpen(false)}

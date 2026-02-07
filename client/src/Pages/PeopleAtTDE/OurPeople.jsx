@@ -183,20 +183,7 @@ const OurPeople = () => {
           </div>
         )}
         
-        {/* Stats */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            
-            <div>
-              <div className="text-3xl font-light text-white">{allFellows.length}</div>
-              <div className="text-gray-600">Total Fellows</div>
-            </div>
-            <div>
-              <div className="text-3xl font-light text-white">{workgroups.length}</div>
-              <div className="text-gray-600">Active Workgroups</div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );

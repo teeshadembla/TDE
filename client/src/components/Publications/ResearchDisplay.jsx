@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ResearchItem from './ResearchItem.jsx';
 import axiosInstance from '../../config/apiConfig.js';
 import { useNavigate } from 'react-router-dom';
+import { ArrowBigDown } from 'lucide-react';
 
 const ResearchDisplay = () => {
     const [papers, setPapers] = useState([]);
@@ -48,6 +49,11 @@ const ResearchDisplay = () => {
 
     // Apply filters whenever selection changes
     useEffect(() => {
+        if (!Array.isArray(papers)) {
+            setFilteredPapers([]);
+            return;
+        }
+
         let filtered = [...papers];
         console.log("This is the selexted workgroup-->",selectedWorkgroup);
         
@@ -77,11 +83,12 @@ const ResearchDisplay = () => {
                 <div id='publication-list-top' className='flex flex-col justify-between items-start gap-x-[40px] gap-y-[40px]'>
                     <h4 className='text-white font-sans text-[32px] ml-[105px] my-10 font-semibold'>All Articles</h4>
                     <div className='flex justify-end items-stretch w-full gap-x-4 gap-y-4 px-4'>
-                        <div id='filter-workgroup' className='flex flex-col gap-x-1 gap-y-1'>
+                        <div id='filter-workgroup' className='flex flex-col gap-x-1 gap-y-1 border-[0.8px] border-black'>
                             <select
                                 value={selectedWorkgroup}
                                 onChange={handleWorkgroupChange}
-                                className='bg-gray-800 text-white border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-gray-500'
+                                style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+                                className='bg-[rgb(26,28,31)] border pl-[14.7px] text-[15px] pr[10px] py-[10px] border-black rounded-[8px] h-[41.6px] w-[211.6px] text-[rgb(118,118,118)]'
                             >
                                 <option value=''>All Workgroups</option>
                                 {Array.isArray(workgroups) && workgroups?.map((wg) => (
@@ -95,9 +102,10 @@ const ResearchDisplay = () => {
                             <select
                                 value={selectedDocType}
                                 onChange={handleDocTypeChange}
-                                className='bg-gray-800 text-white border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-gray-500'
+                                style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+                                className='bg-[rgb(26,28,31)] h-[41.6px] w-[211.6px] rounded-[8px] text-[15px] border-black text-[rgb(118,118,118)] font-medium pl-[14.7px] pr-[10px] py-[10px] focus:outline-none'
                             >
-                                <option value=''>All Document Types</option>
+                                <option value=''>Category</option>
                                 {documentTypes.map((docType) => (
                                     <option key={docType.id} value={docType.id}>
                                         {docType.name}
@@ -110,13 +118,13 @@ const ResearchDisplay = () => {
                 <div id='publication-list-bottom' className='flex justify-center'>
                     <div id='w-dyn-list' className='w-[894px] min-h-[1249.8px]'>
                         <div id='list' className='grid gap-x-4 gap-y-4 grid-rows-[auto_auto] grid-cols-2 auto-cols-fr'>
-                            {filteredPapers.map((paper) => (
+                            {filteredPapers?.map((paper) => (
                                 <div className='cursor-pointer align-middle' onClick={() => navigate(`/research-paper/${paper._id}`)} key={paper._id}>
                                     <ResearchItem paper={paper}/>
                                 </div>
                             ))}
                         </div>
-                        {filteredPapers.length === 0 && (
+                        {filteredPapers?.length === 0 && (
                             <div className='text-white text-center py-8'>
                                 No papers found matching the selected filters.
                             </div>

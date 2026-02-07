@@ -10,7 +10,7 @@ import DiscoverSection from "../components/DiscoverSection";
 import LandingComponent from "../components/HomePage/LandinPage";
 import ProjectsSection from "../components/HomePage/ProjectsSection";
 import Banner from "../components/HomePage/Banner";
-import Demo from "../components/HomePage/Demo";
+import SubscribeToNewsletter from "../components/Events/SubscribeToNewsletter.jsx";
 import { Ban } from "lucide-react";
 
 const HomePage = () =>{
@@ -21,7 +21,7 @@ const HomePage = () =>{
             <ProjectsSection/>
             <Banner/>
             <CustomCarousel/>
-            <MissionSection/>
+            <SubscribeToNewsletter/>
             <Footer/>
         </div>
     )

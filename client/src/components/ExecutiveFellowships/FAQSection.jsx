@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronRight, Users, Globe, BookOpen, Calendar, Award, ArrowRight, Check, X, Star, Play, Pause, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+
 const FAQSection = () => {
   const [expandedFAQ, setExpandedFAQ] = useState(null);
 
@@ -27,7 +28,7 @@ const FAQSection = () => {
     {
         "id": 5,
         "question": "What kind of commitment is expected from Executive fellows?",
-        "answer": "Fellows are expected to actively participate in strategic roundtables, and major events, contributing their expertise and insights to the Center’s initiatives."
+        "answer": "Fellows are expected to actively participate in strategic roundtables, and major events, contributing their expertise and insights to the Center's initiatives."
     },
     {
         "id": 6,
@@ -64,34 +65,39 @@ const FAQSection = () => {
         "question": "Will I receive a certificate upon completion?",
         "answer": "Yes, fellows will receive a certificate recognizing their completion of the program."
     }
-]
-
+  ];
 
   return (
-    <section className="py-24 px-6 bg-gray-50">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-extralight mb-6">Frequently Asked Questions</h2>
+    <section className="py-12 md:py-24 px-4 md:px-6 bg-white">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extralight mb-4 md:mb-6">
+            Frequently Asked Questions
+          </h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="border-t border-black">
           {faqs.map((faq, index) => (
-            <div key={index} className="bg-white rounded-xl overflow-hidden shadow-sm">
+            <div key={index} className="border-b border-black">
               <button
                 onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
-                className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="w-full px-4 md:px-6 lg:px-4 py-6 md:py-8 text-left flex items-start dmsans-text font-semibold md:items-center justify-between cursor-pointer transition-all"
               >
-                <span className="text-xl font-medium">{faq.question}</span>
+                <span className="text-base md:text-lg lg:text-xl font-bold pr-4 md:pr-8 flex-1">
+                  {faq.question}
+                </span>
                 {expandedFAQ === index ? 
-                  <ChevronUp className="w-6 h-6 text-gray-500" /> : 
-                  <ChevronDown className="w-6 h-6 text-gray-500" />
+                  <ChevronUp className="w-5 h-5 md:w-6 md:h-6 text-black flex-shrink-0 mt-1 md:mt-0" /> : 
+                  <ChevronDown className="w-5 h-5 md:w-6 md:h-6 text-black flex-shrink-0 mt-1 md:mt-0" />
                 }
               </button>
               
-              <div className={`px-8 overflow-hidden transition-all duration-300 ${
-                expandedFAQ === index ? 'pb-6 max-h-96' : 'max-h-0'
+              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                expandedFAQ === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
               }`}>
-                <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                <p className="px-4 md:px-6 lg:px-8 pb-6 md:pb-8 dmsans-text text-base md:text-lg lg:text-[18px] text-neutral-500 font-medium leading-relaxed">
+                  {faq.answer}
+                </p>
               </div>
             </div>
           ))}

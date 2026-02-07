@@ -3,11 +3,11 @@
 @import "tailwindcss";
 
 
-body {
+body, .montserrat-text {
   font-family: 'Montserrat', sans-serif;
 }
 
-#italic-subheader-events-dark , #heading-35{
+#italic-subheader-events-dark , #heading-35, .dmsans-text{
   font-family: 'DM Sans', sans-serif;
 }
 

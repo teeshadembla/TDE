@@ -59,51 +59,41 @@ const WhatWeDo = () => {
       {
         title: "Governance Design",
         description: "Co-creating transparent, inclusive structures for decision-making and accountability.",
-        image: "https://images.unsplash.com/photo-1529326230765-ddb538dc5eff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+        image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/68724a218ca5030202736dec_joshua-woods-Igu6btFCviY-unsplash.jpg"
       },
       {
-        title: "Policy Framework",
-        description: "Developing adaptive frameworks that balance innovation with regulatory oversight and public interest.",
-        image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+        title: "Community Building",
+        description: "Growing ecosystems of aligned actors to scale collaboration and impact.",
+        image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/6872426cdd17df7b00e137d2_midjorournye.png"
       },
       {
-        title: "Digital Rights",
-        description: "Ensuring equitable access to digital resources while protecting privacy and promoting digital literacy.",
+        title: "Stakeholder Management",
+        description: "Aligning diverse voices to navigate complexity and build collective momentum.",
         image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
       }
     ],
     TechnologyForesight: [
       {
-        title: "Emerging Technologies",
-        description: "Identifying and analyzing breakthrough technologies that will shape the future digital landscape.",
-        image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2125&q=80"
+        title: "Technology Advisor",
+        description: "Guiding ethical and strategic use of AI, Web3, and emerging tech",
+        image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/6872426c8f3b51d80bd3f788_midjourney%202.png"
       },
       {
-        title: "AI & Ethics",
-        description: "Developing responsible AI frameworks that prioritize human values and societal benefit.",
-        image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-      },
-      {
-        title: "Future Scenarios",
-        description: "Creating strategic scenarios to help organizations prepare for multiple possible futures.",
-        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80"
+        title: "Futurecasting and Scenario Planning",
+        description: "Developing responsible AI frameworks that prioritize human values and societal benefitHelping leaders anticipate and shape long-term futures through systems insight.",
+        image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/6872426b65d4ed3a7255b86a_djwdwd%204.png"
       }
     ],
     ResilienceConvening: [
       {
-        title: "Community Building",
-        description: "Fostering strong networks that can adapt and thrive in the face of systemic challenges.",
-        image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+        title: "Climate Resilience and Planning",
+        description: "Supporting organizations in adapting to ecological disruption with sustainable design.",
+        image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/687249ca48edde385ba1d1fc_usgs-uGrT85dVK9U-unsplash.webp"
       },
       {
-        title: "Crisis Response",
-        description: "Building systems and protocols that enable rapid, coordinated responses to emerging crises.",
-        image: "https://images.unsplash.com/photo-1586281010691-a2dd3d91814c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-      },
-      {
-        title: "Stakeholder Engagement",
-        description: "Creating meaningful dialogue between diverse stakeholders to build shared understanding and solutions.",
-        image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+        title: "Strategic Convenings",
+        description: "Hosting global gatherings that unlock insight, forge partnerships, and catalyze change.",
+        image: "https://cdn.prod.website-files.com/682f43574652bd066d73adbf/68724a215fbd331e87a5660c_markus-krisetya-k0Jo8m6DO6k-unsplash.jpg"
       }
     ]
   };

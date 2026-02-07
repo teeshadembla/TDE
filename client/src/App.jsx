@@ -109,11 +109,11 @@ function App() {
     console.log("Account has been updated:", account);
   }, [account]);
 
-
+  
   return (
     <BrowserRouter>
       <Header></Header>
-        <div className="App font-montserrat pt-16 sm:pt-20 lg:pt-24">
+        <div className="App font-montserrat pt-16 sm:pt-20 lg:pt-50">
           <Routes>
             <Route path='/' element={<HomePage/>}></Route>
             <Route path='/about' element={<AboutUs/>}></Route>

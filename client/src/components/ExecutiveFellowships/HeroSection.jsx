@@ -36,23 +36,23 @@ const HeroSection = ({ onApplyClick }) => {
           <Award className="w-10 h-10 text-black" />
         </div>
         
-        <h1 className="text-6xl text-white md:text-7xl font-extralight mb-8 tracking-tight leading-tight">
-          Executive
-          <span className="block bg-gradient-to-r from-white via-neutral-200 to-white bg-clip-text text-transparent">
-            Fellowship
-          </span>
-          <span className="text-4xl md:text-5xl block mt-2 text-gray-200">Program</span>
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-4xl mx-auto">
-          An <span className="font-medium text-white">elite initiative</span> for visionary leaders committed to 
-          <span className="font-medium text-white"> shaping the future</span> of global economic policy
-        </p>
+        {/* Header Text */}
+        <div className='flex flex-col items-center justify-center gap-6'>
+          <h1 className=" items-stretch justify-center box-border text-white montserrat-text text-[48.6px] font-semibold leading-[53.46px] relative w-[907.112px] h-[53.4625px] m-0 z-[1] whitespace-nowrap">
+            We are an{' '}<em className="mx-1">Engine</em>{' '}to create{' '}
+              <em className="mx-1">Leaders</em>
+          </h1>
+          
+          <h4 className="flex items-stretch justify-center box-border text-[rgb(204,203,203)] dmsans-text text-[23.4px] font-semibold h-[56.15px] leading-[28.08px] m-0 relative text-center [text-size-adjust:100%] [unicode-bidi:isolate] w-[884.95px] z-[1]">
+              Become part of a curated network of global leaders shaping the future of a digitally-enabled, inclusive economy.
+          </h4>
+        </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-10">
           <button
             onClick={onApplyClick}
-            className="group bg-white text-black px-10 py-5 hover:bg-neutral-200 transition-all duration-300 flex items-center gap-3 font-medium text-lg transform hover:scale-105 hover:shadow-2xl"
+            className="all-[unset] inline-block max-w-full whitespace-nowrap overflow-hidden text-ellipsis bg-[#0445AF] text-white text-[28px] rounded-[6px] px-[46px] font-bold h-[70px] cursor-pointer leading-[70px] text-center m-0 no-underline font-['Helvetica',Arial,sans-serif]"
           >
             Apply Now
             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
