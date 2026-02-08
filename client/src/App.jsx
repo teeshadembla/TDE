@@ -38,6 +38,7 @@ import ArticlePage from "./components/News/ArticlePage.jsx";
 import OnboardingForm from './Pages/OnboardingForm/OnboardingForm.jsx';
 import Setup2FA from "../src/Pages/Auth/Setup2FA.jsx";
 import ForgotPassword from './Pages/Auth/ForgotPassword.jsx';
+import MemberProfile from './components/PeopleAtTDE/MemberProfile.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -145,6 +146,7 @@ function App() {
 
             {/* Our People Page */}
               <Route path='/fellowship/fellows' element={<OurPeople/>}></Route>
+              <Route path='/about/profile/:id' element={<MemberProfile/>}></Route>
               <Route path='/profile/:user_id' element={<UserProfile/>}></Route>
 
               {/* Memberships browse page */}

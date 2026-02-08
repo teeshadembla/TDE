@@ -46,7 +46,7 @@ const userValidationSchema = Joi.object({
   company: Joi.string().max(100).allow("").optional(),
   expertise: Joi.string().optional().allow(""),
   expertiseArray: Joi.array().items(Joi.string()).optional(),
-  introduction : Joi.string().max(500).allow("", null).optional(),
+  introduction : Joi.string().max(2000).allow("", null).optional(),
 
   discoverySource: Joi.string()
     .valid(

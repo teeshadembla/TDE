@@ -4,69 +4,74 @@ import { useNavigate } from "react-router-dom";
 
 const teamMembers = [
   {
+    _id: "1",
     name: "Navroop Sahdev",
     designation: "FOUNDER & CEO",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6856661fb51eba837ad92707_439431361_976807851118684_5257066573451305580_n.jpg"
   },
   {
+    _id: "2",
     name: "Jose Luis Carvalho",
     designation: "EXECUTIVE DIRECTOR, CENTER OF EXCELLENCE",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68566672c0e2c8d0c62fbf02_Jose-p-1600.jpg"
   },
   {
-    name: "Dr. Nikhil Varma",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, BLOCKCHAIN & DIGITAL ASSETS",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/685666c2b4074bbe012ec91b_Dr.%20Nikhil%20Varma%20(updated)-p-1600.jpg"
+    _id: "3",
+    name: "Ambriel Pouncy",
+    designation: "GLOBAL HEAD OF ENGAGEMENT & ECOSYSTEM INNOVATION, THE DIGITAL ECONOMIST",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6939a4123e131fba7cc6c81e_Screenshot%202025-12-10%20011112.png"
   },
   {
-    name: "Sandy Carter",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, APPLIED AI",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6857b01f00a40d4c5fa2254c_Sandy%20Carter.png"
-  },
-  {
-    name: "Dr. Maha Hosain Aziz",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, POLICY",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6858f251bc6b6874a4a5a96a_Maha%20Hosain%20Aziz%20headshot_edited.avif"
-  },
-  {
-    name: "Shannon Kennedy",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, HEALTHCARE",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68658c70df72fa50900c91e5_Untitled%20design%20(1).png"
-  },
-  {
-    name: "Bhuva Shakti",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, GOVERNANCE",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68658b96b4bcb2ecf4ff15aa_6858f43a03e8e51000553d01_Bhuva%20Shakti%20-%20Website%20-%201%20(1).jpg"
-  },
-  {
+    _id: "4",
     name: "Arvinder Singh Kang",
     designation: "PROGRAM DIRECTOR",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68659a4b8e0a6936c167efdb_IMG_0793%20(1).avif"
   },
   {
+    _id: "5",
+    name: "Dr. Nikhil Varma",
+    designation: "NON-EXEC CHAIR & SENIOR FELLOW, BLOCKCHAIN & DIGITAL ASSETS",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/685666c2b4074bbe012ec91b_Dr.%20Nikhil%20Varma%20(updated)-p-1600.jpg"
+  },
+  {
+    _id: "6",
+    name: "Sandy Carter",
+    designation: "NON-EXEC CHAIR & SENIOR FELLOW, APPLIED AI",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6857b01f00a40d4c5fa2254c_Sandy%20Carter.png"
+  },
+  {
+    _id: "7",
+    name: "Dr. Maha Hosain Aziz",
+    designation: "NON-EXEC CHAIR & SENIOR FELLOW, POLICY",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6858f251bc6b6874a4a5a96a_Maha%20Hosain%20Aziz%20headshot_edited.avif"
+  },
+  {
+    _id: "8",
+    name: "Shannon Kennedy",
+    designation: "NON-EXEC CHAIR & SENIOR FELLOW, HEALTHCARE",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68658c70df72fa50900c91e5_Untitled%20design%20(1).png"
+  },
+  {
+    _id: "10",
     name: "Alex Kontoleon",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, SUSTAINABILITY", 
+    designation: "NON-EXEC CHAIR & SENIOR FELLOW, SUSTAINABILITY",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68aef2a548eaf8b4529e5e6f_Strategic%20Content%20and%20Policy%20Associate%20(3).png"
   },
   {
+    _id: "11",
     name: "Dr. Melodena Stephens",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW", 
+    designation: "NON-EXEC CHAIR & SENIOR FELLOW",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68b5c60eacb8170797dde541_Strategic%20Content%20and%20Policy%20Associate%20(21).png"
   }
 ];
 
-const PersonCard = ({ name, title, imageUrl }) => {
+
+const PersonCard = ({ id,name, title, imageUrl }) => {
     const navigate = useNavigate();
     
     const handleViewProfile = () => {
-        // Create URL-friendly name by replacing spaces with dashes and removing special characters
-        const urlFriendlyName = name
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and dashes
-            .replace(/\s+/g, '-') // Replace spaces with dashes
-            .trim();
         
-        navigate(`/about/profile/${urlFriendlyName}`);
+        navigate(`/about/profile/${id}`);
     };
 
     return(
@@ -119,6 +124,7 @@ const OurLeaderships = () => {
                     {teamMembers.map((member, index) => (
                         <PersonCard 
                             key={index}
+                            id={member._id}
                             name={member.name}
                             title={member.designation}
                             imageUrl={member.imageLink}

@@ -23,7 +23,7 @@ const userSchema = mongoose.Schema({
     },
     role:{
         type: String,
-        enum: ["core","user","chair"],
+        enum: ["admin","core","user","chair"],
         required: true
     },
     fellowshipId: {
@@ -137,7 +137,7 @@ const userSchema = mongoose.Schema({
     }],
     introduction: {
         type: String,
-        maxlength: 500,
+        maxlength: 2000,
         default: null
     },
     stripeCustomerId: {
