@@ -26,7 +26,18 @@ jobs:
         run: npm install
       
       - name: Run tests
+        working-directory: ./server
         run: npm test
+        env:
+          NODE_ENV: test
+          # Mock environment variables for testing
+          STRIPE_SECRET_KEY: sk_test_mock_key_for_ci_testing
+          MONGO_USER: test_user
+          MONGO_PASS: test_password
+          ACCESS_SECRET: test_access_secret
+          REFRESH_SECRET: test_refresh_secret
+          JWT_SECRET: test_jwt_secret
+          PORT: 8080
       
       # Step 3: If tests pass, deploy!
       - name: Deploy to Render
