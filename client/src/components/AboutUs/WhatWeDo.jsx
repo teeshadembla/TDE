@@ -1,36 +1,27 @@
-
 import React, { useState } from "react";
 
 const Box = ({ 
   title, 
   description, 
   image, 
-  className = "h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]",
-  titleClassName = "",
-  descriptionClassName = "",
   overlayOpacity = "bg-black/40"
 }) => {
   return (
-    <div className={`relative rounded-lg overflow-hidden shadow-2xl h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] ${className}`}>
+    <div className="tabs-content-box relative rounded-[4px] overflow-hidden shadow-2xl h-full flex-1 min-w-0">
       {/* Background Image */}
       <div 
-        className="relative h-64 sm:h-72 md:h-80 lg:h-96 bg-cover bg-center bg-no-repeat"
+        className="relative h-full bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url(${image})`
         }}
       >
         {/* Dark overlay for better text readability */}
-        <div className={`absolute inset-0 ${overlayOpacity}`}></div>
+        <div className={`absolute inset-0 w-auto h-auto block box-border bg-[linear-gradient(rgb(0,0,0)_38%,rgba(0,0,0,0))] opacity-[0.8] text-[#333333] font-[Arial,'Helvetica Neue',Helvetica,sans-serif] text-[16px] leading-[20px] ${overlayOpacity}`}></div>
         
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col justify-start p-4 sm:p-6 md:p-8">
           {/* Title */}
-          <h2 className={`
-            text-white font-bold mb-3 sm:mb-4 
-            text-xl sm:text-xl md:text-xl lg:text-2xl
-            leading-tight
-            ${titleClassName}
-          `}>
+          <h2 className="text-white dmsans-text font-bold sm:mb-4 text-[16px] sm:text-xl md:text-xl lg:text-[22px] leading-tight">
             {title}
           </h2>
           
@@ -38,11 +29,7 @@ const Box = ({
           <div className="w-full h-0.5 bg-white/60 mb-4 sm:mb-6"></div>
           
           {/* Description */}
-          <p className={`
-            text-white/90 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md
-            text-sm sm:text-base md:text-lg
-            ${descriptionClassName}
-          `}>
+          <p className="text-white/90 dmsans-text leading-relaxed text-sm sm:text-base md:text-lg">
             {description}
           </p>
         </div>
@@ -100,67 +87,96 @@ const WhatWeDo = () => {
 
   return (
     <div className="bg-black h-[900px] flex flex-col items-center pt-10 px-4">
-      <h1 className="text-white font-sans text-[40px] md:text-[52px] font-bold pb-5 text-center">
+      <h1 className="text-white montserrat-text text-[40px] md:text-[52px] font-bold pb-5 text-center">
         What We Do
       </h1>
 
-      <h3 className="text-neutral-400 text-[16px] md:text-[18px] text-center max-w-3xl font-medium">
+      <h3 className="text-neutral-400 text-[16px] dmsans-text md:text-[18px] text-center max-w-[910px] font-medium">
         We operate at the intersection of technology, sustainability, and
         policy—partnering with global institutions, governments, and communities
         to co-create systems that are future-fit, inclusive, and resilient.
       </h3>
 
-      <div className="w-full mt-16 max-w-7xl">
+      <div className="w-full mt-28 max-w-7xl">
         {/* Tab Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-items-center mb-5">
           <button
             onClick={() => setTab("SystemDesignGovernance")}
-            className={`text-white pb-3 font-semibold text-lg md:text-xl w-full max-w-xs font-sans transition-colors duration-300 hover:text-blue-400 ${
+            className={`text-[rgb(111,111,111)] dmsans-text pb-3 font-semibold text-lg md:text-xl w-full max-w-xs font-sans transition-colors duration-300 hover:text-white ${
               tab === "SystemDesignGovernance"
-                ? "border-b-2 border-b-blue-500 text-blue-400"
+                ? "border-b-2 border-b-blue-500 montserrat-text text-white"
                 : ""
             }`}
           >
-            System Design and Governance
+            System Design & Governance
           </button>
 
           <button
             onClick={() => setTab("TechnologyForesight")}
-            className={`text-white pb-3 font-semibold text-lg md:text-xl w-full max-w-xs font-sans transition-colors duration-300 hover:text-blue-400 ${
+            className={`text-[rgb(111,111,111)] pb-3 dmsans-text font-semibold text-[20.8px] md:text-xl w-full max-w-xs font-sans transition-colors duration-300 hover:text-white ${
               tab === "TechnologyForesight"
-                ? "border-b-2 border-b-blue-500 text-blue-400"
+                ? "border-b-2 border-b-blue-500 text-white montserrat-text"
                 : ""
             }`}
           >
-            Technology and Foresight
+            Technology & Foresight
           </button>
 
           <button
             onClick={() => setTab("ResilienceConvening")}
-            className={`text-white pb-3 font-semibold text-lg md:text-xl w-full max-w-xs font-sans transition-colors duration-300 hover:text-blue-400 ${
+            className={`text-[rgb(111,111,111)] pb-3 dmsans-text font-semibold text-lg md:text-xl w-full max-w-xs font-sans transition-colors duration-300 hover:text-white ${
               tab === "ResilienceConvening"
-                ? "border-b-2 border-b-blue-500 text-blue-400"
+                ? "border-b-2 border-b-blue-500 text-white montserrat-text"
                 : ""
             }`}
           >
-            Resilience and Convening
+            Resilience & Convening
           </button>
         </div>
 
-        {/* Tab Content */}
-        <div className="w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 justify-items-center">
-            {tabContent[tab].map((item, index) => (
-              <div key={index} className="w-full max-w-sm">
+        {/* Tab Content - New Structure */}
+        <div className="w-tab-content w-full h-[320.4px]">
+          {/* System Design & Governance Tab */}
+          {tab === "SystemDesignGovernance" && (
+            <div className="tabs-body w-full h-full flex gap-6">
+              {tabContent.SystemDesignGovernance.map((item, index) => (
                 <Box
+                  key={index}
                   title={item.title}
                   description={item.description}
                   image={item.image}
-                  className="hover:scale-105 transition-transform duration-300 cursor-pointer"
                 />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {/* Technology & Foresight Tab */}
+          {tab === "TechnologyForesight" && (
+            <div className="tabs-body w-full h-full flex gap-6">
+              {tabContent.TechnologyForesight.map((item, index) => (
+                <Box
+                  key={index}
+                  title={item.title}
+                  description={item.description}
+                  image={item.image}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Resilience & Convening Tab */}
+          {tab === "ResilienceConvening" && (
+            <div className="tabs-body w-full h-full flex gap-6">
+              {tabContent.ResilienceConvening.map((item, index) => (
+                <Box
+                  key={index}
+                  title={item.title}
+                  description={item.description}
+                  image={item.image}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

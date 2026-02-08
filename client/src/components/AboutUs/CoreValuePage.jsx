@@ -18,7 +18,7 @@ const CoreValuesPage = () => {
       isHighlighted: false
     },
     {
-      title: "Decentralization & Empowerment",
+      title: `Decentralization & Empowerment`,
       description: "By distributing power, we enable inclusive access and collective ownership of digital systems.",
       isHighlighted: false
     },
@@ -30,59 +30,58 @@ const CoreValuesPage = () => {
   ];
 
   const ValueCard = ({ title, description, isHighlighted }) => (
-    <div className={`
-      relative p-5 rounded-2xl transition-all duration-300 ease-in-out cursor-pointer
-      ${isHighlighted 
-        ? 'bg-neutral-800 border-2 border-blue-500' 
-        : 'bg-black border-2 border-neutral-700 hover:border-blue-500 hover:bg-neutral-800'
-      }
-      group
-    `}>
-      <h3 className="text-white text-xl font-semibold mb-4 leading-tight">
-        {title}
-      </h3>
-      <p className="text-gray-300 text-base leading-relaxed">
-        {description}
-      </p>
+    <div 
+      className={`flex items-center justify-center box-border h-[195px] w-[350px] max-w-[350px] p-[32px] border rounded-[8px] transition-colors duration-[0.4s] ease-[ease] ${
+        isHighlighted 
+          ? 'bg-neutral-800 border-2 border-blue-500' 
+          : 'bg-black border-2 border-neutral-700 hover:border-blue-500 hover:bg-neutral-800'
+      }`}
+    >
+      <div className='flex items-start justify-center flex-col w-full'>
+        <div className='mb-4 w-full text-left'>
+          <h4 className='text-white text-[19px] dmsans-text font-semibold leading-[23.4px] whitespace-nowrap'>
+            {title}
+          </h4>
+        </div>
+        <h5 className='text-[rgb(159,159,159)] dmsans-text text-[15px] font-normal leading-[19.5px] text-left w-full'>
+          {description}
+        </h5>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center px-4 py-8">
-      <div className="max-w-7xl w-full mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-            Our Core Values
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto">
-            Foundational to shaping a human-centered digital economy
-          </p>
-        </div>
+    <>
+      <section className='flex justify-center bg-black box-border w-full px-[72px]'>
+        <div className='flex items-center justify-center flex-col flex-nowrap box-border w-[1296px] gap-[20px] m-0 pt-[129.6px] pb-[129.6px] max-w-none'>
+          <div className='block box-border w-[1200px]'>
+            <div className='block box-border relative w-[1200px] max-w-[1200px] mx-0'>
+              <div className='block box-border w-[1200px] mb-[64px]'>
+                <div className='flex items-center justify-center flex-col box-border relative w-[1200px] max-w-full mx-0 text-center'>
+                  <div className='block box-border mb-[16px] text-center'>
+                    <h1 className='text-white text-[43.2px] font-bold leading-[47.52px] text-center m-0 whitespace-nowrap'>
+                      Our Core Values
+                    </h1>
+                  </div>
 
-        {/* Values Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          
-          <div className="lg:col-span-1">
-            <ValueCard {...values[0]} />
-          </div>
-          <div className="lg:col-span-1">
-            <ValueCard {...values[1]} />
-          </div>
-          <div className="lg:col-span-1">
-            <ValueCard {...values[2]} />
-          </div>
-          
-          {/* Second row - 2 cards centered */}
-          <div className="md:col-span-1 lg:col-start-1 lg:col-end-2">
-            <ValueCard {...values[3]} />
-          </div>
-          <div className="md:col-span-1 lg:col-start-3 lg:col-end-4">
-            <ValueCard {...values[4]} />
+                  <div className='text-[rgb(159,159,159)] dmsans-text text-[20.8px] font-normal leading-[24.96px] text-center'>
+                    Foundational to shaping a human-centered digital economy
+                  </div>
+                </div>
+              </div>
+
+              <div className='flex flex-row flex-wrap justify-center box-border w-[1200px] gap-[40px]'>
+                {values.map((value, index) => (
+                  <ValueCard key={index} {...value} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+
+     
+    </>
   );
 };
 
