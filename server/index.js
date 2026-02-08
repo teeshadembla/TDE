@@ -77,6 +77,70 @@ app.use(
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for React and Vite
+          "'unsafe-eval'", // Sometimes needed for development builds
+          "https://js.stripe.com",
+          "https://*.clerk.accounts.dev",
+          "https://challenges.cloudflare.com", // Clerk uses Cloudflare
+          "https://cdnjs.cloudflare.com",
+        ],
+        scriptSrcElem: [
+          "'self'",
+          "https://js.stripe.com",
+          "https://*.clerk.accounts.dev",
+          "https://challenges.cloudflare.com",
+          "https://cdnjs.cloudflare.com",
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for styled-components and inline styles
+          "https://fonts.googleapis.com",
+        ],
+        imgSrc: [
+          "'self'",
+          "data:", // Base64 images
+          "blob:", // Blob URLs
+          "https:", // Allow all HTTPS images
+          "https://cdn.prod.website-files.com",
+          "https://img.clerk.com",
+          "https://*.clerk.accounts.dev",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://api.stripe.com",
+          "https://*.stripe.com",
+          "https://*.clerk.accounts.dev",
+          "https://api.clerk.dev",
+          "https://api.clerk.com",
+          "https://clerk.thedigitaleconomist.com",
+          isProd ? "https://app.thedigitaleconomist.com" : "http://localhost:*",
+          isProd ? process.env.FRONTEND_URL : "http://localhost:5173",
+        ],
+        frameSrc: [
+          "'self'",
+          "https://js.stripe.com",
+          "https://*.stripe.com",
+          "https://*.clerk.accounts.dev",
+          "https://challenges.cloudflare.com",
+        ],
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com",
+          "data:",
+        ],
+        mediaSrc: ["'self'", "data:", "blob:"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+        upgradeInsecureRequests: isProd ? [] : null, // Only in production
+      },
+    },
   })
 );
 
