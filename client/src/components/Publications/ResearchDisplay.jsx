@@ -98,7 +98,7 @@ const ResearchDisplay = () => {
                                 className='bg-gray-800 text-white border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-gray-500'
                             >
                                 <option value=''>All Document Types</option>
-                                {documentTypes.map((docType) => (
+                                {documentTypes?.map((docType) => (
                                     <option key={docType.id} value={docType.id}>
                                         {docType.name}
                                     </option>
@@ -110,7 +110,7 @@ const ResearchDisplay = () => {
                 <div id='publication-list-bottom' className='flex justify-center'>
                     <div id='w-dyn-list' className='w-[894px] min-h-[1249.8px]'>
                         <div id='list' className='grid gap-x-4 gap-y-4 grid-rows-[auto_auto] grid-cols-2 auto-cols-fr'>
-                            {filteredPapers.map((paper) => (
+                            {filteredPapers?.map((paper) => (
                                 <div className='cursor-pointer align-middle' onClick={() => navigate(`/research-paper/${paper._id}`)} key={paper._id}>
                                     <ResearchItem paper={paper}/>
                                 </div>

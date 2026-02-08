@@ -82,7 +82,7 @@ const PublicationContent = () => {
 
               {/* Secondary Publications */}
               <div className='flex flex-col gap-6 sm:gap-8 w-full h-[782px]'>
-                {publicationsData.secondary.map((publication) => (
+                {publicationsData?.secondary?.map((publication) => (
                   <SecondaryPublicationCard 
                     key={publication.id} 
                     publication={publication} 
