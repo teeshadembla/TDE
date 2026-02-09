@@ -82,30 +82,35 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
-          "'unsafe-inline'", // Required for React and Vite
-          "'unsafe-eval'", // Sometimes needed for development builds
-          "https://js.stripe.com",
-          "https://*.clerk.accounts.dev",
-          "https://challenges.cloudflare.com", // Clerk uses Cloudflare
-          "https://cdnjs.cloudflare.com",
-        ],
-        scriptSrcElem: [
-          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
           "https://js.stripe.com",
           "https://*.clerk.accounts.dev",
           "https://challenges.cloudflare.com",
           "https://cdnjs.cloudflare.com",
         ],
+        scriptSrcElem: [
+          "'self'",
+          "'unsafe-inline'", // ADD THIS - needed for inline scripts
+          "https://js.stripe.com",
+          "https://*.clerk.accounts.dev",
+          "https://challenges.cloudflare.com",
+          "https://cdnjs.cloudflare.com",
+        ],
+        workerSrc: [ // ADD THIS ENTIRE SECTION - needed for Clerk web workers
+          "'self'",
+          "blob:",
+        ],
         styleSrc: [
           "'self'",
-          "'unsafe-inline'", // Required for styled-components and inline styles
+          "'unsafe-inline'",
           "https://fonts.googleapis.com",
         ],
         imgSrc: [
           "'self'",
-          "data:", // Base64 images
-          "blob:", // Blob URLs
-          "https:", // Allow all HTTPS images
+          "data:",
+          "blob:",
+          "https:",
           "https://cdn.prod.website-files.com",
           "https://img.clerk.com",
           "https://*.clerk.accounts.dev",
@@ -138,7 +143,7 @@ app.use(
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
-        upgradeInsecureRequests: isProd ? [] : null, // Only in production
+        upgradeInsecureRequests: isProd ? [] : null,
       },
     },
   })
