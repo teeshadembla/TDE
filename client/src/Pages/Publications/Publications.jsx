@@ -2,6 +2,7 @@ import react from 'react';
 import Footer from '../../components/Footer.jsx';
 import PublicationContent from '../../components/Publications/PublicationContent.jsx';
 import ResearchDisplay from '../../components/Publications/ResearchDisplay.jsx';
+import SubscribeToNewsletter from '../../components/Events/SubscribeToNewsletter.jsx';
 
 const Publications = () => {
     return (
@@ -25,6 +26,7 @@ const Publications = () => {
 
         <PublicationContent/>
         <ResearchDisplay/>
+        <SubscribeToNewsletter/>
         <Footer/>
         </>
     )

@@ -20,12 +20,12 @@ const CTASection = ({ onApplyClick }) => {
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <button
             onClick={onApplyClick}
-            className="group bg-white text-black px-10 py-5 hover:bg-gray-100 transition-all duration-300 font-medium text-lg transform hover:scale-105 hover:shadow-2xl flex items-center gap-3"
+            className="group bg-white rounded-sm text-black px-10 py-5 hover:bg-gray-100 transition-all duration-300 font-medium text-lg transform hover:scale-105 hover:shadow-2xl flex items-center gap-3"
           >
             Begin Your Application
             <ExternalLink className="w-5 h-5 group-hover:rotate-12 transition-transform" />
           </button>
-          <button className="border-2 border-gray-600 text-gray-300 px-10 py-5 hover:border-white hover:text-white transition-all duration-300 font-medium text-lg">
+          <button className="border-2 rounded-sm border-gray-600 text-gray-300 px-10 py-5 hover:border-white hover:text-white transition-all duration-300 font-medium text-lg">
             Download Brochure
           </button>
         </div>

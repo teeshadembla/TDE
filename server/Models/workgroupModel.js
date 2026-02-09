@@ -5,22 +5,23 @@ const workgroupSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    subtitle:{
+        type:String,
+        required:true,
+    },
     description:{
         type: String, 
         required: true,
     },
-    researchFocus:{
-
-    },
+    keyThemes:[{
+        title: {type: String},
+        description: {type: String},
+    }],
     maxMembers:{
         type: Number,
         default: 100,
     }, 
     slackChannelName:{
-        type: String,
-        required: true,
-    }, 
-    coordinator:{
         type: String,
         required: true,
     }, 

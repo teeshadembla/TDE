@@ -19,15 +19,15 @@ const LandingComponent = () => {
       <div className="absolute inset-0 bg-black/40 z-0" />
 
       {/* Foreground content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4 sm:px-6 md:px-8 lg:px-16 xl:px-20">
+      <div id="container" className="flex flex-row flex-nowrap items-center justify-start box-border text-[#333333] font-[Arial,'Helvetica_Neue',Helvetica,sans-serif] text-[16px] leading-[20px]  h-[287.6px] py-[50px] px-[100px] mt-0 mb-0 gap-x-[35px] gap-y-[35px]">
         {/* Mobile and small screens */}
-        <div className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl">
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-montserrat font-bold mb-3 sm:mb-4 md:mb-5 lg:mb-6 leading-tight">
+        <div id="title-wrapper" className="flex flex-col flex-nowrap items-start justify-center box-border text-[#333333] font-[Arial,'Helvetica_Neue',Helvetica,sans-serif] text-[16px] leading-[20px] w-[1200px] h-[187.6px] gap-x-[34px] gap-y-[34px] overflow-x-visible overflow-y-visible">
+          <h1 id="dark-hero" className="flex items-stretch justify-center box-border text-white montserrat-text text-[43.2px] font-semibold leading-[51.84px] w-[1200px] h-[103.675px] m-0 relative z-[1]">
             Discover Bold Thinking, Transformative Research, and Global Voices Driving the Next Economy
-          </p>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed">
+          </h1>
+          <h5 id="text-normal" className="block box-border text-white dmsans-text text-[19.2px] font-normal leading-[24.96px] w-[525.3px] h-[49.925px] m-0 relative z-[1]">
             <b>The Digital Economist</b> bridges technology, sustainability, and policy to build an inclusive, thriving future.
-          </p>
+          </h5>
         </div>
       </div>
     </div>

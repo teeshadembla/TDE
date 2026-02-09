@@ -10,7 +10,8 @@ import DiscoverSection from "../components/DiscoverSection";
 import LandingComponent from "../components/HomePage/LandinPage";
 import ProjectsSection from "../components/HomePage/ProjectsSection";
 import Banner from "../components/HomePage/Banner";
-import Demo from "../components/HomePage/Demo";
+import SubscribeToNewsletter from "../components/Events/SubscribeToNewsletter.jsx";
+import HowWeDriveImpact from "../components/HomePage/HowWeDriveImpact.jsx";
 import { Ban } from "lucide-react";
 
 const HomePage = () =>{
@@ -18,10 +19,11 @@ const HomePage = () =>{
         <div className="flex flex-col">
             <LandingComponent/>
             <ThinkDoTankSection/>
+            <HowWeDriveImpact/>
             <ProjectsSection/>
             <Banner/>
             <CustomCarousel/>
-            <MissionSection/>
+            <SubscribeToNewsletter/>
             <Footer/>
         </div>
     )

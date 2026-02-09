@@ -2,6 +2,35 @@
 
 @import "tailwindcss";
 
+
+body, .montserrat-text {
+  font-family: 'Montserrat', sans-serif;
+}
+
+#italic-subheader-events-dark , #heading-35, .dmsans-text{
+  font-family: 'DM Sans', sans-serif;
+}
+
 .input {
   @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400;
+}
+
+/* Add this to your global CSS file (e.g., index.css or App.css) */
+
+@keyframes scrollUp {
+  0% {
+    transform: translate3d(0px, 0%, 0px);
+  }
+  100% {
+    transform: translate3d(0px, -50%, 0px);
+  }
+}
+
+.animate-scroll-up {
+  animation: scrollUp 20s linear infinite;
+}
+
+.animate-scroll-up-delayed {
+  animation: scrollUp 20s linear infinite;
+  animation-delay: -10s; 
 }

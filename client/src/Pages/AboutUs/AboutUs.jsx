@@ -7,6 +7,7 @@ import PartnershipsSection from '../../components/AboutUs/PartnershipsSection';
 import OurLeaderships from '../../components/AboutUs/OurLeaderships';   
 import OurTeam from '../../components/AboutUs/OurTeam';
 import Footer from "../../components/Footer";
+import HowWeDeliverImpact from '../../components/AboutUs/HowWeDeliverImpact';
 
 const AboutUs = () => {
     return (
@@ -15,6 +16,7 @@ const AboutUs = () => {
             <OurMission/>
             <CoreValuesPage/>
             <WhatWeDo/>
+            <HowWeDeliverImpact/>
             <PartnershipsSection/>
             <OurLeaderships/>
             <OurTeam/>
