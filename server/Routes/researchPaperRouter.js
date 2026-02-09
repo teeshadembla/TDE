@@ -19,7 +19,7 @@ const researchPaperRouter = express.Router();
 
 researchPaperRouter.post('/presigned-url', uploadLimiter,authenticateToken, getPresignedUrl);
 researchPaperRouter.post('/confirm-upload', authenticateToken, confirmUpload);
-researchPaperRouter.get('/getPapers', authenticateToken, getAllPapers);
+researchPaperRouter.get('/getPapers', getAllPapers);
 researchPaperRouter.get('/', authenticateToken, getUserDocuments);
 researchPaperRouter.get('/getPaperById/:id', authenticateToken, getDocument);
 researchPaperRouter.get('/:id/view-url', authenticateToken, getViewUrl);       

@@ -30,21 +30,36 @@ const ResearchDisplay = () => {
     },[])
 
     useEffect(() => {
-        const fetchPapers = async() => {
-            try {
-                const response = await axiosInstance.get("api/documents/getPapers");
-                console.log("These are all of the research papers that have been retrieved--->", response.data.data);
-                setPapers(response.data.data);
-                setFilteredPapers(response.data.data);
-                
+    const fetchPapers = async() => {
+        try {
+            const response = await axiosInstance.get("api/documents/getPapers");
+            console.log("Full API response:", response);
+            console.log("Response data:", response.data);
             
-            } catch(err) {
-                console.log("This error occurred while trying to fetch all research papers from the backend.--->", err);
+            // Handle different possible response structures
+            const paperData = response.data?.data || response.data?.papers || response.data || [];
+            
+            console.log("These are all of the research papers that have been retrieved--->", paperData);
+            
+            // Ensure it's an array before setting state
+            if (Array.isArray(paperData)) {
+                setPapers(paperData);
+                setFilteredPapers(paperData);
+            } else {
+                console.error("Papers data is not an array:", paperData);
+                setPapers([]);
+                setFilteredPapers([]);
             }
+        
+        } catch(err) {
+            console.log("This error occurred while trying to fetch all research papers from the backend.--->", err);
+            setPapers([]);
+            setFilteredPapers([]);
         }
+    }
 
-        fetchPapers();
-    }, []);
+    fetchPapers();
+}, []);
 
     // Apply filters whenever selection changes
     useEffect(() => {
