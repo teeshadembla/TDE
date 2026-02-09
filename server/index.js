@@ -73,7 +73,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   })
 );
-
+/* 
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -147,7 +147,7 @@ app.use(
       },
     },
   })
-);
+); */
 
 if (!isTest) {
   app.use(
