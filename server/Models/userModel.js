@@ -1,4 +1,4 @@
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 
 const userSchema = mongoose.Schema({
     clerkUserId: {
@@ -36,24 +36,18 @@ const userSchema = mongoose.Schema({
         LinkedIn: { type: String, default: "" },
         Instagram: { type: String, default: "" }
     },
-    membership: [{
-        isActive: { type: Boolean, default: false },
-        startDate: { type: Date },
-        endDate: { type: Date },
-        status: { 
-            type: String, 
-            enum: ["active", "expired", "cancelled"],
-            default: "active"
-        },
-        membershipType: {
-            type: String,
-            enum: ["digital-i", "digital-c", "strategic"],
-            default: "digital-i"
-        },
-        renewalDate: { type: Date },
-        cancellationDate: { type: Date },
-        cancellationReason: { type: String }
-    }],
+    // UPDATED: Simplified membership reference
+    activeMembership: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Membership",
+        default: null
+    },
+    // For organizational members
+    organization: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Organization",
+        default: null
+    },
     workGroupId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workgroup",
@@ -133,7 +127,7 @@ const userSchema = mongoose.Schema({
     },
     passwordResetHistory: [{
         resetAt: Date,
-        ipAddress: String // optional
+        ipAddress: String
     }],
     introduction: {
         type: String,
@@ -148,10 +142,8 @@ const userSchema = mongoose.Schema({
 
 userSchema.index({ email: 1 });
 userSchema.index({ clerkUserId: 1 });
-userSchema.index({ isVerifiedByAdmin: 1 });
-userSchema.index({ status: 1 });
-
+userSchema.index({ isVerifiedbyAdmin: 1 });
+userSchema.index({ activeMembership: 1 });
 
 const userModel = mongoose.model("User", userSchema);
 export default userModel;
-    

@@ -59,44 +59,51 @@ const Login = () => {
     }));
   };
 
-  const handleLogin = async () => {
-    if (!isLoaded || isSignedIn) {
-      toast.info(isLoaded ? "You are already signed in" : "Clerk has not loaded yet, try again");
+ const handleLogin = async () => {
+  if (!isLoaded || isSignedIn) {
+    toast.info(isLoaded ? "You are already signed in" : "Clerk has not loaded yet, try again");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const result = await signIn.create({
+      identifier: user.email,
+      password: user.password,
+    });
+
+    console.log("=== FULL LOGIN RESULT ===");
+    console.log("Status:", result.status);
+    console.log("Supported second factors:", result.supportedSecondFactors);
+    console.log("First factor verification:", result.firstFactorVerification);
+    console.log("Second factor verification:", result.secondFactorVerification);
+    console.log("Complete result object:", result);
+    console.log("========================");
+
+    // Check if 2FA is required
+    if (result.status === "needs_second_factor") {
+      console.log("🚨 TRIGGERING 2FA SCREEN");
+      setNeeds2FA(true);
+      toast.info("Please enter your 2FA code from your authenticator app");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const result = await signIn.create({
-        identifier: user.email,
-        password: user.password,
-      });
-
-      console.log("Login result:", result);
-
-      // Check if 2FA is required
-      if (result.status === "needs_second_factor") {
-        setNeeds2FA(true);
-        toast.info("Please enter your 2FA code from your authenticator app");
-        setLoading(false);
-        return;
-      }
-
-      // If login is complete (no 2FA enabled)
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        toast.success("Logged in successfully!");
-        navigate(redirectPath);
-      }
-
-    } catch (err) {
-      console.error("Login error:", err);
-      toast.error(err.errors?.[0]?.message || "Invalid credentials");
-    } finally {
-      setLoading(false);
+    // If login is complete (no 2FA enabled)
+    if (result.status === "complete") {
+      await setActive({ session: result.createdSessionId });
+      toast.success("Logged in successfully!");
+      navigate(redirectPath);
     }
-  };
+
+  } catch (err) {
+    console.error("Login error:", err);
+    toast.error(err.errors?.[0]?.message || "Invalid credentials");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleVerify2FA = async () => {
     if (!totpCode || totpCode.length !== 6) {

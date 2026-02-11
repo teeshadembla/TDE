@@ -39,6 +39,9 @@ import OnboardingForm from './Pages/OnboardingForm/OnboardingForm.jsx';
 import Setup2FA from "../src/Pages/Auth/Setup2FA.jsx";
 import ForgotPassword from './Pages/Auth/ForgotPassword.jsx';
 import MemberProfile from './components/PeopleAtTDE/MemberProfile.jsx';
+import PricingCard from './components/Memberships/PricingCard.jsx';
+import MembershipSuccess from './Pages/Memberships/MembershipSuccess.jsx';
+
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -151,6 +154,9 @@ function App() {
 
               {/* Memberships browse page */}
               <Route path='/join-us/pricing' element={<MembershipBrowse/>}></Route>
+              <Route path="/membership/success" element={<MembershipSuccess />} />
+              <Route path="/membership/pricing" element={<PricingCard/>}/>
+
 
               {/* Practice Area dynamic pages */}
               <Route path='/practice/:slug' element={<PracticeArea/>}></Route>

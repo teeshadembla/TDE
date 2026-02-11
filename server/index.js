@@ -31,6 +31,7 @@ import commentRouter from './Routes/commentRouter.js';
 import researchPaperRouter from './Routes/researchPaperRouter.js';
 import fellowProfileRouter from './Routes/fellowProfileRouter.js';
 import adminRouter from './Routes/adminRouter.js';
+import membershipRouter from './Routes/membershipRoutes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -158,6 +159,8 @@ if (!isTest) {
   );
 }
 
+app.use('/api/webhook', express.raw({ type: 'application/json' }), membershipRouter);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(httpLogger);
@@ -194,6 +197,9 @@ app.use('/api/comment', commentRouter);
 app.use('/api/documents', researchPaperRouter);
 app.use('/api/fellow-profile', fellowProfileRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/membership', membershipRouter);
+app.use('/api/organization', membershipRouter);
+
 
 /* ======================================================================
    Static Frontend
