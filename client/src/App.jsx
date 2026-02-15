@@ -11,6 +11,7 @@ import Signup from './Pages/Auth/Signup.jsx';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataProvider from "./context/DataProvider.jsx";
+import { HeaderCollapseProvider, HeaderCollapseContext } from "./context/HeaderCollapseContext.jsx";
 import { createContext, useContext, useEffect, useState } from 'react';
 import axiosInstance from './config/apiConfig.js';
 import EventsDashboard from './Pages/Events/EventsDashboard.jsx';
@@ -41,6 +42,7 @@ import ForgotPassword from './Pages/Auth/ForgotPassword.jsx';
 import MemberProfile from './components/PeopleAtTDE/MemberProfile.jsx';
 import PricingCard from './components/Memberships/PricingCard.jsx';
 import MembershipSuccess from './Pages/Memberships/MembershipSuccess.jsx';
+import AdminSettings from './components/AdminProfile/AdminSettings.jsx';
 
 
 function ProtectedRoute({ children, authLoading}) {
@@ -115,9 +117,28 @@ function App() {
 
   
   return (
-    <BrowserRouter>
-      <Header></Header>
-        <div className="App font-montserrat pt-16 sm:pt-20 lg:pt-50">
+    <HeaderCollapseProvider>
+      <BrowserRouter>
+        <Header />
+        <AppContent authLoading={authLoading} />
+        <ToastContainer position="top-right" autoClose={3000}/>
+      </BrowserRouter>
+    </HeaderCollapseProvider>
+  );
+}
+
+function AppContent({ authLoading }) {
+  const { headerCollapsed } = useContext(HeaderCollapseContext);
+  const location = useLocation();
+  const isAdminProfile = location.pathname === '/admin/profile';
+
+  return (
+    <div 
+      className="App font-montserrat m-0 p-0"
+      style={{
+        paddingTop: isAdminProfile && headerCollapsed ? '110px' : '200px'
+      }}
+    >
           <Routes>
             <Route path='/' element={<HomePage/>}></Route>
             <Route path='/about' element={<AboutUs/>}></Route>
@@ -159,7 +180,7 @@ function App() {
 
 
               {/* Practice Area dynamic pages */}
-              <Route path='/practice/:slug' element={<PracticeArea/>}></Route>
+              <Route path='/practice/:id' element={<PracticeArea/>}></Route>
 
               <Route path='/news' element={<NewsPage/>}></Route>
               <Route path='/news/:articleId' element={<ArticlePage/>}></Route>
@@ -172,13 +193,11 @@ function App() {
 
               {/* User Profile */}
               <Route path='/onboarding/:userId' element={<OnboardingForm/>}></Route>
-F
-          </Routes>
 
-          <ToastContainer position="top-right" autoClose={3000}/>
-        </div>
-    </BrowserRouter>
-  );
+              <Route path='/settings' element={<AdminSettings/>}/>
+            </Routes>
+          </div>
+    );
 }
 
 export default App;

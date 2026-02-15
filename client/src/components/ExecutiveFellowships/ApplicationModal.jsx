@@ -228,8 +228,8 @@ const ApplicationForm = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="flex max-w-6xl w-full max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-x-0 top-0 bottom-0 bg-black bg-opacity-60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+      <div className="flex max-w-6xl w-full max-h-[90vh] mt-24 rounded-2xl shadow-2xl overflow-hidden">
         {/* Form Section */}
         <div className="bg-white w-1/2 overflow-y-auto">
           <div className="p-10">

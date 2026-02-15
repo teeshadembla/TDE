@@ -1,29 +1,46 @@
 // components/AdminProfile/Hooks/useVerificationData.js
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../../../../config/apiConfig';
 import { toast } from 'react-toastify';
 
 export const useVerificationData = () => {
+  const [allUsers, setAllUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortOrder, setSortOrder] = useState('recent');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch all users to get accurate counts
+  const fetchAllUsers = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/api/admin/non-verified-Users', { 
+        params: { status: 'all' } 
+      });
+      setAllUsers(response.data?.users || response.data || []);
+    } catch (error) {
+      console.error('Error fetching all users for counts:', error);
+    }
+  }, []);
+
   // Fetch users based on filters
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const params = {
-        status: filterStatus === 'all' ? undefined : filterStatus,
+        status: filterStatus === 'all' ? 'all' : filterStatus,
         sort: sortOrder,
         search: searchQuery || undefined
       };
 
       const response = await axiosInstance.get('/api/admin/non-verified-Users', { params });
-      setUsers(response.data.users || []);
+      
+      // Extract users from response - handle different response formats
+      let fetchedUsers = response.data?.users || response.data || [];
+      
+      setUsers(fetchedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -31,60 +48,34 @@ export const useVerificationData = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Fetch pending users (for initial load)
-  const fetchPendingUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get('/api/admin/pending-users');
-      setUsers(response.data || []);
-    } catch (error) {
-      console.error('Error fetching pending users:', error);
-      toast.error('Failed to load pending users');
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Initial fetch
-  useEffect(() => {
-    if (filterStatus === 'pending' && !searchQuery) {
-      fetchPendingUsers();
-    } else {
-      fetchUsers();
-    }
   }, [filterStatus, sortOrder, searchQuery]);
 
-  // Calculate counts for filter tabs
-  const getCounts = () => {
-    const all = users.length;
-    const pending = users.filter(u => !u.isVerifiedByAdmin && u.status !== 'rejected').length;
-    const approved = users.filter(u => u.isVerifiedByAdmin).length;
-    const rejected = users.filter(u => u.status === 'rejected').length;
+  // Initial fetch and refetch on filter/search change
+  useEffect(() => {
+    fetchAllUsers();
+    fetchUsers();
+  }, [fetchAllUsers, fetchUsers]);
+
+  // Calculate counts for filter tabs based on ALL users
+  const getCounts = useCallback(() => {
+    const all = allUsers.length;
+    const pending = allUsers.filter(u => !u.isVerifiedbyAdmin && !u.isRejectedByAdmin).length;
+    const approved = allUsers.filter(u => (u.isVerifiedbyAdmin === true && u.isRejectedByAdmin===false)).length;
+    const rejected = allUsers.filter(u => (u.isRejectedByAdmin === true && u.isVerifiedbyAdmin===false)).length;
 
     return { all, pending, approved, rejected };
-  };
+  }, [allUsers]);
 
-  // Filter and sort users locally (backup for when API doesn't handle it)
-  const getFilteredUsers = () => {
+  // Filter and sort users locally
+  const getFilteredUsers = useCallback(() => {
     let filtered = [...users];
-
-    // Apply status filter
-    if (filterStatus === 'pending') {
-      filtered = filtered.filter(u => !u.isVerifiedByAdmin && u.status !== 'rejected');
-    } else if (filterStatus === 'approved') {
-      filtered = filtered.filter(u => u.isVerifiedByAdmin);
-    } else if (filterStatus === 'rejected') {
-      filtered = filtered.filter(u => u.status === 'rejected');
-    }
 
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(u => 
-        u.name?.toLowerCase().includes(query) || 
+        u.FullName?.toLowerCase().includes(query) || 
+        u.name?.toLowerCase().includes(query) ||
         u.email?.toLowerCase().includes(query)
       );
     }
@@ -92,12 +83,17 @@ export const useVerificationData = () => {
     // Apply sort
     if (sortOrder === 'recent') {
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else {
+    } else if (sortOrder === 'oldest') {
       filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     }
 
     return filtered;
-  };
+  }, [users, searchQuery, sortOrder]);
+
+  const refetchUsers = useCallback(async () => {
+    await fetchAllUsers();
+    await fetchUsers();
+  }, [fetchAllUsers, fetchUsers]);
 
   return {
     users: getFilteredUsers(),
@@ -109,6 +105,6 @@ export const useVerificationData = () => {
     searchQuery,
     setSearchQuery,
     getCounts,
-    refetchUsers: fetchUsers
+    refetchUsers
   };
 };

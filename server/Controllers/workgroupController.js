@@ -120,4 +120,25 @@ const getUsersByWorkgroup = async(req, res) =>{
         return res.status(500).json({msg:"Internal Server Error"});
     }
 }
-export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getUsersByWorkgroup}
+
+const getWorkgroupById = async(req,res)=>{
+    try{
+        console.log("Received request to fetch workgroup by ID:", req.params.id);
+        const {id} = req.params;
+        console.log("Fetching workgroup by ID:", id)
+        logger.debug({workgroupId: id}, "Fetching workgroup by ID");
+        const workgroup = await workgroupModel.findById(id);
+
+        if(!workgroup){
+            logger.warn({workgroupId: id}, "Workgroup not found by ID");
+            return res.status(404).json({msg: "Workgroup not found"});
+        }
+
+        logger.debug({workgroupId: id}, "Workgroup retrieved by ID successfully");
+        return res.status(200).json({msg: "Workgroup fetched successfully", data: workgroup});
+    }catch(err){
+        logger.error({workgroupId: req.params.id, errorMsg: err.message, stack: err.stack});
+        return res.status(500).json({msg: "Internal Server Error"});
+    }
+}
+export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getUsersByWorkgroup, getWorkgroupById}

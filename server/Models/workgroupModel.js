@@ -9,6 +9,9 @@ const workgroupSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
+    bgImg:{
+        type: String,
+    },
     description:{
         type: String, 
         required: true,
@@ -23,18 +26,17 @@ const workgroupSchema = new mongoose.Schema({
     }, 
     slackChannelName:{
         type: String,
-        required: true,
     }, 
-    objectives:{
-        type: String,
-        required: true,
-    },
     researchPapers:[
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Research_Paper"
         }
-    ]
+    ],
+    chair:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }]
 }, {timestamps: true});
 workgroupSchema.index(
   { title: 1, slackChannelName: 1 },

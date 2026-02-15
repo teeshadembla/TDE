@@ -32,6 +32,7 @@ import researchPaperRouter from './Routes/researchPaperRouter.js';
 import fellowProfileRouter from './Routes/fellowProfileRouter.js';
 import adminRouter from './Routes/adminRouter.js';
 import membershipRouter from './Routes/membershipRoutes.js';
+import newsletterSubscriberRouter from './Routes/newsletterSubscriberRouter.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -199,6 +200,7 @@ app.use('/api/fellow-profile', fellowProfileRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/membership', membershipRouter);
 app.use('/api/organization', membershipRouter);
+app.use('/api/newsletter', newsletterSubscriberRouter);
 
 
 /* ======================================================================

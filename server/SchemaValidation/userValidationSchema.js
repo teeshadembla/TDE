@@ -11,7 +11,7 @@ const userValidationSchema = Joi.object({
 
   role: Joi.string()
     .valid("core", "user", "chair")
-    .required(),
+    .default("user"),
 
   fellowshipId: Joi.string().optional().allow(null, ''), // MongoDB ObjectId
   profilePicture: Joi.any().optional(),

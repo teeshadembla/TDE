@@ -18,7 +18,9 @@ const CoreValuesPage = () => {
       isHighlighted: false
     },
     {
-      title: `Decentralization & Empowerment`,
+      title:  (<>
+      Decentralization &<br />Empowerment
+    </>),
       description: "By distributing power, we enable inclusive access and collective ownership of digital systems.",
       isHighlighted: false
     },
@@ -39,7 +41,7 @@ const CoreValuesPage = () => {
     >
       <div className='flex items-start justify-center flex-col w-full'>
         <div className='mb-4 w-full text-left'>
-          <h4 className='text-white text-[19px] dmsans-text font-semibold leading-[23.4px] whitespace-nowrap'>
+          <h4 className='text-white text-[20px] dmsans-text font-bold leading-[23.4px] whitespace-nowrap'>
             {title}
           </h4>
         </div>

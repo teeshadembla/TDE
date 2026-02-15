@@ -1,9 +1,9 @@
-import { Key } from "lucide-react";
-import react from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import HeroSection from "../../components/PracticeArea/HeroSection.jsx";
 import KeyThemesSection from "../../components/PracticeArea/KeyThemesSection.jsx";
 import MembersSections from "../../components/PracticeArea/MembersSections.jsx";
+import axiosInstance from "../../config/apiConfig.js";
 
 const PracticeAreaInfo = [
     {
@@ -229,21 +229,43 @@ const PracticeAreaInfo = [
 ]
 
 const PracticeArea = () => {
-    const {slug} = useParams();
-    const area = PracticeAreaInfo.find(area => area.slug === slug);
-    console.log(area);
+  const [practiceArea, setPracticeArea] = useState();
+  const { id } = useParams();
 
-    if (!area) {
-        return <div>Practice Area not found</div>;
-    }
+  useEffect(() => {
+    const findAreaData = async () => {
+      try {
+        console.log("Fetching practice area data for this id...", id);
+        const res = await axiosInstance.get(`/api/fellowship/getWorkgroupById/${id}`);
+        console.log("Response from API:", res.data);
+        setPracticeArea(res.data.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
 
-    return  (
-        <>
-        <HeroSection name={area.name} description={area.description} bgImg={area.bgImg} headliner={area.headliner}/>
-        <KeyThemesSection keythemes={area.keythemes} />
-        <MembersSections members={area.Members} />
-        </>
-    )
-}
+    findAreaData();
+  }, []);
+
+
+  // loading state first
+  if (practiceArea?.length === 0) {
+    return <div>Loading...</div>;
+  }
+
+
+
+  return (
+    <>
+      <HeroSection
+        name={practiceArea?.title}
+        subtitle={practiceArea?.subtitle}
+        description={practiceArea?.description}
+        bgImg={practiceArea?.bgImg}
+      />
+      <KeyThemesSection keythemes={practiceArea?.keyThemes} />
+    </>
+  );
+};
 
 export default PracticeArea;

@@ -17,14 +17,26 @@ export const fetchNonVerifiedUsers = async (req, res) => {
 
     // Build dynamic query based on status filter
     if (status && status !== "all") {
-      if (status === "pending") query.isVerifiedbyAdmin = false;
-      if (status === "approved") query.isVerifiedbyAdmin = true;
+      if (status === "pending") {
+        // Pending: not verified AND not rejected
+        query.isVerifiedbyAdmin = { $ne: true };
+        query.isRejectedByAdmin = { $ne: true };
+      }
+      if (status === "approved") {
+        // Approved: verified
+        query.isVerifiedbyAdmin = true;
+      }
+      if (status === "rejected") {
+        // Rejected: rejected flag is true
+        query.isRejectedByAdmin = true;
+      }
     }
 
     // Add regex search for name or email (case-insensitive)
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
+        { FullName: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
       ];
     }
@@ -90,6 +102,8 @@ export const verifyUserByAdmin = async (req, res) => {
 
     // Update verification status
     user.isVerifiedbyAdmin = true;
+    user.isRejectedByAdmin = false;
+    user.role = req.body.role || 'user';
     user.verifiedAt = new Date();
     await user.save();
 
@@ -163,8 +177,9 @@ export const rejectUserByAdmin = async (req, res) => {
       });
     }
 
-    // Set rejection status (remains unverified)
+    // Set rejection status
     user.isVerifiedbyAdmin = false;
+    user.isRejectedByAdmin = true;
     await user.save();
 
     logger.info({targetUserId: id, adminUserId: req.auth?.userId , verificationStatus: user.isVerifiedbyAdmin}, "Rejection successful");

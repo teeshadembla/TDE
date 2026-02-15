@@ -27,6 +27,8 @@ const Login = () => {
   // 2FA States
   const [needs2FA, setNeeds2FA] = useState(false);
   const [totpCode, setTotpCode] = useState("");
+  const [secondFactorStrategy, setSecondFactorStrategy] = useState(null);
+
   
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
@@ -84,6 +86,9 @@ const Login = () => {
     // Check if 2FA is required
     if (result.status === "needs_second_factor") {
       console.log("🚨 TRIGGERING 2FA SCREEN");
+      const strategy = result.supportedSecondFactors?.[0]?.strategy;
+      console.log("Selected strategy:", strategy);
+      setSecondFactorStrategy(strategy);
       setNeeds2FA(true);
       toast.info("Please enter your 2FA code from your authenticator app");
       setLoading(false);
@@ -115,7 +120,7 @@ const Login = () => {
 
     try {
       const result = await signIn.attemptSecondFactor({
-        strategy: "totp",
+        strategy: secondFactorStrategy,
         code: totpCode,
       });
 

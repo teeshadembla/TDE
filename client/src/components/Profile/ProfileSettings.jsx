@@ -38,8 +38,6 @@ const ProfileSettings = ({ user, onUpdateSuccess }) => {
         setFormData({
           FullName: currUser.FullName || '',
           email: currUser.email || '',
-          password: '',
-          confirmPassword: '',
           location: currUser.location || '',
           title: currUser.title || '',
           department: currUser.department || '',

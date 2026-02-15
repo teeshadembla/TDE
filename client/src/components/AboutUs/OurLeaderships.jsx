@@ -6,62 +6,80 @@ const teamMembers = [
   {
     _id: "1",
     name: "Navroop Sahdev",
-    designation: "FOUNDER & CEO",
+    designation: "Founder & CEO",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6856661fb51eba837ad92707_439431361_976807851118684_5257066573451305580_n.jpg"
   },
   {
     _id: "2",
     name: "Jose Luis Carvalho",
-    designation: "EXECUTIVE DIRECTOR, CENTER OF EXCELLENCE",
+    designation: "Executive Director, Center of Excellence",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68566672c0e2c8d0c62fbf02_Jose-p-1600.jpg"
   },
   {
     _id: "3",
     name: "Ambriel Pouncy",
-    designation: "GLOBAL HEAD OF ENGAGEMENT & ECOSYSTEM INNOVATION, THE DIGITAL ECONOMIST",
+    designation: "Global Head of Engagement & Ecosystem Innovation, The Digital Economist Fellows",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6939a4123e131fba7cc6c81e_Screenshot%202025-12-10%20011112.png"
   },
   {
     _id: "4",
     name: "Arvinder Singh Kang",
-    designation: "PROGRAM DIRECTOR",
+    designation: "Program Director",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68659a4b8e0a6936c167efdb_IMG_0793%20(1).avif"
   },
   {
     _id: "5",
-    name: "Dr. Nikhil Varma",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, BLOCKCHAIN & DIGITAL ASSETS",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/685666c2b4074bbe012ec91b_Dr.%20Nikhil%20Varma%20(updated)-p-1600.jpg"
+    name: "Sandy Carter",
+    designation: "Non-exec chair and Senior Executive Fellow, Applied Artificial Intelligence",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6857b01f00a40d4c5fa2254c_Sandy%20Carter.png"
   },
   {
     _id: "6",
-    name: "Sandy Carter",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, APPLIED AI",
-    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6857b01f00a40d4c5fa2254c_Sandy%20Carter.png"
+    name: "Dr. Nikhil Varma",
+    designation: "Non-exec chair and Senior Executive Fellow, Digital Assets & Blockchain",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/685666c2b4074bbe012ec91b_Dr.%20Nikhil%20Varma%20(updated)-p-1600.jpg"
   },
   {
     _id: "7",
     name: "Dr. Maha Hosain Aziz",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, POLICY",
+    designation: "Non-exec chair and Senior Executive Fellow, Tech Policy & Governance",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6858f251bc6b6874a4a5a96a_Maha%20Hosain%20Aziz%20headshot_edited.avif"
   },
   {
     _id: "8",
+    name: "Bruce Armstrong Taylor",
+    designation: "Non-exec chair and Senior Executive Fellow, Regenerative Digital Infrastructure 5.0",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/698c44f8fa3379976a639e12_Bruce%20Armstrong%20Taylor.jpg"
+  },
+  {
+    _id: "9",
     name: "Shannon Kennedy",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, HEALTHCARE",
+    designation: "Non-exec chair and Senior Executive Fellow, Healthcare Innovation",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68658c70df72fa50900c91e5_Untitled%20design%20(1).png"
   },
   {
     _id: "10",
     name: "Alex Kontoleon",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW, SUSTAINABILITY",
+    designation: "Non-exec chair and Senior Executive Fellow, Sustainability in Tech",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68aef2a548eaf8b4529e5e6f_Strategic%20Content%20and%20Policy%20Associate%20(3).png"
   },
   {
     _id: "11",
     name: "Dr. Melodena Stephens",
-    designation: "NON-EXEC CHAIR & SENIOR FELLOW",
+    designation: "Non-exec chair and Senior Executive Fellow, Tech Policy & Governance",
     imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/68b5c60eacb8170797dde541_Strategic%20Content%20and%20Policy%20Associate%20(21).png"
+  },
+  {
+    _id: "12",
+    name: "Dr. Dimitrios Salampasis",
+    designation: "Non-exec chair and Senior Executive Fellow, Quantum Computing",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/698ad857a31ae6b2e96a6b64_Dr.%20Dimitrios%20Salampasis.jpg"
+  },
+  {
+    _id: "13",
+    name: "Japneet Kaur",
+    designation: "Non-exec chair and Senior Executive Fellow, Cyber Studio",
+    imageLink: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/698c40210af57c1acbeb3fa5_Japneet%20Kaur.jpg"
   }
 ];
 
@@ -95,7 +113,7 @@ const PersonCard = ({ id,name, title, imageUrl }) => {
                     <button 
                         id="button-primary-leadership"
                         onClick={handleViewProfile}
-                        className="flex items-center group-hover:bg-[rgb(6,44,101)] justify-center rounded-[4px] box-border bg-[rgb(71,70,70)] text-[rgb(159,159,159)] dmsans-text text-[14px] font-normal leading-[18.2px] h-[30px] w-[150px] gap-[7px] mb-[10px] py-[7px] px-[14px] cursor-pointer text-left"
+                        className="flex items-center group-hover:bg-[rgb(6,44,101)] justify-center rounded-[4px] box-border bg-[rgb(71,70,70)] text-[rgb(159,159,159)] dmsans-text text-[14px] font-normal leading-[18.2px] h-[30px] w-[150px] gap-[7px] my-[15px] py-[7px] px-[14px] cursor-pointer text-left"
                     >
                         <h6 id="view-profile" className="flex items-stretch justify-center box-border relative text-white dmsans-text text-[11.9px] font-normal leading-[15.47px] h-[16px] w-[64.3625px] m-0 cursor-pointer text-left z-[1]">View Profile </h6> 
                         <ArrowOutwardIcon fontSize="14px"/>

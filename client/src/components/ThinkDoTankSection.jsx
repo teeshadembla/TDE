@@ -58,7 +58,7 @@ const ThinkDoTankSection = () => {
 
   return (
     <>
-    <div id="how-we-do" className='block box-border bg-black text-[#333333] font-[Arial] text-[18px] leading-[20px] w-full h-[2966.98px] pt-[40px] px-0 pb-0 mt-0'>
+    <div id="how-we-do" className='block box-border bg-black text-[#333333] font-[Arial] text-[18px] leading-[20px] w-full h-[1000.98px] pt-[40px] px-0 pb-0 mt-0'>
       <div id="think-tank" className='flex justify-center box-border bg-black text-[#333333] font-[Arial] text-[18px] leading-[20px] w-full  h-[191.538px] mt-[40px] relative z-[2]'>
         <div id="feature-title-home" className='flex flex-col flex-nowrap items-center justify-start box-border text-white font-[Arial] text-[18px] leading-[20px] w-full h-[141.538px] mb-[50px] mx-0 gap-x-[30px] gap-y-[30px] text-center'>
           <h4 id='dark' className='flex items-stretch justify-center box-border text-[#9f9f9f] dmsans-text text-[23.4px] font-normal leading-[28.08px] w-[361.138px] h-[28.075px] m-0 relative z-[1] text-center capitalize'>Scientific rigor meets moonshots</h4>
@@ -70,7 +70,7 @@ const ThinkDoTankSection = () => {
         </div>
       </div>
 
-      <div id="homepage-content" className='flex flex-col flex-nowrap box-border bg-black text-[#333333] font-[Arial] text-[18px] leading-[20px] w-full h-[871.438px] pt-[50px] pb-[200px] px-[72px] mt-0 mb-0 gap-x-[120px] gap-y-[120px] overflow-hidden sticky top-[180px] z-[0]'>
+      <div id="homepage-content" className='flex flex-col flex-nowrap box-border bg-black text-[#333333] font-[Arial] text-[18px] leading-[20px] w-full h-[871.438px] pt-[50px] pb-[200px] px-[72px] mt-0 mb-0 gap-x-[120px] gap-y-[120px] overflow-hidden top-[180px] z-[0]'>
         <div id="think-tank" className='flex flex-col flex-nowrap items-center justify-start box-border bg-black text-[#333333] font-[Arial] text-[16px] leading-[20px] w-full h-[491.837px] mt-0 mb-[129.6px] pt-[129.6px] pb-[129.6px] px-0 gap-x-[20px] gap-y-[20px]'>
           <div id="grid-three-column-homepage" className='grid box-border text-[#333333] font-[Arial] text-[16px] leading-[20px] w-[1200px] h-[352.638px] mt-[-120px] grid-cols-[384px_384px_384px] grid-rows-[537.562px] auto-cols-[1fr] gap-x-[2%] gap-y-[2%]'>
             {cardData.map((card, index) =>(

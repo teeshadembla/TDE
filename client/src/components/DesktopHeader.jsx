@@ -5,18 +5,20 @@ import Logo from "./Logo.jsx";
 import ProfileDrawer from './ProfileDrawer.jsx';
 import { ChevronDown, ArrowBigRightDash ,Menu, X } from 'lucide-react';
 import LogoutButton from '../Pages/Auth/LogoutButton.jsx';
+import { useUser } from '@clerk/clerk-react';
 
-const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, executiveFellowshipOptions, executiveFellowshipOpen, account, handleClick, handleLogin, setPracticeAreaOpen, setExecutiveFellowshipOpen}) =>{
+const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, executiveFellowshipOptions, executiveFellowshipOpen, account, handleClick, handleLogin, setPracticeAreaOpen, setExecutiveFellowshipOpen, headerCollapsed}) =>{
     
     const navigate = useNavigate();
+    const {isSignedIn} = useUser();
     
     return(
-        <div className=" flex flex-col items-center justify-center h-[160px] px-[82.150px] bg-black w-full"> 
-            <div className='flex justify-between w-full items-center px-[32px]'>
+        <div className={`flex flex-col items-center justify-center px-[82.150px] bg-black w-full transition-all duration-500 ease-in-out ${headerCollapsed ? 'h-[80px]' : 'h-[160px]'}`}> 
+            <div className='flex justify-between h-[60px] w-full items-center px-[32px]'>
                 
                 <div onClick={() => navigate("/")} className='hidden mr-50 cursor-pointers md:block'><Logo/></div>
                 {/* Auth section */}
-                    {account?._id ? (
+                    {isSignedIn ? (
                         <div className='flex items-center space-x-2 sm:space-x-3'>
                             <LogoutButton/>
                             <ProfileDrawer/>
@@ -25,14 +27,14 @@ const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, ex
                         <div className='flex items-center  space-x-2 sm:space-x-3'>
                             <button
                                 onClick={handleClick}
-                                className='border border-white h-8 sm:h-10 w-20 sm:w-24 rounded-sm bg-white text-black font-bold hover:scale-105 hover:shadow-lg transition-all text-sm sm:text-base'
+                                className='border border-white h-[28px] w-24 py-0.5 rounded-sm bg-white text-black font-bold hover:scale-105 hover:shadow-lg transition-all text-sm sm:text-base'
                             >
                                 Sign Up
                             </button>
                             
                             <button
                                 onClick={handleLogin}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white h-6 sm:h-8 md:h-10 w-16 sm:w-20 md:w-24 lg:w-28 font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors text-xs sm:text-sm md:text-base"
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white py-0.5 h-[28px] w-24 font-semibold rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors text-xs sm:text-sm md:text-base"
                             >
                                 Log In
                             </button>
@@ -40,9 +42,9 @@ const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, ex
                     )}
             </div>
 
-            <div className='h-[0.5px] bg-white w-full mb-5'></div>
+            <div id='spearation-line' className={`h-[0.5px] bg-white w-full transition-all duration-500 ease-in-out ${headerCollapsed ? 'opacity-0 mb-0' : 'opacity-100 mb-5'}`}></div>
 
-            <div className='w-full flex justify-between items-center mb-2 px-4 sm:px-6 lg:px-8'>
+            <div id='website-nav-bar' className={`w-full flex justify-between items-center px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out ${headerCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-auto opacity-100 mb-2'}`}>
                 
 
                 {/* Desktop Navigation - hidden on mobile */}
@@ -75,12 +77,12 @@ const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, ex
                             >
                                 {practiceAreaOptions.map((option, index) => (
                                     <a
-                                        key={index}
-                                        href={option.href}
+                                        key={option._id}
+                                        href={`/practice/${option._id}`}
                                         className='block dmsans-text px-4 py-2 text-black font-bold hover:bg-gray-100 transition-colors cursor-pointer'
-                                        onClick={(e) => { e.preventDefault(); handleNavClick(option.href); }}
+                                        onClick={(e) => { e.preventDefault(); handleNavClick(`/practice/${option._id}`); }}
                                     >
-                                        {option.label}
+                                        {option.title}
                                     </a>
                                 ))}
                             </div>

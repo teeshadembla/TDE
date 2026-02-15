@@ -1,25 +1,12 @@
-// components/AdminProfile/UserVerificationTab.jsx
-
-import React from 'react';
-import { 
-  Search, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  Calendar,
-  Mail,
-  Linkedin,
-  User,
-  X,
-  Shield,
-  Clock,
-  Filter
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Eye,CheckCircle,XCircle,Calendar,Mail,Linkedin,User,X,Shield,Clock,Filter} from 'lucide-react';
 import { useVerificationData } from './Hooks/useVerificationData.js';
 import { useVerificationActions } from './Hooks/useVerificationActions.js';
 import { filterTabs, sortOptions, statusColors } from "./Utils/verificationContants.js"
 
 const UserVerificationTab = () => {
+  const [selectedRole, setSelectedRole] = useState('user');
+
   const {
     users,
     loading,
@@ -47,9 +34,9 @@ const UserVerificationTab = () => {
 
   const counts = getCounts();
 
-  // Get user status
   const getUserStatus = (user) => {
     if (user.isVerifiedbyAdmin) return 'approved';
+    if (user.isRejectedByAdmin) return 'rejected';
     return 'pending';
   };
 
@@ -335,19 +322,25 @@ const UserVerificationTab = () => {
       {/* User Profile Modal */}
       {showProfileModal && selectedUser && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pt-20"
           style={{ background: 'rgba(0, 0, 0, 0.7)' }}
-          onClick={closeProfileModal}
+          onClick={() => {
+            closeProfileModal();
+            setSelectedRole('user');
+          }}
         >
           <div 
-            className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-xl max-w-2xl w-full max-h-[calc(100vh-10rem)] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="sticky top-0 px-6 py-4 border-b flex items-center justify-between" style={{ background: '#062c65', borderColor: '#004aad' }}>
               <h2 className="text-xl font-bold" style={{ color: '#fff' }}>User Profile</h2>
               <button
-                onClick={closeProfileModal}
+                onClick={() => {
+                  closeProfileModal();
+                  setSelectedRole('user');
+                }}
                 className="p-2 rounded-lg hover:bg-opacity-20 transition-all"
                 style={{ background: 'rgba(255, 255, 255, 0.1)' }}
               >
@@ -439,6 +432,34 @@ const UserVerificationTab = () => {
                     {getUserStatus(selectedUser).charAt(0).toUpperCase() + getUserStatus(selectedUser).slice(1)}
                   </span>
                 </div>
+
+                {/* Role Assignment - Only show for pending users */}
+                {getUserStatus(selectedUser) === 'pending' && (
+                  <div className="p-4 rounded-lg" style={{ background: '#f9f9f9', border: '1px solid #d9d9d9' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="w-4 h-4" style={{ color: '#4a4a4a' }} />
+                      <span className="text-sm font-semibold" style={{ color: '#4a4a4a' }}>Assign Role</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {['user', 'core', 'chair'].map((role) => (
+                        <label key={role} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="role"
+                            value={role}
+                            checked={selectedRole === role}
+                            onChange={(e) => setSelectedRole(e.target.value)}
+                            className="w-4 h-4"
+                            style={{ accentColor: '#062c65' }}
+                          />
+                          <span style={{ color: '#1a1a1a', textTransform: 'capitalize' }}>
+                            {role}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -446,7 +467,10 @@ const UserVerificationTab = () => {
             {getUserStatus(selectedUser) === 'pending' && (
               <div className="sticky bottom-0 px-6 py-4 border-t flex items-center justify-end gap-3" style={{ background: '#fff', borderColor: '#d9d9d9' }}>
                 <button
-                  onClick={closeProfileModal}
+                  onClick={() => {
+                    closeProfileModal();
+                    setSelectedRole('user');
+                  }}
                   className="px-6 py-2.5 rounded-lg font-semibold transition-all hover:bg-opacity-80"
                   style={{ background: '#393939', color: '#fff' }}
                 >
@@ -463,7 +487,7 @@ const UserVerificationTab = () => {
                 </button>
                 
                 <button
-                  onClick={handleApproveFromModal}
+                  onClick={() => handleApproveFromModal(selectedRole)}
                   disabled={actionLoading}
                   className="px-6 py-2.5 rounded-lg font-semibold transition-all hover:bg-opacity-90 disabled:opacity-50"
                   style={{ background: '#062c65', color: '#fff' }}

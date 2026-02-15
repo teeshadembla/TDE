@@ -114,7 +114,7 @@ const userSchema = mongoose.Schema({
     isRejectedByAdmin:{
         type: Boolean,
         required: true,
-        default: true,
+        default: false,
     },
     isMFAenabled:{
         type: Boolean,

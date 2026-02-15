@@ -363,7 +363,7 @@ const Signup = () => {
       formData.append('FullName', userData.FullName);
       formData.append('email', userData.email);
       formData.append('password', userData.password);
-      formData.append('role', userData.role);
+      formData.append('role', "user");
       formData.append('clerkUserId', clerkUserId); // Add Clerk user ID
 
       // Append profile picture if exists

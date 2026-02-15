@@ -259,7 +259,6 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
     FullName: "",
     email: "",
     password: "",
-    role: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -281,8 +280,6 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
         return passwordRegex.test(value)
           ? "Strong password!"
           : "Must be 8+ chars, include letters, numbers & symbols";
-      case "role":
-        return value ? "Role selected!" : "Please select a role";
       default:
         return "";
     }
@@ -291,8 +288,7 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
   const isValid = (msg) =>
     msg === "Looks good!" || 
     msg === "Valid email!" || 
-    msg === "Strong password!" || 
-    msg === "Role selected!";
+    msg === "Strong password!";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -481,29 +477,6 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
         )}
       </div>
 
-      {/* Role */}
-      <div>
-        <label htmlFor="role" className="block mb-1 font-medium">
-          Role <span className="text-red-600">*</span>
-        </label>
-        <select
-          value={formData.role}
-          name="role"
-          onChange={handleChange}
-          required
-          className="w-full p-2 rounded bg-black border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-white"
-        >
-          <option value="">Select Role</option>
-          <option value="core">Core Member</option>
-          <option value="user">User</option>
-          <option value="chair">Chair</option>
-        </select>
-        {errors.role && (
-          <p className={`text-sm mt-1 ${isValid(errors.role) ? "text-green-500" : "text-red-500"}`}>
-            {errors.role}
-          </p>
-        )}
-      </div>
     </div>
   );
 }

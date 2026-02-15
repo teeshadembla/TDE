@@ -33,15 +33,15 @@ useEffect(() => {
       
       console.log("Fetching 2FA details...");
       const response = await axiosInstance.get(`/api/user/get2FADetails/${account._id}`);
-      console.log("2FA response:", response.data);
-      setIs2FAenabled(response?.data?.isMFAenabled);
+      console.log("2FA response:", response.data.user.isMFAenabled);
+      setIs2FAenabled(response?.data?.user?.isMFAenabled);
     } catch(err) {
       console.log("This error is occurring while trying to fetch the user-->", err);
     }
   }
 
   fetchUser();
-}, [account._id]);
+}, []);
 
 
     /* Use Effect for fetching user registrations */
@@ -69,8 +69,7 @@ useEffect(() => {
     { id: 'current', label: 'Current Registrations', icon: Award },
     { id: 'history', label: 'Fellowship History', icon: Clock },
     {id:'track-application' , label: "Application Tracker", icon: ClipboardList},
-    {id: 'membership', label: "Manage Membership" ,icon: IdCard},
-    { id: 'settings', label: "Profile Settings", icon: Settings }
+    {id: 'membership', label: "Manage Membership" ,icon: IdCard}
   ];
 
   if (loading) {

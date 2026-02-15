@@ -48,7 +48,8 @@ export default function ProfileDrawer() {
         <Divider sx={{borderColor: 'white'}}/>
         <ListItem>{account.email}</ListItem>
         <ListItem button component={Link} to="/events">Upcoming events</ListItem>
-        <ListItem><button className='cursor-pointer' onClick={goToProfile}>Profile</button></ListItem>
+        <ListItem><button className='cursor-pointer' onClick={goToProfile}>Dashboard</button></ListItem>
+        <ListItem><button className='cursor-pointer' onClick={() => navigate("/settings")}>Account Settings</button></ListItem>
       </List>
       <List>
         

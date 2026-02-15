@@ -4,7 +4,7 @@ import fellowshipRegistrationController from "../Controllers/fellowshipregistrat
 import {createSetupIntent, submitFellowshipApplication, chargeApprovedApplication, getApplicationForPayment} from "../Controllers/paymentController.js";
 
 import { addNewFellowship, getAllPastFellowships, getFellowshipRegistrationCounts, getAllFutureFellowships, updateFellowship, deleteFellowship } from "../Controllers/fellowshipController.js";
-import { addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup } from "../Controllers/workgroupController.js";
+import { addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getWorkgroupById } from "../Controllers/workgroupController.js";
 
 // NEW ROUTES (for new flow with saved payment methods)
 fellowshipRouter.post("/registration/create-setup-intent", createSetupIntent);
@@ -30,6 +30,7 @@ fellowshipRouter.delete("/delete/:id", deleteFellowship);
 /* Routes for admins to edit and delete workgroups */
 fellowshipRouter.patch("/editWorkgroup/:id", editWorkgroup);
 fellowshipRouter.delete("/deleteWorkgroup/:id", deleteWorkgroup);
+fellowshipRouter.get("/getWorkgroupById/:id", getWorkgroupById);
 
 /* Routes for fetching fellowships */
 fellowshipRouter.get("/getAllPastFellowships", getAllPastFellowships);

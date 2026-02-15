@@ -52,25 +52,6 @@ export const workgroupValidationSchema = Joi.object({
     .messages({
       "string.pattern.base": "Slack channel must be a valid Slack channel link (e.g., https://workspace.slack.com/archives/C12345678)"
     }),
-
-  coordinator: Joi.string()
-    .email()
-    .required()
-    .messages({
-      "string.email": "Coordinator must be a valid email address",
-      "string.empty": "Coordinator email is required"
-    }),
-
-  objectives: Joi.string()
-    .min(5)
-    .max(500)
-    .required()
-    .messages({
-      "string.empty": "Objectives are required",
-      "string.min": "Objectives should be at least 5 characters long",
-      "string.max": "Objectives cannot exceed 500 characters"
-    }),
-
   researchPapers: Joi.array()
     .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)) 
     .optional()

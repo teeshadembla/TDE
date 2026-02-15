@@ -91,7 +91,7 @@ const Banner = () => {
   ];
 
   return (
-    <div className="h-96 bg-white">
+    <div className="h-[fit] pb-[64px] mt-[80px] bg-white">
       {/* Default Banner */}
       <MovingBanner />
       {/* Custom Banner Example */}

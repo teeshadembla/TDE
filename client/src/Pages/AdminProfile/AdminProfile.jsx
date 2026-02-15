@@ -192,12 +192,7 @@ const AdminProfile = () => {
             <UserVerificationTab/>
           )}
 
-          {activeTab === 'settings' && (
-            <AdminSettings
-              user={account}
-              onUpdateAccess={handleProfileUpdate}
-            />
-          )}
+        
         </main>
       </div>
 

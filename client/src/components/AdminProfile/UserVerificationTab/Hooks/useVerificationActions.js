@@ -9,13 +9,14 @@ export const useVerificationActions = (refetchUsers) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // Approve user
-  const handleApproveUser = async (userId) => {
+  // Approve user with role assignment
+  const handleApproveUser = async (userId, role = 'user') => {
     try {
       setActionLoading(true);
       
       await axiosInstance.post(`/api/admin/verify-user/${userId}`, {
-        sendEmail: true // Automatic email notification
+        sendEmail: true, // Automatic email notification
+        role: role // Assign role during verification
       });
 
       toast.success('User approved successfully! Notification email sent.');
@@ -65,10 +66,10 @@ export const useVerificationActions = (refetchUsers) => {
     setShowProfileModal(false);
   };
 
-  // Approve from profile modal
-  const handleApproveFromModal = async () => {
+  // Approve from profile modal with role
+  const handleApproveFromModal = async (role = 'user') => {
     if (selectedUser) {
-      await handleApproveUser(selectedUser._id || selectedUser.id);
+      await handleApproveUser(selectedUser._id || selectedUser.id, role);
       closeProfileModal();
     }
   };

@@ -9,7 +9,12 @@ const ContactInfo = () => {
 
             {/* Contact Email */}
             <div>
-              <a href="mailto:info@thedigitaleconomist.com" className="text-[rgb(136,136,136)] font-normal text-[14px] dmsans-text hover:text-white hover:underline transition-colors duration-200">
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=info@thedigitaleconomist.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[rgb(136,136,136)] font-normal text-[14px] dmsans-text hover:text-white hover:underline transition-colors duration-200"
+              >
                 info@thedigitaleconomist.com
               </a>
             </div>

@@ -48,7 +48,7 @@ const ExecutiveFellowship = ({authLoading}) => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black overflow-hidden">
+    <div className="min-h-screen  bg-white text-black overflow-hidden">
       <HeroSection onApplyClick={handleApplyClick} />
       <BenefitsSection />
       <ThematicWorkgroups/>
