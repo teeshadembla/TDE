@@ -22,6 +22,8 @@ export const getFellowProfileByUserId = async (req, res) => {
       userId: userId,
     });
 
+    console.log("Here is the profile that is coming out of the getfellowprofileByuserID controller", profile);
+
     if (!profile) {
       // No profile exists - user hasn't started onboarding
       logger.debug({userId}, "Fetching fellow profile failed: No profile found");
@@ -187,7 +189,7 @@ export const approveFellowProfile = async (req, res) => {
     /* Fire-and-forget email dispatch */
     const user = await userModel.findById(profile.userId);
 
-    sendEmail({
+    /* sendEmail({
       to: user.email,
       ...fellowProfileUpdateTemplate({
         name: user.FullName,
@@ -196,7 +198,7 @@ export const approveFellowProfile = async (req, res) => {
       }),
     }).catch((err) =>
       logger.error({profileId, userId: profile.userId, errorMsg: err.message}, "Fellow profile approval email failed")
-    );
+    ); */
 
     logger.info({profileId, adminId, userId: profile.userId}, "Fellow profile approved successfully");
     return res.status(200).json({ message: "Profile approved successfully" });
@@ -245,7 +247,7 @@ export const approveFellowProfile = async (req, res) => {
 
         const user = await userModel.findById(profile.userId);
 
-        sendEmail({
+       /*  sendEmail({
           to: user.email,
           ...fellowProfileUpdateTemplate({
             name: user.FullName,
@@ -254,7 +256,7 @@ export const approveFellowProfile = async (req, res) => {
           }),
         }).catch(err => {
           logger.error({profileId, userId: profile.userId, errorMsg: err.message}, "Fellow profile revision email failed");
-        });
+        }); */
 
         logger.info({profileId, adminId, userId: profile.userId}, "Revision requested successfully");
         return res.status(200).json({ message: 'Revision requested successfully' });
@@ -294,7 +296,7 @@ export const sendOnboardingReminder = async (req, res) => {
     const name = registration.user?.FullName || "";
     const fellowshipName = registration.fellowship?.name || "the fellowship";
 
-    if (to) {
+  /*   if (to) {
       sendEmail({
         to,
         ...applicationSubmissionTemplate({
@@ -304,7 +306,7 @@ export const sendOnboardingReminder = async (req, res) => {
       }).catch((err) =>
         logger.error({registrationId, userId: registration.user?._id, errorMsg: err.message}, "Onboarding reminder email failed")
       );
-    }
+    } */
 
     logger.info({registrationId, userId: registration.user?._id, reminderCount: registration.reminderCount}, "Onboarding reminder recorded successfully");
     return res.status(200).json({
@@ -500,7 +502,7 @@ export const submitFellowProfile = async (req, res) => {
     /* Fire-and-forget email dispatch */
     const user = await userModel.findById(userId);
 
-    sendEmail({
+   /*  sendEmail({
       to: user.email,
       ...fellowProfileUpdateTemplate({
         name: user.FullName,
@@ -509,7 +511,7 @@ export const submitFellowProfile = async (req, res) => {
       }),
     }).catch((err) =>
       logger.error({userId, profileId: profile._id, errorMsg: err.message}, "Fellow profile submitted email failed")
-    );
+    );  */
 
     return res.status(200).json(responseData);
   } catch (err) {

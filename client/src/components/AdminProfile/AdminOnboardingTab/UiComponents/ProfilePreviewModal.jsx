@@ -26,7 +26,7 @@ const ProfilePreviewModal = ({ profile, onClose, onApprove, onRequestRevision })
   };
   
   return (
-    <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto'>
+    <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-150 p-4 overflow-y-auto'>
       <div className='bg-neutral-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-neutral-800'>
         {/* Header */}
         <div className='sticky top-0 bg-neutral-900 border-b border-neutral-800 p-6 flex justify-between items-center z-10'>

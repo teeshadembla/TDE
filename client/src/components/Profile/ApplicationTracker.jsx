@@ -132,7 +132,7 @@ const ApplicationTracker = () => {
   };
 
   const getOnboardingStatusText = (status) => {
-    if(pendingOnboarding.isProfile === true) {
+    if(!pendingOnboarding) {
       return '✓ Profile Approved';
     }
     const statusMap = {
@@ -318,11 +318,12 @@ const ApplicationTracker = () => {
                     {/* Onboarding Button */}
                     {!pendingOnboarding.isProfile && (
                       <button
-                        onClick={() => handleStartOnboarding(app?._id)}
+                        onClick={() => handleStartOnboarding(account?._id)}
                         className="w-full bg-gradient-to-r from-[#004aad] to-[#062c65] hover:from-[#062c65] hover:to-[#004aad] text-[#ffffff] font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl border-2 border-[#aae7ff]"
                       >
                         <Users className="w-5 h-5" />
-                        {app?.onboardingStatus === 'IN_PROGRESS' 
+                        {!pendingOnboarding ? "Profile Set Up Complete" 
+                        : app?.onboardingStatus === 'IN_PROGRESS' 
                           ? 'Continue Profile Setup' 
                           : 'Complete Your Fellow Profile'}
                       </button>

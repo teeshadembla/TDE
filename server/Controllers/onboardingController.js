@@ -62,6 +62,7 @@ const deleteFromS3 = async (key) => {
 /* Save draft with conditional image upload */
 export const getPresignedUrlHeadshot = async (req, res) => {
   try {
+    console.log("Getting presigned url");
     const userId = req.params.userId;
     const { hasNewImage, ...profileData } = req.body;
 
@@ -92,6 +93,7 @@ export const getPresignedUrlHeadshot = async (req, res) => {
         await deleteFromS3(profile.professionalHeadshotKey);
       }
 
+      console.log("Getting presigned url now")
       const { presignedUrl, fileUrl, key } = await generatePresignedUrl(
         process.env.AWS_BUCKET_NAME_PUBP,
         userId,
@@ -175,7 +177,9 @@ export const getPresignedUrlHeadshot = async (req, res) => {
     }
 
     /* Fire-and-forget email dispatch */
-    sendEmail({
+
+
+    /* sendEmail({
       to: userDetails.email,
       ...fellowProfileUpdateTemplate({
         name: userDetails.FullName,
@@ -184,7 +188,7 @@ export const getPresignedUrlHeadshot = async (req, res) => {
       }),
     }).catch((err) =>
       logger.error({userId, profileId: profile._id, errorMsg: err.message}, "Fellow profile draft email failed")
-    );
+    );  */
 
     logger.info({userId, profileId: profile._id}, "Fellow profile draft saved successfully");
     return res.status(200).json(responseData);

@@ -251,6 +251,9 @@ const OnboardingForm = () => {
           documentId: profileId
         });
 
+
+        console.log(confirmResponse);
+
         // Reload draft to get new signed URL
         const draftResponse = await axiosInstance.get(
           `/api/fellow-profile/getDraft/${userId}`

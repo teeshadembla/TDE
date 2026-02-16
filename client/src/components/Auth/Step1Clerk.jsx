@@ -345,16 +345,17 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
   };
 
   useEffect(() => {
-    const allValid =
-      Object.values(errors).every((msg) => isValid(msg)) &&
-      formData.FullName &&
-      formData.email &&
-      formData.password 
+    // Validate directly based on formData values
+    const fullNameValid = isValid(validateField('FullName', formData.FullName));
+    const emailValid = isValid(validateField('email', formData.email));
+    const passwordValid = isValid(validateField('password', formData.password));
+
+    const allValid = fullNameValid && emailValid && passwordValid;
 
     if (setStepValid) {
       setStepValid(allValid);
     }
-  }, [errors, formData, setStepValid]);
+  }, [formData, setStepValid]);
 
   return (
     <div className="text-white bg-black space-y-6 p-4 rounded-md">

@@ -5,7 +5,8 @@ import {
   CreditCard,
   AlertCircle,
   DollarSign,
-  Calendar
+  Calendar,
+  X
 } from 'lucide-react';
 
 const ApplicationDetailsModal = ({ 
@@ -25,7 +26,7 @@ const ApplicationDetailsModal = ({
   const amount = application.amount / 100; // Convert cents to dollars
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
         <div className="p-8">
           <div className="flex justify-between items-start mb-6">
@@ -38,7 +39,7 @@ const ApplicationDetailsModal = ({
               className="p-2 hover:bg-gray-100 rounded-full transition-colors text-2xl"
               disabled={isProcessing}
             >
-              ×
+              <X className='text-black'/>
             </button>
           </div>
 
@@ -218,9 +219,9 @@ const ApplicationDetailsModal = ({
                       onClose();
                     }}
                     disabled={isProcessing}
-                    className="w-full bg-red-600 text-white py-3 px-6 hover:bg-red-700 transition-colors font-medium rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-red-600 text-black py-3 px-6 hover:bg-red-700 transition-colors font-medium rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <XCircle className="w-5 h-5 mr-2" />
+                    <XCircle className="w-5 h-5 mr-2 text-black" />
                     Reject Application
                   </button>
                 </div>

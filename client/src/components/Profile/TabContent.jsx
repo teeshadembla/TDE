@@ -35,8 +35,10 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
         
         try {
           const response = await axiosInstance.get(`/api/fellow-profile/getFellowProfile/${account._id}`);
-          const profile = response.data.profile;
+          const profile = response?.data?.profile;
           setFellowProfile(profile);
+
+          console.log("this is the profile from tab content for current tab",profile);
           
           // Track the first registration with the fetched profile
           if (profile?.status !== 'APPROVED') {
@@ -58,6 +60,7 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
           setPendingOnboardingRegistration(firstPendingReg);
           setLoadingProfiles(false);
         }
+
       };
 
       fetchProfileStatus();
