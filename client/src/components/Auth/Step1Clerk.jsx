@@ -349,8 +349,7 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
       Object.values(errors).every((msg) => isValid(msg)) &&
       formData.FullName &&
       formData.email &&
-      formData.password &&
-      formData.role;
+      formData.password 
 
     if (setStepValid) {
       setStepValid(allValid);
