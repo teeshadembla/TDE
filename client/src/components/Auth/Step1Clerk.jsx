@@ -271,7 +271,7 @@ export default function Step1Clerk({ formData, formFunction, setStepValid }) {
         return "Looks good!";
       case "email":
         if (!value) return "Email is required";
-        const emailRegex = /^[\w.-]+@(?:gmail|yahoo|outlook|[\w-]+)\.com$/i;
+         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(value) ? "Valid email!" : "Invalid email address";
       case "password":
         if (!value) return "Password is required";

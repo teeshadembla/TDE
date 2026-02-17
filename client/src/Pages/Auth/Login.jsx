@@ -75,19 +75,23 @@ const Login = () => {
       password: user.password,
     });
 
-    console.log("=== FULL LOGIN RESULT ===");
-    console.log("Status:", result.status);
-    console.log("Supported second factors:", result.supportedSecondFactors);
-    console.log("First factor verification:", result.firstFactorVerification);
-    console.log("Second factor verification:", result.secondFactorVerification);
-    console.log("Complete result object:", result);
-    console.log("========================");
-
     // Check if 2FA is required
     if (result.status === "needs_second_factor") {
       console.log("🚨 TRIGGERING 2FA SCREEN");
       const strategy = result.supportedSecondFactors?.[0]?.strategy;
       console.log("Selected strategy:", strategy);
+
+      if (strategy === "email_code" || strategy === "phone_code") {
+        await signIn.prepareSecondFactor({ strategy });
+        toast.info(
+          strategy === "email_code"
+            ? `Verification code sent to ${user.email}`
+            : "Verification code sent to your phone"
+        );
+      } else if (strategy === "totp") {
+        toast.info("Please enter your 2FA code from your authenticator app");
+      }
+
       setSecondFactorStrategy(strategy);
       setNeeds2FA(true);
       toast.info("Please enter your 2FA code from your authenticator app");
@@ -151,7 +155,12 @@ const Login = () => {
           <h2 className="text-2xl font-semibold text-center">Two-Factor Authentication</h2>
           
           <p className="text-sm text-gray-400 text-center">
-            Enter the 6-digit code from your authenticator app
+            {secondFactorStrategy === "email_code"
+              ? `Enter the 6-digit code sent to ${user.email}`
+              : secondFactorStrategy === "phone_code"
+              ? "Enter the 6-digit code sent to your phone"
+              : "Enter the 6-digit code from your authenticator app"
+            }
           </p>
 
           <div>

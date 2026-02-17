@@ -23,6 +23,7 @@ import 'dotenv/config';
 import { createClerkClient } from '@clerk/backend';import mongoose from 'mongoose';
 import fs from 'fs';
 import crypto from 'crypto';
+import {USERS} from "../server/USERS.js";
 
 const MONGO_USER =process.env.MONGO_USER
 const MONGO_PASS = process.env.MONGO_PASS
@@ -99,7 +100,7 @@ const User = mongoose.model("User", userSchema);
 //    - socialLinks    : object  — { twitter, LinkedIn, Instagram }
 //    - profilePicture : string  — URL to profile image (or leave null for default)
 // ─────────────────────────────────────────────
-const USERS = [
+/* const USERS = [
   // ── TEMPLATE — duplicate this block for each user ──
  {
   "email": "teeshadembla0507@gmail.com",
@@ -120,7 +121,7 @@ const USERS = [
     "Instagram": ""
   },
   "profilePicture": null
-}
+} */
 
 
   // ── ADD MORE USERS BELOW ──
@@ -140,7 +141,7 @@ const USERS = [
   //   socialLinks: { twitter: "", LinkedIn: "https://linkedin.com/in/admin", Instagram: "" },
   //   profilePicture: null,
   // },
-];
+/* ]; */
 
 
 // ─────────────────────────────────────────────
