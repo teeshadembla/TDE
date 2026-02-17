@@ -73,9 +73,7 @@ function App() {
   const {user} = useUser();
 
   useEffect(()=>{
-    console.log("This is the user from clerk--->", user);
-    console.log("Thisis the loading and auth status--->", isLoaded, isSignedIn);
-  },[isLoaded, isSignedIn, user])
+  },[isLoaded, isSignedIn, user?.id])
 
   useEffect(()=>{
     if(!isLoaded) return;
@@ -87,29 +85,35 @@ function App() {
       }
 
     const syncUser = async () =>{
-      
-
       try{
-
+        console.log("Attempting to fetch user from /api/user/me...");
         const res = await axiosInstance.get("/api/user/me");
+        console.log("User data received:", res.data);
 
         const u = res.data.user;
         setAccount({
           _id: u._id,
           name: u.FullName,
-          role: u.role,
+          role: u.role.trim(),  // Remove whitespace/newlines
           email: u.email,
           profilePicture: u.profilePicture,
           verified: u.isVerifiedbyAdmin,
         });
+        console.log("Account state updated successfully");
       }catch(err){
-        console.log("Error syncing Clerk user:", err);
+        console.error("ERROR syncing user - Details:", {
+          message: err.message,
+          code: err.code,
+          status: err.response?.status,
+          data: err.response?.data,
+          fullError: err
+        });
       }finally{
         setAuthLoading(false);
       }
     }
     syncUser();
-  },[isLoaded, isSignedIn, user]);
+  },[isLoaded, isSignedIn, user?.id]);
 
   useEffect(() => {
     console.log("Account has been updated:", account);

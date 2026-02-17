@@ -13,19 +13,47 @@ export const useAdminData = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [stats, fellowships, counts, registrations] = await Promise.all([
+      console.log('Starting to fetch admin data...');
+      
+      const results = await Promise.allSettled([
         fetchAdminStats(),
         fetchPastFellowships(),
         fetchRegistrationCounts(),
         fetchFellowshipRegistrations()
       ]);
+
+      // Handle results with better error reporting
+      const [statsResult, fellowshipsResult, countsResult, registrationsResult] = results;
       
-      setAdminStats(stats);
-      setPastFellowships(fellowships);
-      setParticipantCount(counts);
-      setFellowshipRegistrations(registrations);
+      if (statsResult.status === 'fulfilled') {
+        setAdminStats(statsResult.value);
+        console.log('Admin stats fetched successfully');
+      } else {
+        console.error('Failed to fetch admin stats:', statsResult.reason);
+      }
+
+      if (fellowshipsResult.status === 'fulfilled') {
+        setPastFellowships(fellowshipsResult.value);
+        console.log('Past fellowships fetched successfully');
+      } else {
+        console.error('Failed to fetch past fellowships:', fellowshipsResult.reason);
+      }
+
+      if (countsResult.status === 'fulfilled') {
+        setParticipantCount(countsResult.value);
+        console.log('Registration counts fetched successfully');
+      } else {
+        console.error('Failed to fetch registration counts:', countsResult.reason);
+      }
+
+      if (registrationsResult.status === 'fulfilled') {
+        setFellowshipRegistrations(registrationsResult.value);
+        console.log('Fellowship registrations fetched successfully');
+      } else {
+        console.error('Failed to fetch fellowship registrations:', registrationsResult.reason);
+      }
     } catch (error) {
-      console.error('Error fetching admin data:', error);
+      console.error('Unexpected error fetching admin data:', error);
     } finally {
       setLoading(false);
     }
