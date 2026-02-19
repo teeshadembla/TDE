@@ -26,7 +26,7 @@ const fellowProfileSchema = new mongoose.Schema({
   bio: {
     type: String,
     minlength: 0,
-    maxlength: 500
+    maxlength: 3000
   },
   expertise: [{
     type: String,

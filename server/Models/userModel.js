@@ -4,8 +4,6 @@ const userSchema = mongoose.Schema({
     clerkUserId: {
         type: String,
         required: true,
-        unique: true,
-        index: true,
     },
     FullName: {
         type: String,
@@ -109,7 +107,7 @@ const userSchema = mongoose.Schema({
     isVerifiedbyAdmin:{
         type: Boolean, 
         required: true,
-        default: false
+        default: false,
     },
     isRejectedByAdmin:{
         type: Boolean,
@@ -131,7 +129,7 @@ const userSchema = mongoose.Schema({
     }],
     introduction: {
         type: String,
-        maxlength: 2000,
+        maxlength: 3000,
         default: null
     },
     stripeCustomerId: {

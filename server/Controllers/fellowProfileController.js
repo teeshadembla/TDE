@@ -42,6 +42,80 @@ export const getFellowProfileByUserId = async (req, res) => {
   }
 };
 
+/**
+ * @route   GET /api/fellow-profile/:id
+ * @desc    Get fellow profile by ID (for public profile viewing)
+ * @access  Public
+ */
+export const getFellowProfileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate if ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      logger.warn({id}, "Profile fetch failed: Invalid ID format");
+      return res.status(400).json({ message: "Invalid profile ID format" });
+    }
+
+    // Find fellow profile by ID and populate user details
+    const profile = await fellowProfileModel.findById(id).populate('userId', 'email FullName profilePicture');
+
+    if (!profile) {
+      logger.warn({id}, "Profile fetch failed: Profile not found");
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+   /*  // Check if profile is public/approved
+    if (!profile.isPublic || profile.status !== "APPROVED") {
+      logger.warn({id}, "Profile fetch failed: Profile is not public");
+      return res.status(403).json({ message: "Profile is not available for public viewing" });
+    } */
+
+    // Generate signed URL for headshot if it exists
+    let professionalHeadshotUrl = profile.professionalHeadshotUrl;
+    if (profile.professionalHeadshotKey) {
+      try {
+        professionalHeadshotUrl = await generateSignedUrlForViewing(profile.professionalHeadshotKey);
+      } catch (err) {
+        logger.warn({id, errorMsg: err.message}, "Failed to generate signed URL for headshot");
+        // Continue with the existing URL if signing fails
+      }
+    }
+
+    // Format response
+    const formattedProfile = {
+      _id: profile._id,
+      userId: profile.userId,
+      displayName: profile.displayName || '',
+      headline: profile.headline || '',
+      bio: profile.bio || '',
+      professionalHeadshotUrl,
+      currentRole: profile.currentRole || { title: '', organization: '' },
+      expertise: profile.expertise || [],
+      socialLinks: profile.socialLinks || {
+        linkedin: '',
+        twitter: '',
+        github: '',
+        website: ''
+      },
+      portfolioItems: profile.portfolioItems || [],
+      status: profile.status,
+      approvedAt: profile.approvedAt,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt
+    };
+
+    logger.debug({id}, "Fellow profile retrieved successfully");
+    return res.status(200).json({
+      success: true,
+      profile: formattedProfile
+    });
+  } catch (error) {
+    logger.error({id: req.params.id, errorMsg: error.message, stack: error.stack}, "Error fetching fellow profile by ID");
+    return res.status(500).json({ message: 'Server error fetching profile', error: error.message });
+  }
+};
+
     /**
      * @route   GET /api/admin/onboarding-profiles
      * @desc    List onboarding profiles for admin with filters and stats

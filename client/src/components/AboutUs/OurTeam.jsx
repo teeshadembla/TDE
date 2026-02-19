@@ -1,8 +1,9 @@
-import React from "react";
+import React, {useState , useEffect} from "react";
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../config/apiConfig";
 
-const additionalTeamMembers = [
+const teamMembersData = [
   {
     name: "Resham Kataria",
     title: "TECHNOLOGY SPECIALIST",
@@ -63,6 +64,24 @@ const PersonCard = ({ name, title, imageUrl }) => {
 
 
 const OurTeam = () => {
+
+    const [teamMembers, setTeamMembers] = useState(teamMembersData);
+
+
+    useEffect(() => {
+        const fetchTeam = async() => {
+            try{
+                const result = await axiosInstance.get("/api/fellow-profile/fetchTeam");
+                console.log("Team is fetched --->",result?.data?.profiles);
+                setTeamMembers(result?.data?.profiles);
+            }catch(err){
+                console.log("This error has occurred while fetching team--->", err);
+            }
+        }
+
+        fetchTeam();
+    } , [])
+
     return (
         <div id="team-section" className="flex justify-center box-border bg-[rgb(23,23,23)] text-[#333333] font-[Arial,'Helvetica Neue',Helvetica,sans-serif] text-[14px] leading-[20px] h-fit w-full pt-0 px-[64px]">
 
@@ -75,12 +94,12 @@ const OurTeam = () => {
             <div id="w-dyn-list" className="block box-border text-[#333333] font-[Arial,'Helvetica_Neue',Helvetica,sans-serif] text-[14px] leading-[20px] text-left w-[1092px] h-[868px]">
                 <div id="w-dyn-list-items" className="grid box-border text-[#333333] font-[Arial,'Helvetica_Neue',Helvetica,sans-serif] text-[14px] leading-[20px] text-left w-[1092px] h-[868px] grid-cols-[261px_261px_261px_261px] grid-rows-[426px_426px] auto-cols-[1fr] gap-x-[16px] gap-y-[16px]">
                     {/* Grid with responsive columns */}
-                        {additionalTeamMembers.map((member, index) => (
+                        {teamMembers.map((member, index) => (
                             <PersonCard 
                                 key={index}
-                                name={member.name}
-                                title={member.title}
-                                imageUrl={member.imageUrl}
+                                name={member.displayName}
+                                title={member.headline}
+                                imageUrl={member.professionalHeadshotUrl}
                             />
                         ))}
                 </div>

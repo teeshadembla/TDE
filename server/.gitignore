@@ -4,6 +4,8 @@ node_modules
 seeded_credentials.json
 USERS.js
 seedUsers.js
+All_seeds.json
+FelloProfileMigration.js
 
 
 /generated/prisma

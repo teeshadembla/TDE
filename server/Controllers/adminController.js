@@ -108,7 +108,7 @@ export const verifyUserByAdmin = async (req, res) => {
     await user.save();
 
     /* Fire-and-forget email dispatch to avoid blocking response */
-    if (shouldSendEmail) {
+    /* if (shouldSendEmail) {
       sendEmail({
         to: user.email,
         ...accountApprovalTemplate({
@@ -124,7 +124,7 @@ export const verifyUserByAdmin = async (req, res) => {
         'Account approval email failed'
       )
       );
-    }
+    } */
 
     logger.info({userid: id, verificationStatus: user.isVerifiedbyAdmin}, "User verified successfully by admin");
 
