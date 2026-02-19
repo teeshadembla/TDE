@@ -32,8 +32,8 @@ const ApplicationsModeration = ({ applications, onStatusChange, onRefresh }) => 
   const [processingId, setProcessingId] = useState(null); // NEW STATE
 
   const filteredApplications = applications.filter(app => {
-    const matchesSearch = app.user.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app.user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = app?.user?.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         app?.user?.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'ALL' || app.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
