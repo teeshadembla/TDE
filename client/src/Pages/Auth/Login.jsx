@@ -158,7 +158,7 @@ const Login = () => {
               ? `Enter the 6-digit code sent to ${user.email}`
               : secondFactorStrategy === "phone_code"
               ? "Enter the 6-digit code sent to your phone"
-              : "Enter the 6-digit code from your authenticator app"
+              : "Enter the 6-digit code from Google Authenticator app on your phone"
             }
           </p>
 
