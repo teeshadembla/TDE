@@ -7,8 +7,8 @@ import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import mongoose from "mongoose";
 import dotenv from 'dotenv';
-import { handleFellowProfileUpdate } from "../utils/sendMail.js";
-import { sendEmail, fellowProfileUpdateTemplate } from "../utils/NewEmail/index.js";
+import sgMail from "../utils/SendGrid/emailSetup.js";
+
 dotenv.config();
 
 // Helper to generate signed URL for viewing
@@ -176,19 +176,25 @@ export const getPresignedUrlHeadshot = async (req, res) => {
       responseData.profileId = profile._id;
     }
 
-    /* Fire-and-forget email dispatch */
-
-
-    /* sendEmail({
-      to: userDetails.email,
-      ...fellowProfileUpdateTemplate({
-        name: userDetails.FullName,
-        fellowProfileName: profile.displayName,
-        status: "DRAFT",
-      }),
-    }).catch((err) =>
-      logger.error({userId, profileId: profile._id, errorMsg: err.message}, "Fellow profile draft email failed")
-    );  */
+    sgMail.send({
+            to: userDetails.email,
+            from: "teesha@thedigitaleconomist.com",
+            subject: "Onboarding Profile has successfully been submitted!",
+            html: fellowProfileUpdateTemplate({
+                name: userDetails.FullName,
+                fellowProfileName: profile.displayName,
+                status: "DRAFT",
+            }),
+        }).catch((err) =>
+        logger.error(
+            {
+            userId,
+            profileId: profile._id,
+            errorMsg: err.response?.body?.errors || err.message,
+            },
+            "Fellow profile draft email failed"
+        )
+    );
 
     logger.info({userId, profileId: profile._id}, "Fellow profile draft saved successfully");
     return res.status(200).json(responseData);

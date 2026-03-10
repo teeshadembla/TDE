@@ -12,4 +12,6 @@ eventRouter.patch("/updateEvent/:eventId",authenticateToken, eventMiddleware.isA
 eventRouter.delete("/delete/:eventId",authenticateToken, eventMiddleware.isAdmin,eventsController.deleteEvent);
 eventRouter.get("/getPastEvents", eventsController.getPastEvents);
 
+eventRouter.get("/getEventById/:id", eventsController.getEventById);
+
 export default eventRouter;

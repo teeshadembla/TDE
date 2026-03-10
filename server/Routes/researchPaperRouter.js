@@ -11,6 +11,7 @@ import {
   markUploadFailed,
   getAllPapers,
   findSimilarPapers,
+  getFeaturedPublication
 } from '../Controllers/researchPaperController.js';
 import {uploadLimiter} from '../utils/Production/rateLimiter.js';
 import authenticateToken from '../Controllers/tokenControllers.js';
@@ -21,12 +22,14 @@ researchPaperRouter.post('/presigned-url', uploadLimiter,authenticateToken, getP
 researchPaperRouter.post('/confirm-upload', authenticateToken, confirmUpload);
 researchPaperRouter.get('/getPapers', getAllPapers);
 researchPaperRouter.get('/', authenticateToken, getUserDocuments);
-researchPaperRouter.get('/getPaperById/:id', authenticateToken, getDocument);
+researchPaperRouter.get('/getPaperById/:id', getDocument);
 researchPaperRouter.get('/:id/view-url', authenticateToken, getViewUrl);       
 researchPaperRouter.get('/:id/download-url', authenticateToken, getDownloadUrl); 
 researchPaperRouter.delete('/:id', authenticateToken, deleteDocument);
 researchPaperRouter.post('/mark-failed', authenticateToken, markUploadFailed);
-researchPaperRouter.get("/:id/similar", authenticateToken, findSimilarPapers );
+researchPaperRouter.get("/:id/similar", findSimilarPapers );
+
+researchPaperRouter.get("/getFeaturedPublication", getFeaturedPublication)
 
 
 export default researchPaperRouter;

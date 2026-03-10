@@ -2,8 +2,7 @@
 import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.js";
 import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
-import {sendApplicationSubmissionEmail, sendPaymentConfirmationEmail} from "../utils/sendMail.js";
-import { sendEmail, applicationSubmittedTemplate } from "../utils/NewEmail/index.js";
+import { applicationSubmittedTemplate } from "../utils/NewEmail/index.js";
 import  logger  from "../utils/logger.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -134,9 +133,11 @@ export const submitFellowshipApplication = async (req, res) => {
     logger.debug({userId, email}, "Sending application confirmation email");
     /* ---------------- Email (fire-and-forget) ---------------- */
     if (email) {
-      sendEmail({
+      sgMail.send({
         to: email,
-        ...applicationSubmittedTemplate({
+        from: "teesha@thedigitaleconomist.com",
+        subject: "Fellowship Application Received",
+        html: applicationSubmittedTemplate({
           name: name,
           fellowshipName: `${workGroupId} - Cycle ${cycle}`,
         }),
@@ -159,6 +160,7 @@ export const submitFellowshipApplication = async (req, res) => {
 
 // NEW: Automatically Charge Approved Application
 import {  paymentConfirmationTemplate } from "../utils/NewEmail/index.js";
+import sgMail from "../utils/SendGrid/emailSetup.js";
 
 export const chargeApprovedApplication = async (req, res) => {
   const { applicationId } = req.body;
@@ -214,12 +216,15 @@ export const chargeApprovedApplication = async (req, res) => {
     await application.save();
 
     /* ---------------- Email (fire-and-forget) ---------------- */
-    sendEmail({
+    sgMail.send({
       to: user.email,
-      ...paymentConfirmationTemplate({
+      from: "teesha@thedigitaleconomist.com",
+      suject: "Payment for your fellowship application is complete!",
+      html : paymentConfirmationTemplate({
         name: user.FullName,
         fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
         amount: application.amount / 100,
+        dashboardUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`
       }),
     }).catch((err) =>
       logger.error({userId: user._id, applicationId, errorMsg: err.message}, "Payment confirmation email failed")
@@ -280,6 +285,3 @@ export const getApplicationForPayment = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// REMOVED: createPaymentIntent - No longer needed since we charge automatically
-// REMOVED: verifyPaymentAndRegister - No longer needed since we charge automatically

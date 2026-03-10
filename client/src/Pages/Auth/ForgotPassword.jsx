@@ -3,6 +3,7 @@ import { useSignIn } from '@clerk/clerk-react';
 import { Eye, EyeOff, Smartphone, Key } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useNavigate, Link } from 'react-router-dom';
+import axiosInstance from '../../config/apiConfig';
 
 const ForgotPassword = () => {
   const { signIn, isLoaded, setActive } = useSignIn();
@@ -119,6 +120,18 @@ const ForgotPassword = () => {
       });
 
       console.log("Reset password result:", result);
+
+      // Log password reset in backend and send confirmation email
+      try {
+        const backendResult = await axiosInstance.post("/api/user/forgot-password", {
+          email,
+          resetAt: new Date().toISOString()
+        });
+        console.log("Backend password reset logged:", backendResult.data);
+      } catch (backendError) {
+        console.error("Failed to log password reset in backend:", backendError);
+        // Continue with sign-in flow even if backend logging fails
+      }
 
       if (result.status === "complete") {
         // No 2FA required, sign in directly

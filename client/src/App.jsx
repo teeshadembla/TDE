@@ -43,7 +43,10 @@ import MemberProfile from './components/PeopleAtTDE/MemberProfile.jsx';
 import PricingCard from './components/Memberships/PricingCard.jsx';
 import MembershipSuccess from './Pages/Memberships/MembershipSuccess.jsx';
 import AdminSettings from './components/AdminProfile/AdminSettings.jsx';
-
+import AccountSettings from "./Pages/AccountSettings/AccountSettingsPage.jsx";
+import IndividualEventsPage from './components/Events/IndicidualEventsPage.jsx';
+import RolePermissions from './Pages/RolePermissions/RolePermissions.jsx';
+import HeroCarousel from './Pages/PostLoginLandingPage/HeroCarousel.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -123,7 +126,7 @@ function App() {
   return (
     <HeaderCollapseProvider>
       <BrowserRouter>
-        <Header />
+        <Header/>
         <AppContent authLoading={authLoading} />
         <ToastContainer position="top-right" autoClose={3000}/>
       </BrowserRouter>
@@ -198,7 +201,12 @@ function AppContent({ authLoading }) {
               {/* User Profile */}
               <Route path='/onboarding/:userId' element={<OnboardingForm/>}></Route>
 
-              <Route path='/settings' element={<AdminSettings/>}/>
+              <Route path='/settings/*' element={<AccountSettings/>}/>
+              <Route path='/events/:id' element={<IndividualEventsPage/> }/>
+
+              <Route path='/admin/roles' element={<RolePermissions/>}/>{/* 
+
+              <Route path='/new-landing' element={<HeroCarousel onHamburgerClick={()=> console.log("Click")}/>}/> */}
             </Routes>
           </div>
     );

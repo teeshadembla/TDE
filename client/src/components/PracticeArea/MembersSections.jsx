@@ -1,75 +1,148 @@
-import react from "react";
+import react, {useMemo} from "react";
 import { useNavigate } from "react-router";
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 
-const PersonCard = ({ name, title, imageUrl }) => {
+const PersonCard = ({ id,name, title, imageUrl }) => {
     const navigate = useNavigate();
+
     
     const handleViewProfile = () => {
-        // Create URL-friendly name by replacing spaces with dashes and removing special characters
-        const urlFriendlyName = name
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and dashes
-            .replace(/\s+/g, '-') // Replace spaces with dashes
-            .trim();
         
-        navigate(`/about/profile/${urlFriendlyName}`);
+        navigate(`/about/profile/${id}`);
     };
 
+
     return(
-        <div className="w-full max-w-sm mx-auto bg-neutral-800 rounded-md overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
-            <div className="aspect-[4/3] overflow-hidden">
-                <img 
-                    src={imageUrl} 
-                    alt={name}
-                    className="w-full h-full object-cover"
-                />
-            </div>
-            <div className="p-4">
-                <h1 className="font-sans cursor-pointer font-bold text-lg mb-2 text-white hover:text-gray-300 transition-colors">
-                    {name}
-                </h1>
-                <p className="text-[#9f9f9f] text-xs font-normal font-sans mb-4 leading-relaxed">
-                    {title}
-                </p>
-                <button 
-                    onClick={handleViewProfile}
-                    className="cursor-pointer bg-neutral-700 hover:bg-neutral-600 p-2 rounded-[4px] w-full flex items-center justify-center gap-2 text-white transition-colors text-sm"
-                >
-                    View Profile 
-                    <ArrowOutwardIcon className="text-sm"/>
-                </button>
+        <div id="w-dyn-item" className="block box-border text-[#333333] font-[Arial,'Helvetica Neue',Helvetica,sans-serif] text-[14px] leading-[20px] h-[426px] w-[261px] text-left">
+            <div onClick={handleViewProfile} id="w-inline-block" className="inline-block box-border bg-transparent text-[rgb(0,0,238)] dmsans-text text-[14px] font-normal leading-[18.2px] h-[426px] w-[261px] max-w-full cursor-pointer text-left" >
+                <div id="div-block-75" className="block box-border rounded-t-[8px] text-[rgb(0,0,238)] dmsans-text text-[14px] font-normal leading-[18.2px] h-[261px] w-[261px] overflow-hidden cursor-pointer text-left">
+                    <img 
+                        src={imageUrl} 
+                        alt={name}
+                        className="inline-block box-border rounded-t-[8px] text-[rgb(0,0,238)] dmsans-text text-[14px] font-normal leading-[18.2px] h-[261px] w-[261px] max-w-full aspect-square object-cover overflow-clip align-middle cursor-pointer text-left"
+                    />
+                </div>
+
+                <div id="fellows-card-name-box" className="flex flex-col flex-nowrap justify-between box-border bg-[rgb(38,38,38)] hover:bg-[rgb(0,74,173)] text-[rgb(0,0,238)] dmsans-text text-[14px] group font-normal leading-[18.2px] h-[165px] w-[261px] pt-[15px] pb-[15px] pl-[10px] rounded-b-[8px] cursor-pointer text-left">
+                    <h3 id="heading-3" className="block box-border text-white dmsans-text text-[18px] font-bold leading-[21.6px] h-[21.6px] w-[251px] mt-[15.05px] mb-[2.5px] mx-0 cursor-pointer text-left">
+                        {name}
+                    </h3>
+                    <div id="profile-card" className="block box-border text-[rgb(159,159,159)] dmsans-text text-[12px] font-normal leading-[18.2px] h-[18.2px] w-[251px] mb-[10px] pr-[2.5px] cursor-pointer text-left">
+                        {title}
+                    </div>
+                    <button 
+                        id="button-primary-leadership"
+                        onClick={handleViewProfile}
+                        className="flex items-center group-hover:bg-[rgb(6,44,101)] justify-center rounded-[4px] box-border bg-[rgb(71,70,70)] text-[rgb(159,159,159)] dmsans-text text-[14px] font-normal leading-[18.2px] h-[30px] w-[150px] gap-[7px] my-[15px] py-[7px] px-[14px] cursor-pointer text-left"
+                    >
+                        <h6 id="view-profile" className="flex items-stretch justify-center box-border relative text-white dmsans-text text-[11.9px] font-normal leading-[15.47px] h-[16px] w-[64.3625px] m-0 cursor-pointer text-left z-[1]">View Profile </h6> 
+                        <ArrowOutwardIcon fontSize="14px"/>
+                    </button>
+                </div>
             </div>
         </div>
     )
 }
 
-const MembersSections = ({members,}) => {
+
+const MembersSections = ({ members = [], chairs = [] }) => {
+
+    const { seniorFellows, fellows, others } = useMemo(() => {
+
+        const sorted = [...members].sort((a, b) =>
+            (a.displayName || "").localeCompare(b.displayName || "")
+        );
+
+        return {
+            seniorFellows: sorted.filter(m => m.displayAs === "senior-fellow"),
+            fellows: sorted.filter(m => m.displayAs === "fellow"),
+            others: sorted.filter(
+                m => !m.displayAs || 
+                (m.displayAs !== "senior-fellow" && m.displayAs !== "fellow")
+            )
+        };
+
+    }, [members]);
+
     return (
-        <div className="min-h-screen bg-neutral-900">
-            {/* Header */}
-            <div className="pt-10 pb-12">
-                <h1 className="text-4xl font-bold text-center text-white">Meet The Members</h1>
-            </div>
-            
-            {/* Responsive Grid Container */}
-            <div className="px-4 sm:px-6 lg:px-8 pb-16">
-                <div className="max-w-7xl mx-auto">
-                    {/* Grid with responsive columns */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-                        {members.map((member, index) => (
-                            <PersonCard 
-                                key={index}
-                                name={member.name}
-                                title={member.title}
-                                imageUrl={member.imgUrl}
-                            />
-                        ))}
+        <div className="flex justify-center bg-black w-full px-[64px] pb-[60px]">
+            <div className="flex flex-col items-center w-[1092px] gap-[60px] pt-[60px]">
+
+                <h1 className="text-white text-[35px] font-bold mt-[60px]">
+                    Meet The Members
+                </h1>
+
+                {/* Chairs */}
+                {chairs.length > 0 && (
+                    <div className="w-full">
+                        <div className="grid gap-[16px] grid-cols-[261px_261px_261px_261px]">
+                            {chairs.map(chair => (
+                                <PersonCard
+                                    key={chair._id}
+                                    id={chair._id}
+                                    name={chair.displayName}
+                                    title={chair.headline}
+                                    imageUrl={chair.professionalHeadshotUrl}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Senior Fellows */}
+                {seniorFellows.length > 0 && (
+                    <div className="w-full">
+                        <div className="grid gap-[16px] grid-cols-[261px_261px_261px_261px]">
+                            {seniorFellows.map(member => (
+                                <PersonCard
+                                    key={member._id}
+                                    id={member._id}
+                                    name={member.displayName}
+                                    title={member.headline}
+                                    imageUrl={member.professionalHeadshotUrl}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Fellows */}
+                {fellows.length > 0 && (
+                    <div className="w-full">
+                        <div className="grid gap-[16px] grid-cols-[261px_261px_261px_261px]">
+                            {fellows.map(member => (
+                                <PersonCard
+                                    key={member._id}
+                                    id={member._id}
+                                    name={member.displayName}
+                                    title={member.headline}
+                                    imageUrl={member.professionalHeadshotUrl}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Members without displayAs */}
+                {others.length > 0 && (
+                    <div className="w-full">
+                        <div className="grid gap-[16px] grid-cols-[261px_261px_261px_261px]">
+                            {others.map(member => (
+                                <PersonCard
+                                    key={member._id}
+                                    id={member._id}
+                                    name={member.displayName}
+                                    title={member.headline}
+                                    imageUrl={member.professionalHeadshotUrl}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );
-}
+};
 
 export default MembersSections;

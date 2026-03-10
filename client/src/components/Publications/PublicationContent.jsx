@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect,useState } from 'react';
 import FeaturedHeader from './FeaturedHeader.jsx';
 import SecondaryPublicationCard from './SecondaryPublicationCard.jsx';
 import FeaturedPublicationCard from './FeaturedPublicationCard.jsx';
+import axiosInstance from '../../config/apiConfig.js';
+import { useNavigate } from 'react-router';
 
 // Publication data
 const publicationsData = {
@@ -62,10 +64,33 @@ const SectionIntro = () => (
 
 // Main Publications Content Component
 const PublicationContent = () => {
+  const navigate = useNavigate();
+  const [featuredPublications, setFeaturedPublications] = useState(publicationsData);
+
+  useEffect(()=>{
+
+    const fetchFeaturedPublications = async () =>{
+      try{
+        const response = await axiosInstance.get("/api/documents/getFeaturedPublication");
+        console.log("This is the response for fetching featured publications--->", response.data);
+        setFeaturedPublications(response.data);
+      }catch(err){
+        console.log("This error occurred while trying to fetch featured publications--->", err);
+      }
+    }
+
+    fetchFeaturedPublications();
+
+  },[])
+
+  const onClickRedirect = (publicationId) => {
+    navigate(`/research-paper/${publicationId}`);
+  }
+
   return(
     <div className='bg-black py-12 sm:py-16 lg:py-[100px] px-4 sm:px-8 lg:px-16 overflow-hidden'>
       {/* Wrapper class for all publications and components */}
-      <div className="flex flex-col justify-center items-center gap-8 sm:gap-12 lg:gap-16 max-w-[894px] mx-auto px-0 relative">
+      <div className="flex flex-col justify-center items-center gap-8 sm:gap-12 lg:gap-16 max-w-[1200px] mx-auto px-0 relative">
         <SectionHeader />
 
         {/* Tab Content */}
@@ -76,13 +101,13 @@ const PublicationContent = () => {
             <FeaturedHeader />
 
             {/* Featured research papers */}
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 w-full box-border'>
+            <div className='grid justify-center grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 w-full box-border'>
               {/* Featured Publication */}
-              <FeaturedPublicationCard publication={publicationsData.featured} />
+              <FeaturedPublicationCard publication={featuredPublications.featured} onClick={onClickRedirect}/>
 
               {/* Secondary Publications */}
               <div className='flex flex-col gap-6 sm:gap-8 w-full h-[782px]'>
-                {publicationsData?.secondary?.map((publication) => (
+                {featuredPublications?.secondary?.map((publication) => (
                   <SecondaryPublicationCard 
                     key={publication.id} 
                     publication={publication} 

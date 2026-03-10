@@ -117,7 +117,7 @@ Thank you for your time and interest in our program.
   `,
 });
 
-export const paymentConfirmationTemplate = ({ name, fellowshipName, amount }) => ({
+export const paymentConfirmationTemplate = ({ name, fellowshipName, amount, dashboardUrl }) => ({
   subject: `🎉 Payment Confirmed – Welcome to ${fellowshipName}!`,
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -130,11 +130,7 @@ export const paymentConfirmationTemplate = ({ name, fellowshipName, amount }) =>
       </div>
       
       <h3 style="color: #2c3e50;">What's Next:</h3>
-      <ul>
-        <li>You will receive a welcome package with program details within 2-3 business days</li>
-        <li>Fellowship orientation details will be shared separately</li>
-        <li>Join our fellowship community group (link to follow)</li>
-      </ul>
+      <a href=${dashboardUrl}><button><p>Access your dahsboard here to start onboarding</p></button></a>
       
       <p>If you have any questions, please don't hesitate to contact us.</p>
       <p>We're excited to have you on board!</p>

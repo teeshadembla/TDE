@@ -13,8 +13,12 @@ const fellowProfileSchema = new mongoose.Schema({
     type: String,
     maxlength: 100
   },
+  displayAs : {
+    type:String,
+  },
   professionalHeadshotUrl: {
     type: String, // URL to image
+    default: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/698ab8631e4ef099eaf43fc1_BLANK.j"
   },
   professionalHeadshotKey: {
     type: String,

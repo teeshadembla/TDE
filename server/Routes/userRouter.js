@@ -16,8 +16,6 @@ userRouter.get("/stats", authenticateToken, userController.getUserStats);
 /* Get core team members */
 userRouter.get("/core-team", userController.getCoreTeamMembers);
 
-/* Get fellow data */
-userRouter.get("/fellows", userController.getFellows);
 
 /* Update and delete user profile */
 userRouter.patch("/update/:id", authenticateToken, userController.updateUser);

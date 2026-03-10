@@ -1,5 +1,6 @@
 import generatePresignedUrl from '../utils/s3presigned.js';
 import researchPaperModel from '../Models/researchPaperModel.js';
+import eventsModel from '../Models/eventsModel.js';
 import logger from '../utils/logger.js';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -86,13 +87,20 @@ export const getPresignedUrl = async (req, res) => {
       s3Key: pdfKey,
       thumbnailUrl: thumbnailFileUrl, 
       thumbnailKey: thumbnailKey,
-      workgroupId: req.body.workgroupId,
       documentType: req.body.documentType ,
       publishingDate: req.body.publishingDate || null,
       title: req.body.title || '',
       subtitle: req.body.subtitle || '',
       tags: req.body.tags || [],
-      Authors: req.body.authors || [],
+      workgroupId: (req.body.workgroupId || []).map(
+        id => new mongoose.Types.ObjectId(id)
+      ),
+      Authors: (req.body.authors || []).map(
+        id => new mongoose.Types.ObjectId(id)
+      ),
+      Contributers: (req.body.contributers || []).map(
+        id => new mongoose.Types.ObjectId(id)
+      ),
       fileSize: fileSize,
       mimeType: fileType,
       uploadStatus: 'pending',
@@ -423,7 +431,7 @@ export const markUploadFailed = async (req, res) => {
 
 export const getAllPapers = async(req, res)=> {
   try{
-    const researchPapers = await researchPaperModel.find().populate('Authors', 'FullName');
+    const researchPapers = await researchPaperModel.find().populate('Authors', 'FullName').sort({publishingDate: -1});
 
     logger.debug({paperCount: researchPapers.length}, "All research papers retrieved successfully");
     return res.status(200).json({msg: "Successfully retrieved all papers", data: researchPapers});
@@ -453,3 +461,115 @@ export const findSimilarPapers = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 }
+
+export const getFeaturedPublication = async (req, res) => {
+  try {
+
+    const today = new Date();
+
+    const upcomingEvents = await eventsModel
+      .find({ "eventDate.start": { $gt: today } })
+      .sort({ "eventDate.start": 1 })
+      .limit(3)
+      .lean();
+
+    const eventTags = upcomingEvents.flatMap(event => event.tags || []);
+    const uniqueTags = [...new Set(eventTags)];
+
+    console.log("We are trying to find featured publications");
+
+    let publications = await researchPaperModel.aggregate([
+      {
+        $match: {
+          tags: { $in: uniqueTags },
+          uploadStatus: "completed"
+        }
+      },
+      {
+        $addFields: {
+          tagOverlap: {
+            $size: {
+              $setIntersection: ["$tags", uniqueTags]
+            }
+          }
+        }
+      },
+      {
+        $sort: {
+          tagOverlap: -1,
+          publishingDate: -1
+        }
+      },
+      {
+        $limit: 3
+      },
+
+      // join authors
+      {
+        $lookup: {
+          from: "users",
+          let: { authorIds: "$Authors" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$authorIds"] }
+              }
+            },
+            {
+              $project: { FullName: 1, _id: 0 }
+            }
+          ],
+          as: "authorDocs"
+        }
+      },
+
+      // join contributors
+      {
+        $lookup: {
+          from: "users",
+          let: { contributorIds: "$Contributers" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$contributorIds"] }
+              }
+            },
+            {
+              $project: { FullName: 1, _id: 0 }
+            }
+          ],
+          as: "contributorDocs"
+        }
+      },
+
+      
+     
+    ]);
+
+    console.log("authorDocs:", JSON.stringify(publications[0]?.authorDocs));
+
+    // fallback logic
+    if (publications.length === 0) {
+      publications = await researchPaperModel
+        .find({ uploadStatus: "completed" })
+        .populate("Authors", "FullName")
+        .populate("Contributers", "FullName")
+        .sort({ publishingDate: -1 })
+        .limit(3)
+        .lean();
+    }
+
+    const response = {
+      featured: publications[0] || null,
+      secondary: publications.slice(1, 3)
+    };
+
+    return res.status(200).json(response);
+
+  } catch (err) {
+    return res.status(500).json({
+      message: "Failed to fetch featured publications",
+      error: err
+    });
+  }
+};

@@ -53,7 +53,6 @@ const researchPaperSchema = new mongoose.Schema({
   },
   subtitle:{
     type: String,
-    required: true,
   },
   publishingDate: {
     type: Date,
@@ -63,18 +62,23 @@ const researchPaperSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-  workgroupId :{
+  workgroupId :[{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workgroup',
-  },
+  }],
   Authors: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
   }],
+  Contributers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }
+  ],
   documentType:{
     type: String,
-    enum: ['Report','Opinion Piece','Policy Paper','Position Paper','Industry Insight','Research Article'],
+    enum: ['Summit Report','Opinion Piece','Policy Paper','Position Paper','Expert Insights','Industry Insights','Research Paper'],
     required: true
   },
   tags:[{

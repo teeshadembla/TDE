@@ -1,6 +1,9 @@
+import fellowProfileModel from "../Models/fellowProfileModel.js";
 import userModel from "../Models/userModel.js";
 import workgroupModel from "../Models/workgroupModel.js";
+import researchPaperModel from "../Models/researchPaperModel.js";
 import { workgroupValidationSchema } from "../SchemaValidation/workgroupValidationSchema.js";
+import mongoose from "mongoose";
 import  logger  from "../utils/logger.js";
 
 const addNewWorkgroup = async(req, res)=>{
@@ -141,4 +144,88 @@ const getWorkgroupById = async(req,res)=>{
         return res.status(500).json({msg: "Internal Server Error"});
     }
 }
-export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getUsersByWorkgroup, getWorkgroupById}
+
+const getWorkgroupMembers = async(req, res)=>{
+    try{
+        const {workgroupId} = req.body;
+        console.log("This is the workgroupId--->", workgroupId);
+        const members = await fellowProfileModel.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "userId",
+      foreignField: "_id",
+      as: "user"
+    }
+  },
+  { $unwind: "$user" },
+
+  {
+    $match: {
+      "user.workGroupId": new mongoose.Types.ObjectId(workgroupId)
+    }
+  },
+
+  {
+    $group: {
+      _id: "$user.role",
+      members: { $push: "$$ROOT" }
+    }
+  },
+
+  {
+    $group: {
+      _id: null,
+      chairs: {
+        $push: {
+          $cond: [{ $eq: ["$_id", "chair"] }, "$members", []]
+        }
+      },
+      users: {
+        $push: {
+          $cond: [{ $eq: ["$_id", "user"] }, "$members", []]
+        }
+      }
+    }
+  },
+
+  {
+    $project: {
+      _id: 0,
+      chairs: { $reduce: { input: "$chairs", initialValue: [], in: { $concatArrays: ["$$value", "$$this"] } } },
+      users: { $reduce: { input: "$users", initialValue: [], in: { $concatArrays: ["$$value", "$$this"] } } }
+    }
+  }
+]);
+
+            console.log("These are the members that are fetched ---->", members);
+            return res.status(200).json({msg: "Successfully retrieved", members: members});
+
+        }catch(err){
+            console.log("This error is occurring while trying to fetch members of a speicfic workgroup--->", err);
+            return res.status(500).json({msg: "Internal Server Error"});
+        }
+}
+
+const getWorkgroupPublications = async (req, res) => {
+  try {
+    const { workgroupId } = req.body;
+
+    const publications = await researchPaperModel
+      .find({
+        workgroupId: new mongoose.Types.ObjectId(workgroupId)
+      })
+      .populate("Authors", "FullName")
+      .populate("Contributers", "FullName");
+
+    return res.status(200).json({ publications });
+
+  } catch (err) {
+    return res.status(500).json({
+      msg: "Internal Server Error",
+      err
+    });
+  }
+};
+
+export {addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getUsersByWorkgroup, getWorkgroupById, getWorkgroupMembers, getWorkgroupPublications}

@@ -24,8 +24,13 @@ const IndividualPaperPage = () =>{
 
     useEffect(() => {
         const fetchSimilarPapers = async () => {
-            const res = await axiosInstance.get(`/api/documents/${paper_id}/similar`);
-            setSimilarPapers(res.data);
+            try {
+                const res = await axiosInstance.get(`/api/documents/${paper_id}/similar`);
+                setSimilarPapers(Array.isArray(res.data) ? res.data : []);
+            } catch (err) {
+                console.error("Error fetching similar papers:", err);
+                setSimilarPapers([]);
+            }
         };
         fetchSimilarPapers();
     }, [paper_id]);
@@ -33,122 +38,163 @@ const IndividualPaperPage = () =>{
     useEffect(()=>{
         const fetchPaperById = async () =>{
             try{
+                console.log("This is the paper for which details are being fetched--->", paper_id);
                 const response = await axiosInstance.get(`/api/documents/getPaperById/${paper_id}`)
-                console.log("This is the research paper data retrieved by ID--->", response.data.data);
+                console.log("This is the research paper data retrieved by ID--->", response);
 
                 setCurrentPaper(response.data.data);
             }catch(err){    
-                console.log("This error occurred while trying to ")
+                console.error("Error fetching paper:", err);
+                setCurrentPaper(null);
             }
         }
 
         fetchPaperById();
-    }, [])
+    }, [paper_id])
     return(
         <>
-            <section id='section-2' className='mt-[100px] mb-[80px] w-[1330.4px] h-[770.275px]'>
-                <div className='mx-[195.2px] w-[940px] h-[770.275px] text-[#333] grid grid-cols-2 grid-rows-[718.275px_0] auto-cols-[1fr] gap-x-[52px] grid-flow-row leading-[24px]'>
-                    <img
-                    src={currentPaper?.thumbnailUrl}
-                    alt=""
-                    loading="lazy"
-                    className="w-full h-full object-contain mix-blend-normal rounded-none col-start-1 col-end-2 row-start-1 row-end-2"
-                    />
+            <section className='mt-8 sm:mt-16 md:mt-24 mb-12 sm:mb-16 md:mb-24 px-4 sm:px-6 md:px-8 flex justify-center'>
+                <div className='w-full max-w-6xl text-gray-800 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 md:gap-12 auto-rows-max'>
+                    <div className='flex justify-center sm:justify-start'>
+                        <img
+                            src={currentPaper?.thumbnailUrl}
+                            alt="Paper Thumbnail"
+                            loading="lazy"
+                            className="w-full h-auto max-h-80 sm:max-h-96 md:max-h-full object-contain rounded-lg "
+                        />
+                    </div>
 
-                    <div className='flex flex-col flex-nowrap text-[rgb(51,51,51)] font-sans text-[14px] leading-[20px] gap-y-[17px] gap-x-[17px] box-border w-[444px] h-[718.275px]'>
-                        <div className='block box-border cursor-pointer text-[rgb(111,111,111)] bg-[rgb(234,234,236)] text-center text-[14px] font-sans font-normal leading-[20px] w-[140px] h-[38px] px-[15px] py-[9px] rounded-tl-[20px] rounded-tr-[20px] rounded-bl-[20px] rounded-br-[20px] border-t-0 border-b-0 border-l-0 border-r-0 text-decoration-none'>
+                    <div className='flex flex-col gap-4 sm:gap-5 md:gap-6 justify-start font-sans'>
+                        {/* Document Type Badge */}
+                        <div className='inline-flex w-fit px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 text-xs sm:text-sm rounded-full'>
                             {currentPaper?.documentType}
                         </div>
-                        <h2 className='box-border block font-dm-sans font-bold text-[32.2px] leading-[38.64px] text-[#333333] w-[444px] mt-[20px] mb-[10px]'>
-                            {currentPaper?.fileName}
+
+                        {/* Title */}
+                        <h2 className=' font-bold text-2xl sm:text-3xl md:text-4xl font-montserrat leading-tight text-gray-800'>
+                            {currentPaper?.title}
                         </h2>
-                        <div className='box-border block text-[18px] leading-[20px] text-[#6f6f6f] font-sans w-[444px]'>
-                            {new Date(currentPaper?.publishingDate).toLocaleDateString()}
+
+                        {/* Publishing Date */}
+                        <div className='text-sm sm:text-base text-gray-600'>
+                            {currentPaper?.publishingDate &&
+                                new Date(currentPaper.publishingDate).toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric"
+                            })}
                         </div>
-                        <div className='box-border block font-sans text-[18px] leading-[20px] text-[#6f6f6f] w-[444px]'>
+
+                        {/* Subtitle */}
+                        <div className='text-sm sm:text-base text-gray-600'>
                             {currentPaper?.subtitle || 'Healing a Broken World Series'}
                         </div>
-                        <div className='box-border flex font-sans text-[18px] leading-[20px] text-[#333333] w-[444px] h-[100px]'>
-                            <div className='box-border block font-sans text-[18px] leading-[20px] text-[#6f6f6f] mr-[30px] w-[45.15px]'>
-                                Authors:
-                            </div>
-                            <div className='box-border flex flex-col font-sans font-medium text-[18px] leading-[20px] text-[#333333] w-[182.962px]'>
+
+                        {/* Authors Section */}
+                        <div className='flex flex-col gap-2 pt-2'>
+                            <div className='text-sm sm:text-base font-sans font-medium text-gray-700'>Authors:</div>
+                            <div className='flex flex-col gap-1'>
                                 {currentPaper?.Authors?.map((author, index) => (
-                                    <span key={index} className='mr-2'><a href={`/profile/${author._id}`} className='hover:underline'>{author.FullName}</a></span>
+                                    <a
+                                        key={index}
+                                        href={`/about/profile/${author._id}`}
+                                        className='text-blue-600 hover:underline text-sm sm:text-base'
+                                    >
+                                        {author.FullName}
+                                    </a>
                                 ))}
                             </div>
                         </div>
 
-                        <div className='box-border block font-sans text-[14px] leading-[20px] text-[#333333] w-[444px] h-[283px]'>
-                                <p className='box-border block font-sans text-[14px] font-normal leading-[18.2px] text-[#888888] h-[273px] mb-[10px]'>
-                                    {currentPaper?.description || ''}
-                                </p>
+                        {/* Description */}
+                        <div className='pt-2 md:pt-4'>
+                            <p className='text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed'>
+                                {currentPaper?.description || ''}
+                            </p>
                         </div>
-                        <button onClick={() => PaperDownload()} className="bg-[#004aad] text-white mt-20
-                         font-sans text-sm font-semibold leading-5 py-[14px] px-[21px] rounded-[4px] text-center cursor-pointer relative w-[222px]">
+
+                        {/* Download Button */}
+                        <div className='pt-4 md:pt-6'>
+                            <button
+                                onClick={() => PaperDownload()}
+                                className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-md transition duration-200"
+                            >
                                 Download PDF
-                        </button>
+                            </button>
+                        </div>
                     </div>
-
-                    
-
                 </div>
             </section>
 
-            {/* Similar Papers */}
-            <div className="bg-[#f0f1f1] box-border text-[#333333] block font-sans text-[14px] h-[457.15px] leading-[20px] pb-[50px] [text-size-adjust:100%] [unicode-bidi:isolate]">
-                <div className='box-border text-[#333333] block font-sans text-[14px] leading-[20px] ml-[195.2px] mr-[195.2px] max-w-[940px] pt-[40px] [text-size-adjust:100%] [unicode-bidi:isolate] h-[407.15px] w-[940px]'>
-                    <h2 className="box-border text-[#333333] block font-sans text-[32.2px] font-bold leading-[38.64px] h-[68.6375px] mb-[10px] mt-[20px] mr-0 ml-0 pt-[20px] pb-[30px] text-center w-[940px] [text-size-adjust:100%] [unicode-bidi:isolate]">Similar Publications</h2>
-                    <div className="box-border text-[#333333] block font-sans text-[14px] leading-[20px] h-[268.513px] [text-size-adjust:100%] [unicode-bidi:isolate]">
-                        <div className='box-border text-[#333333] grid font-sans text-[14px] leading-[20px] h-[268.513px] w-[940px] grid-cols-[462px_462px] grid-rows-[268.513px] gap-x-[16px] gap-y-[16px] [text-size-adjust:100%] [unicode-bidi:isolate]'>
-                            {similarPapers?.map((paper) => (
-                                <a href={`/research-paper/${paper._id}`}>
-                                <div key={paper._id} className="bg-[#dbdbdc] box-border text-[#333333] flex font-sans text-[14px] leading-[20px] h-[268.513px] w-[462px] p-[25px] rounded-[8px] relative [text-size-adjust:100%] [unicode-bidi:isolate]">
-                                    
-                                    <img src={paper?.thumbnailUrl} className='box-border text-[#333333] block font-sans text-[14px] leading-[20px] h-[192px] w-[133px] align-middle overflow-clip [text-size-adjust:100%] [overflow-clip-margin:content-box]'></img>
-                                    
-                                    <div className='box-border block w-[259px] h-[218.512px] align-middle overflow-clip text-[#333] text-[14px] pl-[20px] leading-[20px] font-sans'>
-                                        <div className='bg-[#EAEAEC] text-[#6F6F6F] font-sans text-[16px] font-normal rounded-[20px] text-center cursor-pointer px-[15px] py-[9px] w-[140px] h-[38px] leading-[20px]'>{paper?.documentType}</div>
-                                        <h4 className="block text-[#333333] font-dm-sans font-semibold text-[18.5px] leading-[21.84px] w-[259px] mt-[10px] mb-[10px]">{paper.title}</h4>
-                                        <div className='flex items-start justify-start text-[#333333] text-[14px] leading-[20px] gap-[6px] w-[259px] box-border font-sans'>
-                                            <div className='box-border text-[#6f6f6f] block font-sans text-[18px] leading-[20px] w-[45.15px]'>Authors:</div>
-                                            <div className='box-border text-[#333333] block font-sans text-[18px] leading-[20px] w-[123.412px] h-auto ml-5'>
-                                                <div className='flex flex-col flex-nowrap items-start justify-center box-border text-[#333333] font-sans text-[18px] leading-[20px] w-[123.412px] h-auto'>
+            {/* Similar Papers Section */}
+            <div className="bg-gray-100 py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-8 flex justify-center">
+                <div className='w-full max-w-6xl'>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 text-center mb-8 md:mb-12">
+                        Similar Publications
+                    </h2>
+
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 md:gap-10'>
+                        {similarPapers && similarPapers?.length > 0 ? (
+                            similarPapers?.map((paper) => (
+                                <a key={paper._id} href={`/research-paper/${paper._id}`} className='block group'>
+                                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 h-full p-4 sm:p-6 flex flex-col gap-4">
+                                        {/* Thumbnail */}
+                                        <div className='w-full flex justify-center'>
+                                            <img
+                                                src={paper?.thumbnailUrl}
+                                                alt={paper?.title}
+                                                className='w-28 h-36 sm:w-32 sm:h-40 md:w-40 md:h-52 object-cover rounded shadow-sm'
+                                            />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className='flex flex-col gap-3 flex-1'>
+                                            {/* Document Type */}
+                                            <div className='inline-flex w-fit px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-full'>
+                                                {paper?.documentType}
+                                            </div>
+
+                                            {/* Title */}
+                                            <h4 className="font-dm-sans font-semibold text-base sm:text-lg md:text-xl leading-tight text-gray-800 group-hover:text-blue-700 transition-colors">
+                                                {paper.title}
+                                            </h4>
+
+                                            {/* Authors */}
+                                            <div className='flex flex-col gap-1 text-xs sm:text-sm'>
+                                                <div className='font-medium text-gray-700'>Authors:</div>
+                                                <div className='flex flex-col gap-0.5'>
                                                     {paper?.Authors?.map((author, index) => (
-                                                        <div key={index} className='box-border text-[#333333] block font-sans text-[18px] leading-[20px] w-[123.412px] h-[20px]'><a href={`/profile/${author._id}`} className='hover:underline'>{author.FullName}</a></div>
+                                                        <a
+                                                            key={index}
+                                                            href={`/profile/${author._id}`}
+                                                            className='text-blue-600 hover:underline'
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {author.FullName}
+                                                        </a>
                                                     ))}
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className='box-border text-[#6f6f6f] block font-sans text-[18px] leading-[20px] w-[259px] mt-2'>
+                                            {/* Date */}
+                                            <div className='text-xs sm:text-sm text-gray-600 pt-2 mt-auto'>
                                                 {new Date(paper?.publishingDate).toLocaleDateString("en-US", {
                                                     year: 'numeric',
-                                                    month: 'long',
+                                                    month: 'short',
                                                     day: 'numeric'
                                                 })}
+                                            </div>
                                         </div>
                                     </div>
-
-                                    
-
-
-                                    {/* <div className="flex flex-wrap gap-2">
-                                    {paper.tags.map((tag, i) => (
-                                        <span key={i} className="text-xs px-2 py-1 bg-[#2a2a2a] text-gray-400 rounded-md">
-                                        {tag}
-                                        </span>
-                                    ))}
-                                    </div> */}
-                                </div>
                                 </a>
-                            ))}
-                            
-                        </div>
-                        
+                            ))
+                        ) : (
+                            <div className='col-span-1 sm:col-span-2 text-center text-gray-600 py-12'>
+                                No similar papers found.
+                            </div>
+                        )}
                     </div>
                 </div>
-                
             </div>
         </>
     )

@@ -51,6 +51,7 @@ const EventsDashboard = () => {
       try {
         const data = await fetchUpcomingEvents();
         setUpcomingEvents(data);
+        console.log("These are upcoming events --->", data);
 
         const pastEventsData = await fetchPastEvents();
         sortAccordingToDate(pastEventsData);

@@ -1,40 +1,43 @@
 import {Calendar, MapPin} from 'lucide-react';
 import { capitalizeFirstLetter } from './utils';
+import { useNavigate } from 'react-router';
 
 const ListItem = ({event}) => {
+    const navigate = useNavigate();
+
     return(
-        <div className="flex flex-col box-border bg-[#171717] text-[#333333] font-sans text-[16px] leading-5 border-solid border-[#262626] border-[0.8px] rounded-[8px] w-[387.288px] p-[11.6125px] relative h-full">
+        <div onClick={()=>navigate(`/events/${event._id}`)} className="flex cursor-pointer flex-col box-border bg-[#171717] text-[#333333] font-sans text-[16px] leading-5 border-solid border-[#262626] border-[0.8px] rounded-[8px] w-[387.288px] p-[11.6125px] relative h-full">
             <div className="flex flex-col box-border text-[#333333] font-sans text-[16px] leading-5 w-full h-full">
-                <div id="past-event-card" className="flex flex-col flex-nowrap box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 gap-4 w-full h-full p-0 relative">
+                <div id="past-event-card" className="flex flex-col flex-nowrap box-border text-white font-dmsans text-[16px] leading-5 gap-4 w-full h-full p-0 relative">
                     <img 
-                        src={event?.image || "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/69707ffa63bcd07fc128bbb2_Governance%20Dinner-p-2000.jpg"} 
+                        src={event?.image?.url || "https://tde-assets-events.s3.eu-north-1.amazonaws.com/69395caf541181e114939124/default.jpg"} 
                         alt={event?.title}
-                        className="block box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 w-full h-[167.812px] max-w-full object-cover object-center overflow-hidden align-middle rounded-[4px] flex-shrink-0"
+                        className="block box-border text-white font-dmsans text-[16px] leading-5 w-full h-[167.812px] max-w-full object-cover object-center overflow-hidden align-middle rounded-[4px] flex-shrink-0"
                     />
                     
-                    <div id="div-block-81" className="flex flex-col flex-nowrap box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 gap-[15px] w-full flex-grow">
-                        <div id="div-block-82" className="flex flex-col flex-nowrap box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 gap-[7px] w-full">
-                            <h4 id="event-title" className="block box-border text-white font-['DM_Sans',sans-serif] text-[20.8px] font-semibold leading-[24.96px] w-full m-0 break-words">
+                    <div id="div-block-81" className="flex flex-col flex-nowrap box-border text-white font-dmsans text-[16px] leading-5 gap-[15px] w-full flex-grow">
+                        <div id="div-block-82" className="flex flex-col flex-nowrap box-border text-white font-dmsans text-[16px] leading-5 gap-[7px] w-full">
+                            <h4 id="event-title" className="block box-border text-white font-dmsans text-[20.8px] font-semibold leading-[24.96px] w-full m-0 break-words">
                                 {event?.title}
                             </h4>
                             {event?.subtitle && (
-                                <h5 id='event-subtitle' className="block box-border text-[#9f9f9f] font-['DM_Sans',sans-serif] text-[16px] font-normal leading-[20.8px] m-0 relative w-full z-[1]">
+                                <h5 id='event-subtitle' className="block box-border text-[#9f9f9f] font-dmsans text-[16px] font-normal leading-[20.8px] m-0 relative w-full z-[1]">
                                     {event?.subtitle}
                                 </h5>
                             )}
                         </div>
 
-                        <div id="div-block-83" className="flex flex-col flex-nowrap box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 gap-3 w-full">
-                            <div id="event-date-text" className="flex items-center box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 gap-3 w-full">
-                                <div id="icon-10" className="flex items-center justify-center box-border text-[#828181] font-['DM_Sans',sans-serif] text-[16px] leading-5 w-[24px] h-[24px] flex-shrink-0">
+                        <div id="div-block-83" className="flex flex-col flex-nowrap box-border text-white font-dmsans text-[16px] leading-5 gap-3 w-full">
+                            <div id="event-date-text" className="flex items-center box-border text-white font-dmsans text-[16px] leading-5 gap-3 w-full">
+                                <div id="icon-10" className="flex items-center justify-center box-border text-[#828181] font-dmsans text-[16px] leading-5 w-[24px] h-[24px] flex-shrink-0">
                                     <Calendar size={20} color="#828181"/>
                                 </div>
                                 <h6 id="date-card-event" className='flex items-center box-border text-[#9f9f9f] text-[13.6px] font-normal leading-[17.68px] m-0 relative z-[1]'>
-                                    {new Date(event?.eventDate).toLocaleString("en-US", {month: "long", day: "numeric", year:"numeric"})}
+                                    {new Date(event?.eventDate?.start).toLocaleString("en-GB", {month: "long", day: "numeric", year:"numeric"})}
                                 </h6>
                             </div>
                             
-                            <div id="div-block-84" className="flex items-start box-border text-white font-['DM_Sans',sans-serif] text-[16px] leading-5 gap-3 w-full">
+                            <div id="div-block-84" className="flex items-start box-border text-white font-dmsans text-[16px] leading-5 gap-3 w-full">
                                 <div id='icon' className='flex items-center justify-center box-border text-white text-[16px] leading-5 w-[24px] h-[24px] flex-shrink-0 pt-[2px]'>
                                     <MapPin size={20} color="#828181"/>
                                 </div>
@@ -47,6 +50,8 @@ const ListItem = ({event}) => {
                                     </h6>
                                 </div>
                             </div>
+
+                            
                         </div>
                     </div>
 
@@ -81,6 +86,17 @@ const ListItem = ({event}) => {
                             </div>
                         </div>
                     )}
+
+                    <div id='w-dyn-list' className="flex flex-col gap-[15px] box-border text-white font-dmsans text-[16px] leading-[20px] h-[271.413px] w-[350px] text-justify">
+                        <div id="list" className="flex flex-row flex-wrap gap-[10px] box-border text-white font-dmsans text-[16px] leading-[20px] h-[147.1px] w-[350px] text-justify">
+                            {event?.workgroup.length > 0 && event?.workgroup?.map((workgroup)=>(
+                                <div id="listitem" className="flex gap-[16px] box-border text-white font-dmsans text-[16px] leading-[20px] h-[29.275px] w-[200.775px] text-justify">
+                                    <h6 key={workgroup._id} className="block box-border bg-transparent text-white font-dmsans text-[13.6px] font-normal leading-[17.68px] text-center border border-[#888888] rounded-[20px] px-[10px] py-[5px] h-[29.275px] w-fit m-0">{workgroup?.title}</h6>
+                                </div>
+                            ))   
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 // Featured Publication Card Component
 // Publication Type Badge Component
+import { useNavigate } from "react-router";
 const PublicationBadge = ({ type }) => (
   <div className='text-[#9f9f9f] bg-[#1a1a1a] border border-[#262626] rounded-[99px] flex items-center w-fit h-auto px-4 py-2 font-sans text-sm font-normal leading-[100%] no-underline'>
     {type}
@@ -40,37 +41,60 @@ const ReadNowButton = ({ onClick }) => (
 );
 
 
-const FeaturedPublicationCard = ({ publication }) => (
-  <div className='w-full'>
-    <div className='flex flex-col justify-start items-start gap-6 w-full h-full p-6 rounded-2xl bg-[linear-gradient(22deg,#0000,#1b2734),linear-gradient(124deg,#012a5a,#0000)] no-underline'>
-      <div className='flex flex-col h-full w-full'>
-        <div className='flex flex-col justify-center items-center gap-6 w-full'>
-          {/* Image */}
-          <div className='h-[353.33px] items-center justify-center w-[248.95px] '>
-            <img 
-              className='align-center  inline-block  shadow-[0_86px_56px_-32px_#00000059,_-8px_12px_40px_#00000040,_0_24px_60px_-20px_#0003]' 
-              src={publication.image} 
-              alt={publication.title}
-              loading="lazy"
-            />
-          </div>
-          
-          {/* Content */}
-          <div className='flex flex-col items-start w-full gap-3'>
-            <PublicationBadge type={publication.type} />
-            <h3 className='text-white font-sans text-lg font-semibold leading-[130%] no-underline'>
-              {publication.title}
-            </h3>
-            <PublicationMeta author={publication.author} date={publication.date} />
-            <p className="text-[#888] mb-0 font-['DM_Sans',sans-serif] text-sm font-normal leading-[140%] mt-2">
-              {publication.description}
-            </p>
+
+const FeaturedPublicationCard = ({ publication }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className='w-full'>
+      <div className='flex flex-col justify-start items-start gap-6 w-full h-full p-6 rounded-2xl bg-[linear-gradient(22deg,#0000,#1b2734),linear-gradient(124deg,#012a5a,#0000)] no-underline'>
+        <div className='flex flex-col h-full w-full'>
+          <div className='flex flex-col justify-center items-center gap-6 w-full'>
+            
+            <div className='h-[353.33px] items-center justify-center w-[248.95px]'>
+              <img
+                className='align-center inline-block shadow-[0_86px_56px_-32px_#00000059,_-8px_12px_40px_#00000040,_0_24px_60px_-20px_#0003]'
+                src={publication.thumbnailUrl}
+                alt={publication.title}
+                loading="lazy"
+              />
+            </div>
+
+            <div className='flex flex-col items-start w-full gap-3'>
+              <PublicationBadge type={publication.documentType} />
+
+              <h3 className='text-white font-sans text-lg font-semibold leading-[130%]'>
+                {publication.title}
+              </h3>
+
+              <PublicationMeta
+                author={publication.Authors?.[0]?.FullName}
+                date={new Date(publication.publishingDate).toLocaleDateString(
+                  "en-GB",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  }
+                )}
+              />
+
+              <p className="text-[#888] mb-0 font-['DM_Sans',sans-serif] text-sm font-normal leading-[140%] mt-2">
+                {publication.description
+                  ? publication.description.split(" ").slice(0, 60).join(" ") + "..."
+                  : ""}
+              </p>
+            </div>
+
           </div>
         </div>
+
+        <ReadNowButton
+          onClick={() => navigate(`/research-paper/${publication._id}`)}
+        />
       </div>
-      <ReadNowButton onClick={() => console.log(`Reading: ${publication.title}`)} />
     </div>
-  </div>
-);
+  );
+};
 
 export default FeaturedPublicationCard;

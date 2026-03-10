@@ -6,6 +6,12 @@ import { filterTabs, sortOptions, statusColors } from "./Utils/verificationConta
 
 const UserVerificationTab = () => {
   const [selectedRole, setSelectedRole] = useState('user');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'approve' or 'reject'
+  const [pendingUserId, setPendingUserId] = useState(null);
+  const [pendingUserName, setPendingUserName] = useState('');
+  const [confirmationSource, setConfirmationSource] = useState(null); // 'table' or 'modal'
+  const [pendingRole, setPendingRole] = useState('user'); // Store role for modal approvals
 
   const {
     users,
@@ -57,6 +63,48 @@ const UserVerificationTab = () => {
     if (days === 0) return 'Today';
     if (days === 1) return '1 day';
     return `${days} days`;
+  };
+
+  // Show confirmation before approving
+  const showApproveConfirmation = (userId, userName, source = 'table') => {
+    setPendingUserId(userId);
+    setPendingUserName(userName);
+    setPendingAction('approve');
+    setPendingRole(selectedRole);
+    setConfirmationSource(source);
+    setShowConfirmation(true);
+  };
+
+  // Show confirmation before rejecting
+  const showRejectConfirmation = (userId, userName, source = 'table') => {
+    setPendingUserId(userId);
+    setPendingUserName(userName);
+    setPendingAction('reject');
+    setConfirmationSource(source);
+    setShowConfirmation(true);
+  };
+
+  // Confirm and execute the pending action
+  const confirmAction = async () => {
+    if (pendingAction === 'approve') {
+      if (confirmationSource === 'modal') {
+        await handleApproveFromModal(pendingRole);
+      } else {
+        await handleApproveUser(pendingUserId);
+      }
+    } else if (pendingAction === 'reject') {
+      if (confirmationSource === 'modal') {
+        await handleRejectFromModal();
+      } else {
+        await handleRejectUser(pendingUserId);
+      }
+    }
+    setShowConfirmation(false);
+    setPendingAction(null);
+    setPendingUserId(null);
+    setPendingUserName('');
+    setConfirmationSource(null);
+    setPendingRole('user');
   };
 
   return (
@@ -288,7 +336,7 @@ const UserVerificationTab = () => {
                           {status === 'pending' && (
                             <>
                               <button
-                                onClick={() => handleApproveUser(user?._id )}
+                                onClick={() => showApproveConfirmation(user?._id, user?.FullName)}
                                 disabled={actionLoading}
                                 className="p-2 rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                 style={{ background: '#062c65' }}
@@ -298,7 +346,7 @@ const UserVerificationTab = () => {
                               </button>
                               
                               <button
-                                onClick={() => handleRejectUser(user?._id )}
+                                onClick={() => showRejectConfirmation(user?._id, user?.FullName)}
                                 disabled={actionLoading}
                                 className="p-2 rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                 style={{ background: '#da1e28' }}
@@ -478,7 +526,10 @@ const UserVerificationTab = () => {
                 </button>
                 
                 <button
-                  onClick={handleRejectFromModal}
+                  onClick={() => {
+                    showRejectConfirmation(selectedUser._id, selectedUser.FullName, 'modal');
+                    closeProfileModal();
+                  }}
                   disabled={actionLoading}
                   className="px-6 py-2.5 rounded-lg font-semibold transition-all hover:bg-opacity-90 disabled:opacity-50"
                   style={{ background: '#da1e28', color: '#fff' }}
@@ -487,7 +538,10 @@ const UserVerificationTab = () => {
                 </button>
                 
                 <button
-                  onClick={() => handleApproveFromModal(selectedRole)}
+                  onClick={() => {
+                    showApproveConfirmation(selectedUser._id, selectedUser.FullName, 'modal');
+                    closeProfileModal();
+                  }}
                   disabled={actionLoading}
                   className="px-6 py-2.5 rounded-lg font-semibold transition-all hover:bg-opacity-90 disabled:opacity-50"
                   style={{ background: '#062c65', color: '#fff' }}
@@ -496,6 +550,67 @@ const UserVerificationTab = () => {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {showConfirmation && (
+        <div 
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+          onClick={() => setShowConfirmation(false)}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Confirmation Header */}
+            <div className="px-6 py-4 border-b" style={{ background: '#f9f9f9', borderColor: '#d9d9d9' }}>
+              <h3 className="text-lg font-bold" style={{ color: '#1a1a1a' }}>
+                Confirm {pendingAction === 'approve' ? 'Approval' : 'Rejection'}
+              </h3>
+            </div>
+
+            {/* Confirmation Body */}
+            <div className="px-6 py-6">
+              <p style={{ color: '#4a4a4a', marginBottom: '1rem' }}>
+                Are you sure you want to {pendingAction === 'approve' ? 'approve' : 'reject'} <span className="font-semibold" style={{ color: '#1a1a1a' }}>{pendingUserName}</span>?
+              </p>
+              {pendingAction === 'reject' && (
+                <p style={{ color: '#da1e28', fontSize: '0.875rem' }}>
+                  This action cannot be undone. The user will be notified of the rejection.
+                </p>
+              )}
+              {pendingAction === 'approve' && (
+                <p style={{ color: '#4a4a4a', fontSize: '0.875rem' }}>
+                  The user will be notified and granted access to the platform.
+                </p>
+              )}
+            </div>
+
+            {/* Confirmation Actions */}
+            <div className="px-6 py-4 border-t flex items-center justify-end gap-3" style={{ background: '#f9f9f9', borderColor: '#d9d9d9' }}>
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="px-6 py-2 rounded-lg font-semibold transition-all hover:bg-opacity-80"
+                style={{ background: '#d9d9d9', color: '#1a1a1a' }}
+              >
+                Cancel
+              </button>
+              
+              <button
+                onClick={confirmAction}
+                disabled={actionLoading}
+                className="px-6 py-2 rounded-lg font-semibold transition-all hover:bg-opacity-90 disabled:opacity-50"
+                style={{
+                  background: pendingAction === 'approve' ? '#062c65' : '#da1e28',
+                  color: '#fff'
+                }}
+              >
+                {actionLoading ? 'Processing...' : (pendingAction === 'approve' ? 'Approve' : 'Reject')}
+              </button>
+            </div>
           </div>
         </div>
       )}

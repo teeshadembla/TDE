@@ -20,7 +20,6 @@ const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, ex
                 {/* Auth section */}
                     {isSignedIn ? (
                         <div className='flex items-center space-x-2 sm:space-x-3'>
-                            <LogoutButton/>
                             <ProfileDrawer/>
                         </div>
                     ) : (

@@ -94,7 +94,6 @@ const Login = () => {
 
       setSecondFactorStrategy(strategy);
       setNeeds2FA(true);
-      toast.info("Please enter your 2FA code from your authenticator app");
       setLoading(false);
       return;
     }

@@ -15,10 +15,6 @@ import logger from './utils/logger.js';
 import { validateEnv } from './utils/validateEnv.js';
 import { httpLogger } from './middleware/httpLogger.js';
 
-/* Email System Imports */
-import emailProcessor from './Jobs/emailProcessor.js';
-import overduePaymentChecker from './Jobs/overduePaymentChecker.js';
-import { validateEmailConfig } from './utils/emailConfig.js';
 
 /* Routes */
 import userRouter from './Routes/userRouter.js';
@@ -283,25 +279,6 @@ process.on('unhandledRejection', (reason) => {
 if (!isTest) {
   Connection();
 
-  setTimeout(() => {
-    try {
-      logger.info('========================================');
-      logger.info('📧 INITIALIZING EMAIL SYSTEM');
-      logger.info('========================================');
-
-      validateEmailConfig();
-      emailProcessor.startScheduler();
-      overduePaymentChecker.start();
-
-      logger.info('✅ EMAIL SYSTEM READY');
-      logger.info('========================================');
-    } catch (error) {
-      logger.error(
-        { error: error.message },
-        'EMAIL SYSTEM INITIALIZATION FAILED'
-      );
-    }
-  }, 2000);
 }
 
 export default app;

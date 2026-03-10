@@ -1,5 +1,7 @@
 import logger from "../utils/logger.js";
 import newsletterSubscriberModel from "../Models/newsletterSubscriberModel.js";
+import {newsletterSubscriptionTemplate} from "../utils/SendGrid/htmlTemplateNewsletter.js";
+import sgMail from "../utils/SendGrid/emailSetup.js";
 
 export const subscribeUserToNewsletter = async (req, res) => {
   try {
@@ -35,6 +37,18 @@ export const subscribeUserToNewsletter = async (req, res) => {
       { email },
       "Newsletter subscription successful"
     );
+
+    const msg = {
+      to: email,
+      from: "teesha@thedigitaleconomist.com",
+      subject: "You have successfully subscribed to our newsletter service!",
+      html: newsletterSubscriptionTemplate({dashboardUrl: `https://app.thedigitaleconomist.com/login`,eventsUrl: "https://app.thedigitaleconomist.com/events", publicationsUrl:"https://app.thedigitaleconomist.com/publications", 
+  fellowshipUrl: "https://app.thedigitaleconomist.com/execFellowship" })
+    }
+
+    sgMail.send(msg)
+    .then(()=> {console.log("Email for newsletter subscription has been sent")})
+    .catch((err) => console.log(err))
 
     return res.status(200).json({
       msg: "Subscription successful",

@@ -6,13 +6,15 @@ import logger from "../utils/logger.js";
 const getCurrentEvents = async (req, res) => {
   try {
     const today = new Date();
-    const { limit = 10, skip = 0 } = req.query;
 
     const currentEvents = await eventsModel
-      .find({ eventDate: { $gt: today } })
-      .sort({ eventDate: 1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(skip));
+      .find({
+        $or: [
+          { "eventDate.start": { $gte: today } },
+          { "eventDate.end": { $gte: today } }
+        ]
+      })
+      .sort({ "eventDate.start": 1 })
 
 
       logger.debug({fetchedCount: currentEvents.length}, "Current events fetched successfully");
@@ -124,19 +126,25 @@ const updateEvent = async (req, res) => {
 const getPastEvents = async (req, res) => {
   try {
     const today = new Date();
-    const { limit = 10, skip = 0 } = req.query;
 
     const pastEvents = await eventsModel
-      .find({ eventDate: { $lt: today } })
-      .sort({ eventDate: 1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(skip));
+      .find({
+        $or: [
+          { "eventDate.end": { $lt: today } },
+          {
+            "eventDate.end": null,
+            "eventDate.start": { $lt: today }
+          }
+        ]
+      })
+      .sort({ "eventDate.start": -1 })
+      .populate("workgroup", "title")
 
     
       logger.debug({fetchedCount: pastEvents.length}, "Past events fetched successfully");
 
     return res.status(200).json({
-      msg: "Upcoming events retrieved successfully",
+      msg: "Past events retrieved successfully",
       events: pastEvents,
     });
   } catch (err) {
@@ -146,4 +154,22 @@ const getPastEvents = async (req, res) => {
   }
 };
 
-export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents}
+const getEventById = async(req, res) => {
+  try{  
+    const {id} = req.params;
+
+    console.log("This is the id we are trying to fetch event for--->", id);
+    const event = await eventsModel.findById(id).populate("workgroup", "title").populate("speakers");
+    console.log("Event has been fetch--->", event);
+
+    if(!event){
+      return res.status(400).json({msg: "Event with this id not found"});
+    }
+
+    return res.status(200).json({msg: "Event has been fetched successfully", event: event});
+  }catch(err){
+    return res.status(500).json({msg: "Internal Server error", error: err});
+  }
+}
+
+export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents, getEventById}

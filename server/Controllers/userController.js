@@ -10,8 +10,8 @@ import { uploadToS3 } from '../utils/s3config.js';
 import  clerkClient  from "../utils/clerkConfig.js";
 import logger from "../utils/logger.js";
 import dotenv from "dotenv";
-import { handle2FASetupEmail } from "../utils/sendMail.js";
-import { sendEmail, twoFAEnabledTemplate } from "../utils/NewEmail/index.js";
+import sgMail from "../utils/SendGrid/emailSetup.js";
+import { successfulSignupTemplate, profileUpdatedTemplate, mfaEnabledTemplate, passwordChangedTemplate } from "../utils/SendGrid/htmlTemplates.js";
 
 dotenv.config();
 
@@ -158,12 +158,22 @@ const signup = async (req, res) => {
 
         logger.info({userId: newUser._id, email}, "User registered successfully");
 
-        import('../utils/email/emailIntegration.js').then(module => {
-            const emailIntegration = module.default;
-            emailIntegration.handleUserSignup(newUser).catch(err => {
-                logger.error({userId: newUser._id, errorMsg: err.message}, "Welcome email failed");
-            });
-        });
+        const msg = {
+            to: newUser.email,
+            from: "noreply@thedigitaleconomist.com",
+            subject: "Welcome to The Digital Economist Community!",
+            html: successfulSignupTemplate({
+                name: newUser.FullName,
+                message: "You are logged in!",
+                actionUrl: `https://app.thedigitaleconomist.com/${newUser.role}/profile`,
+                actionText: "Click here to access your dashboard."
+            }),
+        };
+
+
+        sgMail.send(msg)
+        .then(()=> console.log("Successful Email for signup"))
+        .catch((err)=> console.error(err));
 
         return res.status(200).json({ 
             msg: "User registered successfully!",
@@ -376,18 +386,7 @@ const getCoreTeamMembers = async (req, res) => {
     }
 }
 
-/* Controller to fetch only fellows */
 
-const getFellows = async(req, res) => {
-    try{
-        const fellows = await userModel.find({ role: { $in: ["fellow", "chair"] }}).populate('workGroupId', 'title description');
-        logger.debug({fellowCount: fellows.length}, "Fellows retrieved successfully");
-        return res.status(200).json({ fellows });
-    }catch(err){
-        logger.error({errorMsg: err.message, stack: err.stack}, "Error fetching fellows");
-        return res.status(500).json({ msg: "Internal Server Error" });
-    }
-}
 
 /* Update User Profile */
 const updateUser = async(req, res)=>{
@@ -401,6 +400,13 @@ const updateUser = async(req, res)=>{
             return res.status(404).json({ msg: "User not found" });
         }
         logger.info({userId: id}, "User profile updated successfully");
+
+        const msg= {
+            to: user.email,
+            from: "teesha@thedigitaleconomist.com",
+            subject: "Profile Update Complete!",
+            html: profileUpdatedTemplate({name: user.FullName, profileUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`})
+        }
         return res.status(200).json({ user });
     }catch(err){
         logger.error({userId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error updating user profile");
@@ -464,14 +470,16 @@ export const enabledMFA = async (req, res) => {
     }
 
     /* ---------------- Email (fire-and-forget) ---------------- */
-    sendEmail({
-      to: user.email,
-      ...twoFAEnabledTemplate({
-        name: user.FullName,
-      }),
-    }).catch((err) =>
-      logger.error({userId: accountId, errorMsg: err.message}, "2FA enabled email failed")
-    );
+    const msg = {
+        to: user.email,
+        from:"teesha@thedigitaleconomist.com",
+        subject: "Successful MFA Setup",
+        html: mfaEnabledTemplate({name: user.FullName, dashboardUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`, supportEmail: "teeshadembla0509@gmail.com"})
+    }
+
+    sgMail.send(msg)
+    .then(()=> {console.log("MFA email successfully setup");})
+    .catch((error)=>{ console.error(error)});
 
     logger.info({userId: accountId}, "MFA enabled successfully");
     return res.status(200).json({
@@ -505,11 +513,21 @@ const forgotPassword = () => async (req, res) => {
     user.lastPasswordReset = new Date(resetAt);
     await user.save();
 
-    // Optional: Log security event
     logger.info({email, resetAt}, "Password reset logged successfully");
 
     // Optional: Send notification email to user
     // await sendPasswordResetConfirmationEmail(email);
+
+    const msg = {
+        to: email, 
+        from: "teesha@thedigitaleconomist.com",
+        subject: "Password Reset Successfully",
+        html: passwordChangedTemplate({name: user.FullName, loginUrl: "https//app.thedigitaleconomist.com/login", supportEmail:"teeshadembla0509@gmail.com"})
+    }
+
+    sgMail.send(msg)
+    .then(()=> {console.log("Password reset email sent")})
+    .catch((error)=>{console.error(error)})
 
     return res.status(200).json({ 
       success: true, 
@@ -525,4 +543,4 @@ const forgotPassword = () => async (req, res) => {
   }
 }
 
-export default {signup, login, getMe, logout, forgotPassword, getUserStats, getCoreTeamMembers, getFellows, updateUser, deleteUser, getUserById, enabledMFA};
+export default {signup, login, getMe, logout, forgotPassword, getUserStats, getCoreTeamMembers, updateUser, deleteUser, getUserById, enabledMFA};

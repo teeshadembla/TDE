@@ -1,7 +1,7 @@
 import express from "express";
 import {submitFellowProfile, loadDraftFellowProfile, adminGetOnboardingProfiles, approveFellowProfile, requestRevisionOnProfile, sendOnboardingReminder, getFellowProfileByUserId, getFellowProfileById} from "../Controllers/fellowProfileController.js";
 import { confirmUploadHeadshot, getPresignedUrlHeadshot, deleteHeadshot } from "../Controllers/onboardingController.js";
-import {fetchLeadership, fetchTeam} from "../Controllers/fellowProfileDataController.js";
+import {fetchLeadership, fetchTeam, fetchAllProfiles} from "../Controllers/fellowProfileDataController.js";
 import { uploadLimiter } from "../utils/Production/rateLimiter.js";
 import { fetchProfilesToReview, checkIfOnboarded } from "../Controllers/fellowProfileAdminController.js";
 import authenticateToken from "../Controllers/tokenControllers.js";
@@ -26,6 +26,8 @@ fellowProfileRouter.get('/getFellowProfile/:userId', authenticateToken, getFello
 /* Data fetching */
 fellowProfileRouter.get("/fetchLeadership", fetchLeadership);
 fellowProfileRouter.get("/fetchTeam", fetchTeam);
+
+fellowProfileRouter.get("/fetchAllProfiles", fetchAllProfiles);
 fellowProfileRouter.get('/:id', getFellowProfileById);
 
 export default fellowProfileRouter;

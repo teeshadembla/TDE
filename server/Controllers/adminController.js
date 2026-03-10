@@ -1,9 +1,7 @@
 import userModel from "../Models/userModel.js";
 import logger from "../utils/logger.js";
-import {
-  sendEmail,
-  accountApprovalTemplate,
-} from "../utils/NewEmail/index.js";
+import sgMail from "../utils/SendGrid/emailSetup.js";
+import {profileVerifiedTemplate} from "../utils/SendGrid/htmlTemplatesAdmin.js";
 
 
 /**
@@ -107,24 +105,16 @@ export const verifyUserByAdmin = async (req, res) => {
     user.verifiedAt = new Date();
     await user.save();
 
-    /* Fire-and-forget email dispatch to avoid blocking response */
-    /* if (shouldSendEmail) {
-      sendEmail({
-        to: user.email,
-        ...accountApprovalTemplate({
-          name: user.name || user.FullName,
-        }),
-      }).catch((err) =>
-        logger.error(
-        {
-          targetUserId: id,
-          errorMessage: err.message,
-          stack: err.stack
-        },
-        'Account approval email failed'
-      )
-      );
-    } */
+    const msg = {
+      to: user.email,
+      from: "teesha@thedigitaleconomist.com",
+      subject: "You Profile is now verified!",
+      html: profileVerifiedTemplate({name: user.FullName, dashboardUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`})
+    }
+
+    sgMail.send(msg)
+    .then(()=>{console.log("Verfied profile email send")})
+    .catch((error)=> {console.error(error)})
 
     logger.info({userid: id, verificationStatus: user.isVerifiedbyAdmin}, "User verified successfully by admin");
 

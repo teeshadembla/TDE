@@ -36,36 +36,64 @@ const ArrowIcon = () => (
     <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
-const SecondaryPublicationCard = ({ publication }) => (
-  <div className='w-full h-[375.2px]'>
-    <div className='flex flex-col bg-[linear-gradient(22deg,#0000,#1b2734),linear-gradient(124deg,#012a5a,#0000)] rounded-2xl justify-between w-full h-full p-6 no-underline'>
-      {/* Content */}
-      <div className='flex gap-4 items-start flex-col sm:flex-row'>
-        {/* Image */}
-        <div className='w-full sm:w-[180px] flex-shrink-0'>
-          <img 
-            className='w-full sm:w-[153.2px] h-auto sm:h-[216.613px] shadow-[0_86px_56px_-32px_#00000059,_-8px_12px_40px_#00000040,_0_24px_60px_-20px_#0003] object-cover' 
-            src={publication.image} 
-            alt={publication.title}
-            loading="lazy"
-          />
-        </div>
+import { useNavigate } from "react-router";
+
+const SecondaryPublicationCard = ({ publication }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className='w-full h-[375.2px]'>
+      <div className='flex flex-col bg-[linear-gradient(22deg,#0000,#1b2734),linear-gradient(124deg,#012a5a,#0000)] rounded-2xl justify-between w-full h-full p-6 no-underline'>
         
-        {/* Text Content */}
-        <div className='flex flex-col gap-3 flex-1'>
-          <PublicationBadge type={publication.type} />
-          <h4 className='text-white font-sans text-base font-semibold leading-[130%] no-underline'>
-            {publication.title}
-          </h4>
-          <PublicationMeta author={publication.author} date={publication.date} />
-          <p className='text-[#888] font-sans text-sm font-normal leading-[140%] overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]'>
-            {publication.description}
-          </p>
+        {/* Content */}
+        <div className='flex gap-4 items-start flex-col sm:flex-row'>
+          
+          {/* Image */}
+          <div className='w-full sm:w-[180px] flex-shrink-0'>
+            <img 
+              className='w-full sm:w-[153.2px] h-auto sm:h-[216.613px] shadow-[0_86px_56px_-32px_#00000059,_-8px_12px_40px_#00000040,_0_24px_60px_-20px_#0003] object-cover' 
+              src={publication.thumbnailUrl} 
+              alt={publication.title}
+              loading="lazy"
+            />
+          </div>
+          
+          {/* Text Content */}
+          <div className='flex flex-col gap-3 flex-1'>
+            <PublicationBadge type={publication.documentType} />
+
+            <h4 className='text-white font-sans text-base font-semibold leading-[130%]'>
+              {publication.title}
+            </h4>
+
+            <PublicationMeta
+              author={publication.Authors?.[0]?.FullName}
+              date={new Date(publication.publishingDate).toLocaleDateString(
+                "en-GB",
+                {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric"
+                }
+              )}
+            />
+
+            <p className='text-[#888] font-sans text-sm font-normal leading-[140%] overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]'>
+              {publication.description
+                ? publication.description.split(" ").slice(0, 60).join(" ") + "..."
+                : ""}
+            </p>
+          </div>
+
         </div>
+
+        <ReadNowButton
+          onClick={() => navigate(`/research-paper/${publication._id}`)}
+        />
+
       </div>
-      <ReadNowButton onClick={() => console.log(`Reading: ${publication.title}`)} />
     </div>
-  </div>
-);
+  );
+};
 
 export default SecondaryPublicationCard;

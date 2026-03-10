@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import HeroSection from "../../components/PracticeArea/HeroSection.jsx";
 import KeyThemesSection from "../../components/PracticeArea/KeyThemesSection.jsx";
 import MembersSections from "../../components/PracticeArea/MembersSections.jsx";
+import PublicationsSection from "../../components/PracticeArea/PublicationsSection.jsx";
+import Banner from "../../components/PracticeArea/Banner.jsx";
+import Footer from "../../components/Footer.jsx";
 import axiosInstance from "../../config/apiConfig.js";
 
 const PracticeAreaInfo = [
@@ -230,6 +233,8 @@ const PracticeAreaInfo = [
 
 const PracticeArea = () => {
   const [practiceArea, setPracticeArea] = useState();
+  const [members, setMembers] = useState([]);
+  const [publications,setPublications] = useState([]);
   const { id } = useParams();
 
   useEffect(() => {
@@ -246,6 +251,36 @@ const PracticeArea = () => {
 
     findAreaData();
   }, []);
+
+  //to fetch all public fellow profiles for this workgroup
+  useEffect(()=>{
+    const fetchMembersByWorkgroup = async () => {
+        try{
+            const res = await axiosInstance.post("/api/fellowship/getWorkgroupMembers", {workgroupId: id});
+            console.log(res.data.members[0].chairs);
+            setMembers(res?.data?.members[0]);
+
+        }catch(err){
+            console.log("This error is occurring while trying to fetch members for this workgroup",err);
+        }
+    }
+
+    fetchMembersByWorkgroup();
+  },[])
+
+  useEffect(()=>{
+    const fetchPublicationsByWorkgroup = async() => {
+        try{
+            const response = await axiosInstance.post("/api/fellowship/getWorkgroupPublications",{workgroupId: id});
+            console.log("These are the publications being fetched for this workgrou-->", response);
+            setPublications(response?.data?.publications);
+        }catch(err){
+            console.log("This error is occurring while trying to fetch publications for each workgroup--->", err);
+        }
+    }
+
+    fetchPublicationsByWorkgroup();
+  },[])
 
 
   // loading state first
@@ -264,6 +299,10 @@ const PracticeArea = () => {
         bgImg={practiceArea?.bgImg}
       />
       <KeyThemesSection keythemes={practiceArea?.keyThemes} />
+      <Banner workGroupId={id}/>
+      <MembersSections members={members?.users} chairs={members?.chairs}/>
+      <PublicationsSection publications={publications}/>
+      <Footer/>
     </>
   );
 };

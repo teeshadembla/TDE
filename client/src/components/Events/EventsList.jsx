@@ -7,8 +7,8 @@ import {toast }from "react-toastify";
 
 const EventsList = ({pastEvents}) =>{
     return(
-        <section id="pastEventsSection" className="block box-border bg-black text-[#333333] font-sans text-[14px] leading-5 px-[55px] w-full h-[3041.05px]">
-            <div id="container" className="flex flex-col flex-nowrap items-center justify-start box-border text-[#333333] font-sans text-[16px] leading-5 gap-x-5 gap-y-5 w-[1368.72] h-[3350.07px] px-[49.5px] py-[99px] m-0 max-w-none static">
+        <section id="pastEventsSection" className="block box-border bg-black text-[#333333] font-sans text-[14px] leading-5 px-[55px] w-full h-fit">
+            <div id="container" className="flex flex-col flex-nowrap items-center justify-start box-border text-[#333333] font-sans text-[16px] leading-5 gap-x-5 gap-y-5 w-[1368.72] h-fit px-[49.5px] py-[99px] m-0 max-w-none static">
                 
                 <div id="event-container-top" className="flex items-end justify-between box-border text-[#333333] font-sans text-[16px] leading-5 w-[1231.88px] h-[44.1625px]
 ">

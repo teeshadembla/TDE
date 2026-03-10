@@ -10,6 +10,8 @@ const ResearchDisplay = () => {
     const [workgroups, setWorkgroups] = useState([]);
     const [selectedWorkgroup, setSelectedWorkgroup] = useState('');
     const [selectedDocType, setSelectedDocType] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
     const navigate = useNavigate();
 
     const documentTypes = [
@@ -34,13 +36,10 @@ const ResearchDisplay = () => {
     const fetchPapers = async() => {
         try {
             const response = await axiosInstance.get("api/documents/getPapers");
-            console.log("Full API response:", response);
-            console.log("Response data:", response.data);
             
             // Handle different possible response structures
             const paperData = response.data?.data || response.data?.papers || response.data || [];
             
-            console.log("These are all of the research papers that have been retrieved--->", paperData);
             
             // Ensure it's an array before setting state
             if (Array.isArray(paperData)) {
@@ -53,7 +52,6 @@ const ResearchDisplay = () => {
             }
         
         } catch(err) {
-            console.log("This error occurred while trying to fetch all research papers from the backend.--->", err);
             setPapers([]);
             setFilteredPapers([]);
         }
@@ -86,18 +84,34 @@ const ResearchDisplay = () => {
 
     const handleWorkgroupChange = (e) => {
         setSelectedWorkgroup(e.target.value);
+        setCurrentPage(1); // Reset to first page when filter changes
     };
 
     const handleDocTypeChange = (e) => {
         setSelectedDocType(e.target.value);
+        setCurrentPage(1); // Reset to first page when filter changes
+    };
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredPapers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedPapers = filteredPapers.slice(startIndex, endIndex);
+
+    const handlePreviousPage = () => {
+        setCurrentPage(prev => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage(prev => Math.min(prev + 1, totalPages));
     };
 
     return (
-        <div id='publication-list' className='bg-[#000] p-0'>
-            <div id='publication-list wrapper' className='w-full max-w-[1092px] flex flex-col justify-center items-stretch gap-x-16 gap-y-16 mx-auto px-0 p-0 relative'>
-                <div id='publication-list-top' className='flex flex-col justify-between items-start gap-x-[40px] gap-y-[40px]'>
-                    <h4 className='text-white font-sans text-[32px] ml-[105px] my-10 font-semibold'>All Articles</h4>
-                    <div className='flex justify-end items-stretch w-full gap-x-4 gap-y-4 px-4'>
+        <div id='publication-list' className='bg-[#000] p-0 flex jutsify-center w-full items-center'>
+            <div id='publication-list wrapper' className='w-full max-w-[1092px] flex flex-col justify-center items-center gap-x-16 gap-y-16 mx-auto px-0 p-0 relative'>
+                <div id='publication-list-top' className='flex flex-col justify-between items-start gap-x-[40px] gap-y-[40px] w-[1200px]'>
+                    <h4 className='text-white font-sans text-[32px] my-10 font-semibold'>All Publications</h4>
+                    <div className='flex justify-end items-stretch w-full gap-x-4 gap-y-4 pl-4'>
                         <div id='filter-workgroup' className='flex flex-col gap-x-1 gap-y-1 border-[0.8px] border-black'>
                             <select
                                 value={selectedWorkgroup}
@@ -130,21 +144,42 @@ const ResearchDisplay = () => {
                         </div>
                     </div>
                 </div>
-                <div id='publication-list-bottom' className='flex justify-center'>
-                    <div id='w-dyn-list' className='w-[894px] min-h-[1249.8px]'>
+                <div id='publication-list-bottom' className='flex flex-col justify-center gap-y-6'>
+                    <div id='w-dyn-list' className='w-[1200px] min-h-[1249.8px]'>
                         <div id='list' className='grid gap-x-4 gap-y-4 grid-rows-[auto_auto] grid-cols-2 auto-cols-fr'>
-                            {filteredPapers?.map((paper) => (
+                            {paginatedPapers?.map((paper) => (
                                 <div className='cursor-pointer align-middle' onClick={() => navigate(`/research-paper/${paper._id}`)} key={paper._id}>
                                     <ResearchItem paper={paper}/>
                                 </div>
                             ))}
                         </div>
-                        {filteredPapers?.length === 0 && (
+                        {paginatedPapers?.length === 0 && (
                             <div className='text-white text-center py-8'>
                                 No papers found matching the selected filters.
                             </div>
                         )}
                     </div>
+                    {totalPages > 1 && (
+                        <div className='flex justify-center items-center gap-x-4 mt-8'>
+                            <button
+                                onClick={handlePreviousPage}
+                                disabled={currentPage === 1}
+                                className='px-6 py-2 bg-[#105ABD] text-white rounded-[4px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0d4a94] transition-colors'
+                            >
+                                Previous
+                            </button>
+                            <span className='text-white font-medium'>
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={handleNextPage}
+                                disabled={currentPage === totalPages}
+                                className='px-6 py-2 bg-[#105ABD] text-white rounded-[4px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0d4a94] transition-colors'
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

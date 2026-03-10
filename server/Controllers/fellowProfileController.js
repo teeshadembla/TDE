@@ -3,10 +3,9 @@ import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.j
 import mongoose from "mongoose";
 import userModel from "../Models/userModel.js";
 import logger from "../utils/logger.js";
-import { sendApplicationSubmissionEmail, handleFellowProfileUpdate } from "../utils/sendMail.js";
 import {generateSignedUrlForViewing} from "./onboardingController.js";
-import { sendEmail, fellowProfileUpdateTemplate } from "../utils/NewEmail/index.js";
-
+import {profileAcceptedTemplate, profileRevisionRequestedTemplate, profileSubmittedTemplate} from "../utils/SendGrid/htmlTemplatesOnboarding.js";
+import sgMail from "../utils/SendGrid/emailSetup.js";
 
 /**
  * @route   GET /api/fellow-profile/:registrationId
@@ -263,16 +262,16 @@ export const approveFellowProfile = async (req, res) => {
     /* Fire-and-forget email dispatch */
     const user = await userModel.findById(profile.userId);
 
-    /* sendEmail({
-      to: user.email,
-      ...fellowProfileUpdateTemplate({
-        name: user.FullName,
-        fellowProfileName: profile.displayName,
-        status: "APPROVED",
-      }),
-    }).catch((err) =>
-      logger.error({profileId, userId: profile.userId, errorMsg: err.message}, "Fellow profile approval email failed")
-    ); */
+    const msg = {
+      to: user.email, 
+      from: "teesha@thedigitaleconomist.com",
+      subject: "Onboarding Successful!",
+      html: profileAcceptedTemplate({name: user.FullName, dashboardUrl: "", slackInviteUrl: "", supportEmail:"teeshadembla0509@gmail.com"})
+    }
+
+    sgMail.send(msg)
+    .then(()=> console.log("Profile Onboarded Email"))
+    .catch((err)=> console.error(err))
 
     logger.info({profileId, adminId, userId: profile.userId}, "Fellow profile approved successfully");
     return res.status(200).json({ message: "Profile approved successfully" });
@@ -321,16 +320,16 @@ export const approveFellowProfile = async (req, res) => {
 
         const user = await userModel.findById(profile.userId);
 
-       /*  sendEmail({
-          to: user.email,
-          ...fellowProfileUpdateTemplate({
-            name: user.FullName,
-            fellowProfileName: profile.name,
-            status: "REVIEW_NEEDED",
-          }),
-        }).catch(err => {
-          logger.error({profileId, userId: profile.userId, errorMsg: err.message}, "Fellow profile revision email failed");
-        }); */
+       const msg = {
+        to: user.email, 
+        from: "teesha@thedigitaleconomist.com",
+        subject: "Revision suggested by Admin for Onboarding.",
+        html: profileRevisionRequestedTemplate({name: user.FullName,profileName: user.FullName, comments: comments, editProfileUrl: `https://app.thedigitaleconomist.com/onboarding/${user._id}`,  supportEmail:"teeshadembla0509@gmail.com"})
+      }
+
+      sgMail.send(msg)
+      .then(()=> console.log("Profile Onboarded Email"))
+      .catch((err)=> console.error(err))
 
         logger.info({profileId, adminId, userId: profile.userId}, "Revision requested successfully");
         return res.status(200).json({ message: 'Revision requested successfully' });
@@ -576,16 +575,17 @@ export const submitFellowProfile = async (req, res) => {
     /* Fire-and-forget email dispatch */
     const user = await userModel.findById(userId);
 
-   /*  sendEmail({
+    const msg = {
       to: user.email,
-      ...fellowProfileUpdateTemplate({
-        name: user.FullName,
-        fellowProfileName: profile.displayName,
-        status: "SUBMITTED",
-      }),
-    }).catch((err) =>
-      logger.error({userId, profileId: profile._id, errorMsg: err.message}, "Fellow profile submitted email failed")
-    );  */
+      from: "teesha@thedigitaleconomist.com",
+      subject: "Profile Submitted Successfully",
+      html: profileSubmittedTemplate({name: user.FullName, profileName: user.FullName, dashboardUrl :`https://app.thedigitaleconomist/${user.role}/profile`, supportEmail: "teeshadembla0509@gmail.com"})
+    }
+
+    sgMail.send(msg)
+    .then(()=>{console.log("Profile Submitted Email Sent")})
+    .catch((err)=>{console.error(err)})
+   
 
     return res.status(200).json(responseData);
   } catch (err) {

@@ -100,11 +100,6 @@ const ApplicationForm = ({ onClose }) => {
       }
     }
     
-    if (!formData.commitment) {
-      toast.error('Please accept the commitment requirement.');
-      return false;
-    }
-    
     const linkedinRegex = /^https:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/;
     if (!linkedinRegex.test(formData.linkedin)) {
       toast.error('Please enter a valid LinkedIn profile URL.');
@@ -381,20 +376,7 @@ const ApplicationForm = ({ onClose }) => {
                   </div>
                 </div>
 
-                {/* Commitment */}
-                <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                  <input
-                    type="checkbox"
-                    id="commitment"
-                    checked={formData.commitment}
-                    onChange={(e) => !isSubmitting && setFormData(prev => ({ ...prev, commitment: e.target.checked }))}
-                    disabled={isSubmitting}
-                    className="mt-1 w-5 h-5 text-black focus:ring-black border-gray-300 rounded disabled:opacity-50"
-                  />
-                  <label htmlFor="commitment" className={`text-sm text-gray-700 leading-relaxed ${!isSubmitting ? 'cursor-pointer' : 'cursor-default'}`}>
-                    I understand and commit to the minimum 30-hour annual requirement and agree to actively participate in fellowship activities and workgroup sessions.
-                  </label>
-                </div>
+              
 
                 {/* Information Box */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
