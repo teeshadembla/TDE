@@ -136,13 +136,13 @@ const DesktopHeader = ({practiceAreaOpen,practiceAreaOptions, handleNavClick, ex
                         Events
                     </a>
                     
-                    <a 
+                   {/*  <a 
                         href="/news" 
                         className='text-white dmsans-text hover:text-gray-300 transition-colors font-medium cursor-pointer'
                         onClick={(e) => { e.preventDefault(); handleNavClick('/news'); }}
                     >
                         News
-                    </a>
+                    </a> */}
                 </nav>
 
                 {/* Right side - Auth buttons and Fellowship Application */}

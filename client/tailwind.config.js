@@ -9,6 +9,7 @@ export default {
       fontFamily: {
         montserrat: ['Montserrat', 'sans-serif'],
         dmsans : ['DM Sans', 'sans-serif'],
+        jakarta: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
       keyframes: {
         scrollUp: {

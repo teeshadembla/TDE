@@ -66,6 +66,10 @@ const researchPaperSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workgroup',
   }],
+  embedding: {
+  type: [Number],
+  default: null
+},
   Authors: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

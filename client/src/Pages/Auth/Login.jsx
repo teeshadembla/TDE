@@ -18,7 +18,7 @@ const Login = () => {
   const navigate = useNavigate();
   const {account, setAccount} = useContext(DataProvider.DataContext);
   const [searchParams] = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/";
+  const redirectPath = searchParams.get("redirect") || "/new-landing";
   const { isSignedIn} = useUser();
   const { signIn , isLoaded} = useSignIn();
   const {setActive} = useClerk();

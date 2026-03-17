@@ -1,5 +1,6 @@
 import express from 'express';
 import userController from '../Controllers/userController.js';
+import {personalizedData} from "../Controllers/personalizedDataController.js"; 
 import authenticateToken from '../Controllers/tokenControllers.js';
 import {getUsersByWorkgroup} from "../Controllers/workgroupController.js";
 import { uploadProfilePicture } from '../utils/multerConfig.js';
@@ -31,5 +32,8 @@ userRouter.post("/enabledMFA", authenticateToken, userController.enabledMFA);
 userRouter.get("/get2FADetails/:id", authenticateToken, userController.getUserById);
 
 userRouter.post("/forgot-password", userController.forgotPassword);
+
+/* Getting personalized highlights for new login environment */
+userRouter.get("/highlights/personalized", personalizedData);
 
 export default userRouter;

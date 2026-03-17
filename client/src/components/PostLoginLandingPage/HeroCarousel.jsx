@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu } from 'lucide-react';
-import { ArrowRight } from 'lucide-react';
-import Logo from '../../components/Logo.jsx';
-import ProfileDrawer from '../../components/ProfileDrawer.jsx';
 import axiosInstance from '../../config/apiConfig.js';
+import NewHeader from '../NewHeader.jsx';
 
 // ─── Brand Tokens ─────────────────────────────────────────────────────────────
 const B = {
@@ -26,109 +23,6 @@ const B = {
 
 const SLIDE_INTERVAL = 8000; // 8 seconds
 
-// ─── PostLoginNavbar ───────────────────────────────────────────────────────────
-const PostLoginNavbar = ({ onHamburgerClick }) => {
-  const navigate = useNavigate();
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        zIndex: 30,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* Blue announcement bar */}
-      <div
-        style={{
-          width: '100%',
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: `linear-gradient(to right, ${B.blue}, ${B.blue2nd})`,
-          color: '#fff',
-          fontSize: 12.5,
-          fontFamily: 'Montserrat, sans-serif',
-        }}
-      >
-        <a
-          href="https://docsend.com/view/8ken6c6i84m8bwcu"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            color: '#fff',
-            textDecoration: 'none',
-            gap: 4,
-          }}
-          onMouseEnter={e => e.currentTarget.querySelector('span').style.textDecoration = 'underline'}
-          onMouseLeave={e => e.currentTarget.querySelector('span').style.textDecoration = 'none'}
-        >
-          <span>Join The Institutional Research Network.</span>
-          <ArrowRight size={16} strokeWidth={1.5} />
-        </a>
-      </div>
-
-      {/* Main transparent nav — padded to 5% to align with text block */}
-      <div
-        style={{
-          width: '100%',
-          height: 72,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingLeft: '5%',
-          paddingRight: '5%',
-          marginTop: 10,
-          background: 'transparent',
-          boxSizing: 'border-box',
-        }}
-      >
-        {/* Hamburger — left, aligned to 5% edge */}
-        <button
-          onClick={onHamburgerClick}
-          aria-label="Open menu"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            padding: 6,
-            borderRadius: 6,
-            transition: 'background 0.15s',
-            flexShrink: 0,
-          }}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-        >
-          <Menu size={24} strokeWidth={1.8} />
-        </button>
-
-        {/* Logo — centered absolutely so it doesn't affect flex spacing */}
-        <div
-          onClick={() => navigate('/')}
-          style={{
-            cursor: 'pointer',
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <Logo />
-        </div>
-
-        {/* Profile — right, aligned to 5% edge */}
-        <ProfileDrawer />
-      </div>
-    </div>
-  );
-};
 
 // ─── SlideContent ──────────────────────────────────────────────────────────────
 const SlideContent = ({ slide, isActive, direction }) => {
@@ -333,15 +227,16 @@ const HeroCarousel = ({ onHamburgerClick }) => {
   const timerRef                    = useRef(null);
 
   // ── Fetch highlights from API ──────────────────────────────────────────────
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchHighlights = async () => {
       try {
         setLoading(true);
         // PLACEHOLDER ENDPOINT — replace with actual endpoint
-        const res = await axiosInstance.get('/api/highlights/personalized');
-        const data = res.data.data;
+        const res = await axiosInstance.get('/api/user/highlights/personalized');
+        console.log("Response of personalized data --->", res.data);
+        /* const data = res.data.data;
         // Use API data if available, otherwise fall back to static slides
-        setSlides(data && data.length > 0 ? data : FALLBACK_SLIDES);
+        setSlides(data && data.length > 0 ? data : FALLBACK_SLIDES); */
       } catch (err) {
         console.error('Failed to fetch highlights, using fallback:', err);
         setSlides(FALLBACK_SLIDES);
@@ -350,7 +245,7 @@ const HeroCarousel = ({ onHamburgerClick }) => {
       }
     };
     fetchHighlights();
-  }, []); */
+  }, []);
 
   // ── Auto-advance ───────────────────────────────────────────────────────────
   const advance = useCallback(() => {
@@ -378,7 +273,7 @@ const HeroCarousel = ({ onHamburgerClick }) => {
           justifyContent: 'center',
         }}
       >
-        <PostLoginNavbar onHamburgerClick={onHamburgerClick} />
+
         <div
           style={{
             width: 40,
@@ -416,8 +311,6 @@ const HeroCarousel = ({ onHamburgerClick }) => {
         />
       ))}
 
-      {/* Navbar — sits above slides */}
-      <PostLoginNavbar onHamburgerClick={onHamburgerClick} />
 
       {/* Dot indicators */}
       <div

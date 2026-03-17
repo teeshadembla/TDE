@@ -543,4 +543,6 @@ const forgotPassword = () => async (req, res) => {
   }
 }
 
+
+
 export default {signup, login, getMe, logout, forgotPassword, getUserStats, getCoreTeamMembers, updateUser, deleteUser, getUserById, enabledMFA};

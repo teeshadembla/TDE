@@ -1,7 +1,6 @@
 // File: src/App.jsx
 import './App.css';
 import HomePage from './Pages/HomePage.jsx'; 
-import Header from './components/Header.jsx';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -46,7 +45,8 @@ import AdminSettings from './components/AdminProfile/AdminSettings.jsx';
 import AccountSettings from "./Pages/AccountSettings/AccountSettingsPage.jsx";
 import IndividualEventsPage from './components/Events/IndicidualEventsPage.jsx';
 import RolePermissions from './Pages/RolePermissions/RolePermissions.jsx';
-import HeroCarousel from './Pages/PostLoginLandingPage/HeroCarousel.jsx';
+import PostLoginLandingPage from './Pages/PostLoginLandingPage/PostLoginLandingPage.jsx';
+import HeaderSwitcher from './components/HeaderSwitcher.jsx';
 
 function ProtectedRoute({ children, authLoading}) {
   const {account, setAccount} = useContext(DataProvider.DataContext);
@@ -126,7 +126,7 @@ function App() {
   return (
     <HeaderCollapseProvider>
       <BrowserRouter>
-        <Header/>
+        <HeaderSwitcher/>
         <AppContent authLoading={authLoading} />
         <ToastContainer position="top-right" autoClose={3000}/>
       </BrowserRouter>
@@ -137,40 +137,47 @@ function App() {
 function AppContent({ authLoading }) {
   const { headerCollapsed } = useContext(HeaderCollapseContext);
   const location = useLocation();
+  const {isSignedIn} = useAuth();
   const isAdminProfile = location.pathname === '/admin/profile';
+
+  const PUBLIC_HEADER_HEIGHT = 180;
+  const PRIVATE_HEADER_HEIGHT = 0; // because it's overlay (transparent)
+
+  const paddingTop = isSignedIn
+    ? PRIVATE_HEADER_HEIGHT
+    : (isAdminProfile && headerCollapsed ? 110 : PUBLIC_HEADER_HEIGHT);
+
 
   return (
     <div 
       className="App font-montserrat m-0 p-0"
       style={{
-        paddingTop: isAdminProfile && headerCollapsed ? '110px' : '200px'
+        paddingTop
       }}
     >
           <Routes>
-            <Route path='/' element={<HomePage/>}></Route>
-            <Route path='/about' element={<AboutUs/>}></Route>
+          *<Route path='/' element={<HomePage/>}></Route>
+            *<Route path='/about' element={<AboutUs/>}></Route>
             {/* ---------------------------------------------------------------------------------------------------------------------------------- */}
 
             {/* Authentication elements */}
-            <Route path='/login' element={<Login/>}></Route>
-            <Route path='/signup' element={<Signup/>}></Route>
-            <Route path='/forgot-password' element={<ForgotPassword/>}></Route>
-            <Route path="/setup-2fa" element={<Setup2FA />} />
+            *<Route path='/login' element={<Login/>}></Route>
+            *<Route path='/signup' element={<Signup/>}></Route>
+            *<Route path='/forgot-password' element={<ForgotPassword/>}></Route>
+            *<Route path="/setup-2fa" element={<Setup2FA />} />
             {/* ----------------------------------------------------------------------------------------------------------------------------------- */}
           
             {/* Events Dashboard */}
             
-              <Route path='/events' element={<EventsDashboard/>}></Route>
+              *<Route path='/events' element={<EventsDashboard/>}></Route>
 
             {/* Profile Dahsboard */}
-              <Route path='/user/profile' element={<UserRoute><ProfileDashboard/></UserRoute>}></Route>  
+              
+              *<Route path='/user/profile' element={<UserRoute><ProfileDashboard/></UserRoute>}></Route>  
               <Route path='/admin/profile' element={<AdminRoute><AdminProfile/></AdminRoute>}></Route>     
 
             {/* Executive Fellowships */}
-              <Route path='/execFellowship' element={<ExecutiveFellowship authLoading={authLoading}/>}></Route>
-
-            {/* Center For Excellence */}
-              <Route path='/centreForExcellence' element={<CenterForExcellence/>}></Route>
+              *<Route path='/execFellowship' element={<ExecutiveFellowship authLoading={authLoading}/>}></Route>
 
               {/* Community Page */}
               <Route path='/community' element={<CommunityPage/>}></Route>
@@ -188,9 +195,9 @@ function AppContent({ authLoading }) {
 
               {/* Practice Area dynamic pages */}
               <Route path='/practice/:id' element={<PracticeArea/>}></Route>
-
+{/* 
               <Route path='/news' element={<NewsPage/>}></Route>
-              <Route path='/news/:articleId' element={<ArticlePage/>}></Route>
+              <Route path='/news/:articleId' element={<ArticlePage/>}></Route> */}
 
               <Route path='/doc-upload' element={<ResearchPaperUploadForm/>}></Route>
 
@@ -204,9 +211,9 @@ function AppContent({ authLoading }) {
               <Route path='/settings/*' element={<AccountSettings/>}/>
               <Route path='/events/:id' element={<IndividualEventsPage/> }/>
 
-              <Route path='/admin/roles' element={<RolePermissions/>}/>{/* 
+              <Route path='/admin/roles' element={<RolePermissions/>}/>
 
-              <Route path='/new-landing' element={<HeroCarousel onHamburgerClick={()=> console.log("Click")}/>}/> */}
+              <Route path='/new-landing' element={<PostLoginLandingPage/>}/>
             </Routes>
           </div>
     );

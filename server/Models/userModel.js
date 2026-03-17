@@ -83,6 +83,10 @@ const userSchema = mongoose.Schema({
         maxlength: 100,
         default: null,
     },
+    interestEmbedding: {
+        type: [Number],
+        default: null
+    },
     department: {
         type: String,
         maxlength: 100,

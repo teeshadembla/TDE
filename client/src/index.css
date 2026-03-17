@@ -3,8 +3,13 @@
 @import "tailwindcss";
 
 
-body, .montserrat-text {
+
+.montserrat-text {
   font-family: 'Montserrat', sans-serif;
+}
+
+body,.jakarta-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 #italic-subheader-events-dark , #heading-35, .dmsans-text{
@@ -33,4 +38,12 @@ body, .montserrat-text {
 .animate-scroll-up-delayed {
   animation: scrollUp 20s linear infinite;
   animation-delay: -10s; 
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }

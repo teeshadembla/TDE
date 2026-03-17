@@ -39,6 +39,10 @@ const eventsSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workgroup",
     }],
+    embedding: {
+        type: [Number],
+        default: null
+    },
     slackLink:{
         type:String,
     },

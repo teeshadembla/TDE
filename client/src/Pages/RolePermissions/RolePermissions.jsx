@@ -357,7 +357,7 @@ const RolePermissions = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#080808', display: 'flex', flexDirection: 'column' }}>
+    <div className='pt-[100px]' style={{ minHeight: '100vh', backgroundColor: '#080808', display: 'flex', flexDirection: 'column' }}>
 
       {/* Top bar */}
       <div style={{
