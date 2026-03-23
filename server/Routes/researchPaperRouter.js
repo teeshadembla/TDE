@@ -11,21 +11,33 @@ import {
   markUploadFailed,
   getAllPapers,
   findSimilarPapers,
-  getFeaturedPublication
+  getFeaturedPublication,
+  trackView,
+  trackShare,
+  getAnalytics,
 } from '../Controllers/researchPaperController.js';
 import {uploadLimiter} from '../utils/Production/rateLimiter.js';
 import authenticateToken from '../Controllers/tokenControllers.js';
+import requirePermission from '../middleware/requirePermission.js';
 
 const researchPaperRouter = express.Router();
 
-researchPaperRouter.post('/presigned-url', uploadLimiter,authenticateToken, getPresignedUrl);
+researchPaperRouter.post('/presigned-url', uploadLimiter,authenticateToken, requirePermission("manage_publications"), getPresignedUrl);
 researchPaperRouter.post('/confirm-upload', authenticateToken, confirmUpload);
 researchPaperRouter.get('/getPapers', getAllPapers);
 researchPaperRouter.get('/', authenticateToken, getUserDocuments);
 researchPaperRouter.get('/getPaperById/:id', getDocument);
-researchPaperRouter.get('/:id/view-url', authenticateToken, getViewUrl);       
-researchPaperRouter.get('/:id/download-url', authenticateToken, getDownloadUrl); 
-researchPaperRouter.delete('/:id', authenticateToken, deleteDocument);
+researchPaperRouter.post('/:id/track-view',  trackView);
+researchPaperRouter.post('/:id/track-share', authenticateToken, trackShare);
+researchPaperRouter.get(
+  '/:id/analytics',
+  authenticateToken,
+  requirePermission('view_publication_analytics'),
+  getAnalytics
+);
+researchPaperRouter.get('/:id/view-url' ,getViewUrl);       
+researchPaperRouter.get('/:id/download-url', authenticateToken, requirePermission("download_publication"), getDownloadUrl); 
+researchPaperRouter.delete('/:id', authenticateToken, requirePermission("manage_publications"), deleteDocument);
 researchPaperRouter.post('/mark-failed', authenticateToken, markUploadFailed);
 researchPaperRouter.get("/:id/similar", findSimilarPapers );
 

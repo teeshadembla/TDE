@@ -4,7 +4,10 @@ import './index.css'
 import App from './App.jsx'
 import DataProvider from "./context/DataProvider.jsx";
 import {ClerkProvider} from '@clerk/clerk-react';
-
+import { PermissionProvider } from './context/PermissionProvider.jsx';
+import { pdfjs } from 'react-pdf';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!CLERK_PUBLISHABLE_KEY) {
@@ -15,7 +18,9 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
     <DataProvider.DataProvider>
+      <PermissionProvider>
       <App />
+      </PermissionProvider>
     </DataProvider.DataProvider>
     </ClerkProvider>
   </StrictMode>,

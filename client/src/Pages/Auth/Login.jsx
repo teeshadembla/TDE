@@ -18,7 +18,17 @@ const Login = () => {
   const navigate = useNavigate();
   const {account, setAccount} = useContext(DataProvider.DataContext);
   const [searchParams] = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/new-landing";
+  const redirectParam = searchParams.get("redirect");
+
+const authPaths = ["/login", "/signup", "/forgot-password"];
+
+const redirectPath =
+  redirectParam && !authPaths.includes(redirectParam)
+    ? redirectParam
+    : "/just-for-you";
+
+  console.log("redirectParam:", redirectParam);
+console.log("redirectPath:", redirectPath);
   const { isSignedIn} = useUser();
   const { signIn , isLoaded} = useSignIn();
   const {setActive} = useClerk();
@@ -102,7 +112,7 @@ const Login = () => {
     if (result.status === "complete") {
       await setActive({ session: result.createdSessionId });
       toast.success("Logged in successfully!");
-      navigate(redirectPath);
+      window.location.href = redirectPath; // hard redirect, bypasses React Router
     }
 
   } catch (err) {
@@ -130,7 +140,7 @@ const Login = () => {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         toast.success("2FA verified! Logged in successfully!");
-        navigate(redirectPath);
+        window.location.href = redirectPath;
       }
 
     } catch (err) {

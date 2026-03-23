@@ -4,10 +4,32 @@ import { Menu, ArrowRight } from "lucide-react";
 import Logo from "./Logo.jsx";
 import ProfileDrawer from "./ProfileDrawer.jsx";
 import HamburgerMenu from "./HamburgerMenu.jsx";
+import { useEffect } from "react";
+import axiosInstance from "../config/apiConfig.js";
 
 const NewHeader = () => {
   const navigate = useNavigate();
+  const [menuContent, setMenuContent] = useState();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(()=>{
+    const fetchHighlights = async() =>{
+      try{
+        const res = await axiosInstance.get("/api/user/highlights/personalized");
+        const content = [
+                res?.data?.upcomingEvents?.[1],
+                res?.data?.publications?.[1]
+            ].filter(Boolean);
+
+            setMenuContent(content);
+
+      }catch(err){
+        console.log("This error is occurring while trying to fetch personalized highlights");
+      }
+    }
+
+    fetchHighlights();
+  },[])
 
   const B = {
     textInverse:     "#161616",
@@ -135,7 +157,7 @@ const NewHeader = () => {
       </div>
 
       {/* HamburgerMenu rendered outside header so it overlays the full page */}
-      <HamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+      <HamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} data={menuContent}/>
     </>
   );
 };

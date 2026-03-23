@@ -40,12 +40,6 @@ const userSchema = mongoose.Schema({
         ref: "Membership",
         default: null
     },
-    // For organizational members
-    organization: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Organization",
-        default: null
-    },
     workGroupId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workgroup",
@@ -139,7 +133,11 @@ const userSchema = mongoose.Schema({
     stripeCustomerId: {
         type: String,
         default: null
-    }
+    },
+    stripePaymentMethodId: {        
+        type: String,
+        default: null
+    },
 }, { timestamps: true })
 
 userSchema.index({ email: 1 });

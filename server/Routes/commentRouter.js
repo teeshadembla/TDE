@@ -1,10 +1,11 @@
 import commentsController from "../Controllers/commentsController.js";
 import express from "express";
+import authenticateToken from "../Controllers/tokenControllers.js";
 
 const commentRouter = express.Router();
 
-commentRouter.post("/addComment", commentsController.addCommentOnPost);
-commentRouter.patch("/updateComment/:commentId", commentsController.updateCommentOnPost);
-commentRouter.delete("/deleteComment/:commentId", commentsController.deleteComment);
+commentRouter.post("/addComment", authenticateToken ,commentsController.addCommentOnPost);
+commentRouter.patch("/updateComment/:commentId", authenticateToken,commentsController.updateCommentOnPost);
+commentRouter.delete("/deleteComment/:commentId", authenticateToken, commentsController.deleteComment);
 
 export default commentRouter;

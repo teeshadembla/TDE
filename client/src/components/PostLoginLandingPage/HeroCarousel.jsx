@@ -25,8 +25,10 @@ const SLIDE_INTERVAL = 8000; // 8 seconds
 
 
 // ─── SlideContent ──────────────────────────────────────────────────────────────
-const SlideContent = ({ slide, isActive, direction }) => {
+const SlideContent = ({ slide, isActive, direction, number }) => {
   const [mounted, setMounted] = useState(false);
+  const [image, setImage] = useState();
+  const [redirectLink, setRedirectLink] = useState("/");
 
   useEffect(() => {
     if (isActive) {
@@ -37,6 +39,20 @@ const SlideContent = ({ slide, isActive, direction }) => {
       setMounted(false);
     }
   }, [isActive]);
+
+  useEffect(()=>{
+    const setContent = () =>{
+      if(number === 0){
+        setImage(slide?.image?.url);
+        setRedirectLink(`/events/${slide?._id}`);
+      }else{
+        setImage(slide?.thumbnailUrl);
+        setRedirectLink(`/research-paper/${slide?._id}`);
+      }
+    }
+
+    setContent();
+  })
 
   return (
     <div
@@ -59,7 +75,7 @@ const SlideContent = ({ slide, isActive, direction }) => {
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: `url(${slide.imageUrl})`,
+          backgroundImage: `url(${image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -105,8 +121,8 @@ const SlideContent = ({ slide, isActive, direction }) => {
           position: 'absolute',
           inset: 0,
           display: 'flex',
-          alignItems: 'flex-end',
-          padding: '0 5% 60px',
+          alignItems: 'center',
+          padding: '0 5%',
           zIndex: 3,
         }}
       >
@@ -135,13 +151,12 @@ const SlideContent = ({ slide, isActive, direction }) => {
                 border: '1px solid rgba(255,255,255,0.75)',
                 borderRadius: 999,
                 fontSize: 12,
-                fontFamily: 'Montserrat, sans-serif',
                 fontWeight: 500,
                 color: '#fff',
                 letterSpacing: '0.03em',
               }}
             >
-              Highlight
+              {number===0 ? "Event" : "Publication"}
             </span>
             <span
               style={{
@@ -151,7 +166,6 @@ const SlideContent = ({ slide, isActive, direction }) => {
                 color: 'rgba(255,255,255,0.8)',
               }}
             >
-              {slide.category}
             </span>
           </div>
 
@@ -159,8 +173,7 @@ const SlideContent = ({ slide, isActive, direction }) => {
           <h2
             style={{
               margin: '0 0 24px',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
+              fontWeight: 400,
               fontSize: 'clamp(22px, 2.4vw, 36px)',
               color: '#fff',
               lineHeight: 1.25,
@@ -170,9 +183,22 @@ const SlideContent = ({ slide, isActive, direction }) => {
             {slide.title}
           </h2>
 
+          <h5
+            style={{
+              margin: '0 0 24px',
+              fontWeight: 400,
+              fontSize: 'clamp(22px, 2.4vw, 20px)',
+              color: '#fff',
+              lineHeight: 1.25,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {slide.subtitle}
+          </h5>
+
           {/* Learn More button */}
           <a
-            href={slide.link || '#'}
+            href={redirectLink || '#'}
             style={{
               display: 'inline-block',
               padding: '10px 24px',
@@ -198,27 +224,11 @@ const SlideContent = ({ slide, isActive, direction }) => {
   );
 };
 
-// ─── Fallback Slides ──────────────────────────────────────────────────────────
-const FALLBACK_SLIDES = [
-  {
-    _id:      'fallback-1',
-    imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1920&q=80',
-    category: 'Publication',
-    title:    'AI in Healthcare is Reshaping Clinical Decision Making Across the Globe',
-    link:     '/publications',
-  },
-  {
-    _id:      'fallback-2',
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1920&q=80',
-    category: 'Event',
-    title:    'The Future of Renewable Energy is Driving the Next Industrial Revolution',
-    link:     '/events',
-  },
-];
+
 
 // ─── HeroCarousel ──────────────────────────────────────────────────────────────
-const HeroCarousel = ({ onHamburgerClick }) => {
-  const [slides, setSlides]         = useState(FALLBACK_SLIDES);
+const HeroCarousel = ({ onHamburgerClick, slideContent }) => {
+  const slides       = slideContent;
   const [current, setCurrent]       = useState(0);
   const [prev, setPrev]             = useState(null);
   const [direction, setDirection]   = useState('next');
@@ -226,40 +236,19 @@ const HeroCarousel = ({ onHamburgerClick }) => {
   const [paused, setPaused]         = useState(false);
   const timerRef                    = useRef(null);
 
-  // ── Fetch highlights from API ──────────────────────────────────────────────
-  useEffect(() => {
-    const fetchHighlights = async () => {
-      try {
-        setLoading(true);
-        // PLACEHOLDER ENDPOINT — replace with actual endpoint
-        const res = await axiosInstance.get('/api/user/highlights/personalized');
-        console.log("Response of personalized data --->", res.data);
-        /* const data = res.data.data;
-        // Use API data if available, otherwise fall back to static slides
-        setSlides(data && data.length > 0 ? data : FALLBACK_SLIDES); */
-      } catch (err) {
-        console.error('Failed to fetch highlights, using fallback:', err);
-        setSlides(FALLBACK_SLIDES);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHighlights();
-  }, []);
-
   // ── Auto-advance ───────────────────────────────────────────────────────────
   const advance = useCallback(() => {
-    if (slides.length < 2) return;
+    if (slides?.length < 2) return;
     setDirection('next');
     setPrev(current);
-    setCurrent(c => (c + 1) % slides.length);
-  }, [current, slides.length]);
+    setCurrent(c => (c + 1) % slides?.length);
+  }, [current, slides?.length]);
 
   useEffect(() => {
-    if (paused || slides.length < 2) return;
+    if (paused || slides?.length < 2) return;
     timerRef.current = setInterval(advance, SLIDE_INTERVAL);
     return () => clearInterval(timerRef.current);
-  }, [advance, paused, slides.length]);
+  }, [advance, paused, slides?.length]);
 
   if (loading) {
     return (
@@ -302,9 +291,10 @@ const HeroCarousel = ({ onHamburgerClick }) => {
       onMouseLeave={() => setPaused(false)}
     >
       {/* Slides */}
-      {slides.map((slide, i) => (
+      {slides?.map((slide, i) => (
         <SlideContent
           key={slide._id || i}
+          number={i}
           slide={slide}
           isActive={i === current}
           direction={direction}
@@ -323,7 +313,7 @@ const HeroCarousel = ({ onHamburgerClick }) => {
           zIndex: 20,
         }}
       >
-        {slides.map((_, i) => (
+        {slides?.map((_, i) => (
           <div
             key={i}
             style={{

@@ -92,6 +92,18 @@ const researchPaperSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  viewCount: {
+  type: Number,
+  default: 0,
+},
+shareCount: {
+  type: Number,
+  default: 0,
+},
+downloadCount: {
+  type: Number,
+  default: 0,
+},
 }, {
   timestamps: true,
 });

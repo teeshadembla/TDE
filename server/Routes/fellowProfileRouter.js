@@ -5,18 +5,20 @@ import {fetchLeadership, fetchTeam, fetchAllProfiles} from "../Controllers/fello
 import { uploadLimiter } from "../utils/Production/rateLimiter.js";
 import { fetchProfilesToReview, checkIfOnboarded } from "../Controllers/fellowProfileAdminController.js";
 import authenticateToken from "../Controllers/tokenControllers.js";
+import requirePermission from "../middleware/requirePermission.js";
+import eventMiddlewares from "../Middlewares/eventMiddlewares.js";
 const fellowProfileRouter = express.Router();
 
-fellowProfileRouter.post('/presigned-url/headshot/:userId',authenticateToken, uploadLimiter , getPresignedUrlHeadshot);
+fellowProfileRouter.post('/presigned-url/headshot/:userId',authenticateToken, requirePermission("submit_onboarding_form") ,uploadLimiter , getPresignedUrlHeadshot);
 fellowProfileRouter.put('/headshot/confirmUpload', authenticateToken, confirmUploadHeadshot);
-fellowProfileRouter.get('/getDraft/:userId', authenticateToken, loadDraftFellowProfile);
+fellowProfileRouter.get('/getDraft/:userId', authenticateToken, authenticateToken, requirePermission("submit_onboarding_form"),loadDraftFellowProfile);
 fellowProfileRouter.delete('/headshot/delete/:userId', authenticateToken, deleteHeadshot);
-fellowProfileRouter.post('/submit/:userId', authenticateToken, submitFellowProfile);
+fellowProfileRouter.post('/submit/:userId', authenticateToken, authenticateToken, requirePermission("submit_onboarding_form"), submitFellowProfile);
 
-fellowProfileRouter.get('/onboarding-profiles',  adminGetOnboardingProfiles);
-fellowProfileRouter.post('/onboarding-profiles/:profileId/approve',  approveFellowProfile);
-fellowProfileRouter.post('/onboarding-profiles/:profileId/request-revision',  requestRevisionOnProfile);
-fellowProfileRouter.post('/send-onboarding-reminder/:registrationId', sendOnboardingReminder);
+fellowProfileRouter.get('/onboarding-profiles',  authenticateToken , eventMiddlewares.isAdmin , adminGetOnboardingProfiles);
+fellowProfileRouter.post('/onboarding-profiles/:profileId/approve', authenticateToken , requirePermission("moderate_profiles"), approveFellowProfile);
+fellowProfileRouter.post('/onboarding-profiles/:profileId/request-revision',  authenticateToken , requirePermission("moderate_profiles"), requestRevisionOnProfile);
+fellowProfileRouter.post('/send-onboarding-reminder/:registrationId', authenticateToken , requirePermission("moderate_profiles"), sendOnboardingReminder);
 
 /* Admin functions */
 

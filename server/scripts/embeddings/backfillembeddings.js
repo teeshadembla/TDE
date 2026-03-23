@@ -114,5 +114,3 @@ db.users.updateMany({}, { $unset: { interestEmbedding: "" } })
 }
 
 backfillEmbeddings();
-
-backfillEmbeddings();

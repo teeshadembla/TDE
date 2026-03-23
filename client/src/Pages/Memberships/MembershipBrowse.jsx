@@ -1,316 +1,299 @@
-import React, { useState, useEffect, useContext } from 'react';
-import OrganizationCard from '../../components/Memberships/OrganizationCard';
-import MembershipTypeToggle from '../../components/Memberships/MembershipTypeToggle';
-import PricingToggle from '../../components/Memberships/PriceToggle';
-import PricingCard from '../../components/Memberships/PricingCard';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../config/apiConfig';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { toast } from 'react-toastify'; // or your notification system
+import { toast } from 'react-toastify';
 import DataProvider from '../../context/DataProvider.jsx';
 
+/* ── non-Tailwind constants (values outside default scale) ── */
+const FONT   = { fontFamily: "'Plus Jakarta Sans', sans-serif" };
+const CARD_R = { borderRadius: '25px' };
+const STROKE = { border: '0.5px solid #d9d9d9' };
+const GRAD   = { background: 'linear-gradient(180deg, #000000 0%, #003172 100%)' };
+const GLOW   = { background: 'radial-gradient(circle at 70% 20%, rgba(0,74,173,0.35) 0%, transparent 65%)' };
+
+const PLAN_FEATURES = [
+  'Access all exclusive publications & research',
+  'Join member-only events and expert sessions',
+  'On-demand session recordings & expert briefings',
+  'Connect with fellows and chairs globally',
+  'Early access to new programmes & initiatives',
+  'Members-only newsletter with curated insights',
+];
+
+const TERMS = [
+  {
+    title: 'Auto-Renewal',
+    body:  'Your membership renews automatically every month. You will receive a reminder email 24 hours before each renewal date.',
+  },
+  {
+    title: 'Cancellation',
+    body:  'You may cancel at any time from your profile dashboard. Access continues until the end of the current billing period.',
+  },
+  {
+    title: 'Payments',
+    body:  'Payments are processed securely via Stripe. We accept all major credit and debit cards.',
+  },
+  {
+    title: 'Refunds',
+    body:  'We offer a 30-day money-back guarantee if you are not satisfied with your membership.',
+  },
+];
+
+const WHY = [
+  {
+    label: 'Global Network',
+    body:  'Connect with fellows, chairs, and senior economists operating at the intersection of technology and policy.',
+  },
+  {
+    label: 'Exclusive Research',
+    body:  'Access a curated library of briefings, reports, and session recordings unavailable anywhere else.',
+  },
+  {
+    label: 'Shape the Future',
+    body:  'Participate in working groups and initiatives that directly influence digital economic policy.',
+  },
+];
+
+/* ── small components ── */
+
+const CheckIcon = () => (
+  <svg className="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <circle cx="9" cy="9" r="9" fill="#004aad" />
+    <path d="M5 9l3 3 5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const AccordionItem = ({ title, body }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="cursor-pointer py-5 select-none"
+      style={{ borderBottom: '0.5px solid #d9d9d9' }}
+      onClick={() => setOpen(o => !o)}
+    >
+      <div className="flex justify-between items-center gap-4">
+        <span className="text-white text-xl font-light" style={FONT}>{title}</span>
+        <svg
+          width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }}
+        >
+          <path d="M4 7l5 5 5-5" stroke="#d9d9d9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      {open && (
+        <p className="mt-3 text-[#d9d9d9] text-xl font-light leading-[30px]" style={FONT}>
+          {body}
+        </p>
+      )}
+    </div>
+  );
+};
+
+/* ── main page ── */
 
 const MembershipBrowse = () => {
-  const preparedPlans = [ { name: 'Premium', monthlyPrice: 30, annualPrice: 25.50, popular: false, features: [ 'Join exclusive World Economic Forum and partner virtual events and sessions', 'Access a library of exclusive session recordings and expert briefings, available for on-demand viewing', 'Generate instant PDF briefings of 300+ topics on the Strategic Intelligence platform', 'Create a customized intelligence map for personalized insights', 'Leverage the AI-based map assistant to automatically build your map' ] }, { name: 'Pro', monthlyPrice: 90, annualPrice: 76.50, popular: true, features: [ 'Everything in Premium, plus...', 'Access enhanced PDF briefings with AI-generated trends and scenarios for comprehensive insights on 300+ topics', 'Create unlimited customized intelligence maps', 'Share your customized maps with colleagues and peers', 'Network with fellow Pro members using the messaging feature', 'Attend expert-led masterclasses and receive a certificate upon completion' ] } ];
-
-  const [membershipType, setMembershipType] = useState('individual');
-  const [billingCycle, setBillingCycle] = useState('monthly');
   const { isSignedIn } = useAuth();
-  const { user: clerkUser } = useUser();
-  
-  const [plans, setPlans] = useState([preparedPlans]);
-  const [loadingPlans, setLoadingPlans] = useState(true);
-  const [dbUser, setDbUser] = useState(null);
+  const { account }    = useContext(DataProvider.DataContext);
   const [checkingOut, setCheckingOut] = useState(false);
-  const {account} = useContext(DataProvider.DataContext);
 
-  useEffect(() => {
-    console.log("Plans", plans);
-  })
+ const handleSubscribe = async () => {
+  if (!isSignedIn) {
+    toast.error('Please sign in to subscribe');
+    window.location.href = '/sign-in?redirect=/join-us/pricing';
+    return;
+  }
+  if (!account?._id) {
+    toast.error('Please wait while we load your profile…');
+    return;
+  }
+  setCheckingOut(true);
+  try {
+    const { data } = await axiosInstance.post('/api/membership/checkout', { userId: account._id });
 
-  useEffect(() => {/* 
-    fetchPlans(); */
-    if (isSignedIn && clerkUser) {
-      /* fetchDbUser(); */
-    }
-  }, [isSignedIn, clerkUser]);
-
-  // Fetch MongoDB user to get the _id
-  const fetchDbUser = async () => {
-    try {
-      const { data } = await axiosInstance.get('/api/user/profile'); // Adjust to your endpoint
-      setDbUser(data.user);
-    } catch (err) {
-      console.error('Error fetching user profile', err);
-    }
-  };
-
-  const fetchPlans = async () => {
-    try {
-      const { data } = await axiosInstance.get('/api/membership/plans');
-      setPlans(data.plans);
-    } catch (err) {
-      console.error('Error fetching plans', err);
-      toast.error('Failed to load membership plans');
-    } finally {
-      setLoadingPlans(false);
-    }
-  };
-
-  const handleSubscribe = async (tier, organizationId = null) => {
-    console.log('Starting checkout for tier:', tier, 'organizationId:', organizationId);
-    // Check if user is signed in
-    if (!isSignedIn) {
-      toast.error('Please sign in to subscribe');
-      // Redirect to sign in
-      window.location.href = '/sign-in?redirect=/membership';
-      return;
-    }
-
-    // Check if we have the MongoDB user ID
-    if (!account?._id) {
-      toast.error('Please wait while we load your profile...');
-      return;
-    }
-
-    setCheckingOut(true);
-
-    try {
-      const { data } = await axiosInstance.post('/api/membership/checkout', {
-        userId: account._id,
-        tier: tier,
-        ...(organizationId && { organizationId })
-      });
-
+    if (data.savedCard) {
+      // Card was charged directly — go straight to success page
+      window.location.href = data.redirectUrl;
+    } else {
       // Redirect to Stripe Checkout
       window.location.href = data.url;
-    } catch (err) {
-      console.error('Checkout error:', err);
-      setCheckingOut(false);
-      
-      const errorMessage = err.response?.data?.message || 'Unable to start checkout';
-      toast.error(errorMessage);
     }
-  };
-
-  // Map backend plans to frontend format
-  const formatPlanForDisplay = (plan) => {
-    return {
-      id: plan.id,
-      name: plan.name,
-      tier: plan.tier,
-      monthlyPrice: plan.amount,
-      annualPrice: (plan.amount * 12 * 0.85) / 12, // 15% annual discount
-      popular: plan.tier === 'pro', // Mark Pro as popular
-      features: getFeaturesByTier(plan.tier)
-    };
-  };
-
-  // Define features for each tier
-  const getFeaturesByTier = (tier) => {
-    const features = {
-      premium: [
-        'Access to all publications and research',
-        'Monthly expert webinars and Q&A sessions',
-        'Exclusive member-only content',
-        'Email newsletter with curated insights',
-        'Community forum access',
-        'Downloadable resources and reports'
-      ],
-      pro: [
-        'Everything in Premium, plus...',
-        'Advanced analytics and trend reports',
-        'Priority access to new research',
-        'One-on-one expert consultations (quarterly)',
-        'Customizable content recommendations',
-        'API access for data integration',
-        'Networking events with industry leaders'
-      ],
-      organizational: [
-        'All Pro features for up to 3 users',
-        'Dedicated account manager',
-        'Custom training sessions for your team',
-        'White-label research reports',
-        'Priority support (24/7)',
-        'Bulk content downloads',
-        'Team collaboration tools',
-        'Custom integrations available'
-      ]
-    };
-
-    return features[tier] || [];
-  };
-
-  const individualPlans = plans
-    .filter(plan => ['premium', 'pro'].includes(plan.tier))
-    .map(formatPlanForDisplay);
-
-  const organizationalPlan = plans
-    .find(plan => plan.tier === 'organizational');
+  } catch (err) {
+    console.error(err);
+    toast.error(err.response?.data?.message || 'Unable to start checkout');
+  } finally {
+    setCheckingOut(false);
+  }
+};
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Header Section */}
-      <div className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600" />
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto">
-          <button 
-            onClick={() => window.history.back()}
-            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors mb-8 group"
-          >
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>Overview</span>
-          </button>
+    <div className="bg-black min-h-screen" style={FONT}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap');`}</style>
 
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Join our community and get ready for the future
-          </h1>
-          
-          <p className="text-xl text-gray-300 max-w-3xl">
-            Access exclusive content, connect with global leaders, and stay ahead of emerging trends
-          </p>
+      {/* ── HERO ── */}
+      <section className="max-w-[1248px] mx-auto px-10 pt-[120px] pb-[80px]">
+
+        {/* eyebrow */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-px w-[60px] bg-[#d9d9d9]" />
+          <span className="text-[#d9d9d9] text-[15px] font-light tracking-widest uppercase" style={FONT}>
+            Membership
+          </span>
         </div>
+
+        <div className="grid grid-cols-2 gap-20 items-end">
+
+          {/* left: copy */}
+          <div>
+            <h1 className="text-white text-[50px] font-normal leading-[60px] mb-8" style={FONT}>
+              Join the community shaping the digital economy
+            </h1>
+            <p className="text-[#d9d9d9] text-[25px] font-light leading-[35px]" style={FONT}>
+              One membership. Full access to research, events, and a global network of economists and policy leaders.
+            </p>
+          </div>
+
+          {/* right: plan card */}
+          <div className="relative overflow-hidden p-10" style={{ ...GRAD, ...CARD_R, ...STROKE }}>
+            {/* radial glow */}
+            <div className="absolute -top-14 -right-14 w-[220px] h-[220px] pointer-events-none" style={GLOW} />
+
+            <span className="text-[#d9d9d9] text-[15px] font-light tracking-widest uppercase" style={FONT}>
+              Monthly auto-renewing
+            </span>
+
+            <div className="flex items-baseline gap-2 mt-5 mb-8">
+              <span className="text-white text-[50px] font-normal leading-[60px]" style={FONT}>$39</span>
+              <span className="text-[#d9d9d9] text-xl font-light" style={FONT}>/ month</span>
+            </div>
+
+            <div className="flex flex-col gap-4 mb-10">
+              {PLAN_FEATURES.map((f, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <CheckIcon />
+                  <span className="text-white text-xl font-light leading-[30px]" style={FONT}>{f}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleSubscribe}
+              disabled={checkingOut}
+              className={`w-full text-white text-xl font-semibold py-[10px] px-[30px] transition-colors duration-200
+                ${checkingOut
+                  ? 'bg-[#001e47] cursor-not-allowed'
+                  : 'bg-[#004aad] hover:bg-[#001e47] cursor-pointer'}`}
+              style={{ ...FONT, borderRadius: '8px', border: 'none' }}
+            >
+              {checkingOut ? 'Redirecting…' : 'Subscribe Now'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DIVIDER ── */}
+      <div className="max-w-[1248px] mx-auto px-10">
+        <div className="h-px bg-[#d9d9d9] opacity-30" />
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <MembershipTypeToggle 
-          activeType={membershipType}
-          onTypeChange={setMembershipType}
-        />
+      {/* ── WHY JOIN ── */}
+      <section className="max-w-[1248px] mx-auto px-10 py-[80px]">
 
-        {membershipType === 'individual' ? (
-          <>
-            <PricingToggle 
-              billingCycle={billingCycle}
-              onBillingChange={setBillingCycle}
-            />
-
-            {loadingPlans ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="mt-4 text-gray-600">Loading plans...</p>
-              </div>
-            ) : individualPlans.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No plans available at the moment.</p>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                {individualPlans.map((plan) => (
-                  <PricingCard
-                    key={plan.id}
-                    plan={plan}
-                    billingCycle={billingCycle}
-                    membershipType={membershipType}
-                    onSubscribe={() => handleSubscribe(plan.tier)}
-                    isLoading={checkingOut}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="max-w-4xl mx-auto">
-            {loadingPlans ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="mt-4 text-gray-600">Loading organizational plan...</p>
-              </div>
-            ) : organizationalPlan ? (
-              <OrganizationCard 
-                plan={formatPlanForDisplay(organizationalPlan)}
-                onSubscribe={() => handleSubscribe('organizational')}
-                isLoading={checkingOut}
-              />
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Organizational plan not available at the moment.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Additional Info Section */}
-        <div className="mt-20 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            Why join our community?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8 mt-12">
-            <div className="p-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-xl mb-2">Global Network</h3>
-              <p className="text-gray-600">Connect with leaders across industries and continents</p>
-            </div>
-
-            <div className="p-6">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-xl mb-2">Expert Insights</h3>
-              <p className="text-gray-600">Access cutting-edge research and analysis</p>
-            </div>
-
-            <div className="p-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-xl mb-2">Shape the Future</h3>
-              <p className="text-gray-600">Participate in initiatives that drive global change</p>
-            </div>
-          </div>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-px w-[60px] bg-[#d9d9d9]" />
+          <span className="text-[#d9d9d9] text-[15px] font-light tracking-widest uppercase" style={FONT}>
+            Why join
+          </span>
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-20 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                q: "Can I switch between plans?",
-                a: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing."
-              },
-              {
-                q: "What payment methods do you accept?",
-                a: "We accept all major credit cards (Visa, Mastercard, American Express) through our secure Stripe payment processor."
-              },
-              {
-                q: "Can I cancel my subscription?",
-                a: "Yes, you can cancel anytime from your account settings. You'll retain access until the end of your billing period."
-              },
-              {
-                q: "Do you offer refunds?",
-                a: "We offer a 30-day money-back guarantee if you're not satisfied with your membership."
-              },
-              {
-                q: "How does the organizational plan work?",
-                a: "The organizational plan allows up to 3 users from your organization to access all features under one subscription."
-              }
-            ].map((faq, index) => (
-              <details key={index} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                <summary className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors">
-                  {faq.q}
-                </summary>
-                <p className="mt-4 text-gray-600 leading-relaxed">{faq.a}</p>
-              </details>
+        <h2 className="text-white text-[35px] font-normal leading-[45px] mb-12 max-w-[560px]" style={FONT}>
+          Built for economists, policy leaders, and digital innovators
+        </h2>
+
+        <div className="grid grid-cols-3 gap-5">
+          {WHY.map((item, i) => (
+            <div key={i} className="p-10" style={{ ...GRAD, ...CARD_R, ...STROKE }}>
+              <div className="w-10 h-px bg-[#004aad] mb-5" />
+              <h3 className="text-white text-[30px] font-normal leading-[40px] mb-5" style={FONT}>
+                {item.label}
+              </h3>
+              <p className="text-[#d9d9d9] text-xl font-light leading-[30px]" style={FONT}>
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── DIVIDER ── */}
+      <div className="max-w-[1248px] mx-auto px-10">
+        <div className="h-px bg-[#d9d9d9] opacity-30" />
+      </div>
+
+      {/* ── TERMS & CONDITIONS ── */}
+      <section className="max-w-[1248px] mx-auto px-10 py-[80px]">
+
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-px w-[60px] bg-[#d9d9d9]" />
+          <span className="text-[#d9d9d9] text-[15px] font-light tracking-widest uppercase" style={FONT}>
+            Terms & Conditions
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-20 items-start">
+          <div>
+            <h2 className="text-white text-[35px] font-normal leading-[45px] mb-5" style={FONT}>
+              What you need to know
+            </h2>
+            <p className="text-[#d9d9d9] text-xl font-light leading-[30px]" style={FONT}>
+              By subscribing you agree to the membership terms outlined below. Please read them carefully before proceeding.
+            </p>
+          </div>
+          <div>
+            {TERMS.map((item, i) => (
+              <AccordionItem key={i} title={item.title} body={item.body} />
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── BOTTOM CTA ── */}
+      <div className="max-w-[1248px] mx-auto px-10">
+        <div className="h-px bg-[#d9d9d9] opacity-30" />
       </div>
+
+      <section className="max-w-[1248px] mx-auto px-10 py-[80px] flex justify-between items-center gap-10 flex-wrap">
+        <div>
+          <h2 className="text-white text-[35px] font-normal leading-[45px] mb-3" style={FONT}>
+            Ready to join?
+          </h2>
+          <p className="text-[#d9d9d9] text-xl font-light leading-[30px]" style={FONT}>
+            $39 / month · Cancel anytime · Auto-renewing
+          </p>
+        </div>
+
+        <div className="flex gap-5 flex-wrap">
+          <button
+            onClick={handleSubscribe}
+            disabled={checkingOut}
+            className={`text-white text-xl font-semibold py-[10px] px-[30px] transition-colors duration-200
+              ${checkingOut
+                ? 'bg-[#001e47] cursor-not-allowed'
+                : 'bg-[#004aad] hover:bg-[#001e47] cursor-pointer'}`}
+            style={{ ...FONT, borderRadius: '8px', border: 'none' }}
+          >
+            {checkingOut ? 'Redirecting…' : 'Subscribe Now'}
+          </button>
+
+          <button
+            onClick={() => window.history.back()}
+            className="bg-transparent text-white text-xl font-normal py-[10px] px-[30px] hover:border-white transition-colors duration-200 cursor-pointer"
+            style={{ ...FONT, borderRadius: '8px', border: '0.5px solid #d9d9d9' }}
+          >
+            Go Back
+          </button>
+        </div>
+      </section>
     </div>
   );
 };

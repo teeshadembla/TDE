@@ -1,14 +1,53 @@
 import axios from 'axios';
 import react, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axiosInstance from '../../config/apiConfig';
+import axiosInstance from "../../config/apiConfig.js"
 import { useNavigate } from 'react-router-dom';
+import { usePermissions } from '../../hooks/usePermission.js';
+import { useContext } from 'react';
+import { AnalyticsPanel } from './AnalyticsPanel.jsx';
+import DataProvider from '../../context/DataProvider.jsx';
+import PDFPreview from "./PDFPreview.jsx"
 
 const IndividualPaperPage = () =>{
     const {paper_id} = useParams();
     const [currentPaper, setCurrentPaper] = useState(null);
     const [similarPapers, setSimilarPapers] = useState([]);
     const navigate = useNavigate();
+    const { hasPermission } = usePermissions();
+    const { account } = useContext(DataProvider.DataContext);
+
+    const isLoggedIn        = Boolean(account?._id);
+    const canRead           = isLoggedIn && hasPermission('read_full_publication');
+    const canShare          = isLoggedIn && hasPermission('share_publication_link');
+    const canDownload       = isLoggedIn && hasPermission('download_publication');
+    const canViewAnalytics  = isLoggedIn && hasPermission('view_publication_analytics');
+
+    const [shareMsg, setShareMsg] = useState('');
+    const [showPreview, setShowPreview] = useState(false); // ← add this
+
+    const handleRead = async () => {
+        try {
+            const response = await axiosInstance.get(`/api/documents/${paper_id}/view-url`);
+            window.open(response.data.data.url, '_blank');
+        } catch (err) {
+            console.error('Error fetching view URL:', err);
+        }
+    };
+
+    const handleShare = async () => {
+        const url = `${window.location.origin}/research-paper/${paper_id}`;
+        try {
+            await navigator.clipboard.writeText(url);
+            await axiosInstance.post(`/api/documents/${paper_id}/track-share`);
+            setShareMsg('Link copied!');
+            setTimeout(() => setShareMsg(''), 2500);
+        } catch {
+            setShareMsg('Could not copy link');
+            setTimeout(() => setShareMsg(''), 2500);
+        }
+    };
+
 
     const PaperDownload = async () =>{
         try{
@@ -43,6 +82,8 @@ const IndividualPaperPage = () =>{
                 console.log("This is the research paper data retrieved by ID--->", response);
 
                 setCurrentPaper(response.data.data);
+                // Fire view tracking silently — no auth required
+                axiosInstance.post(`/api/documents/${paper_id}/track-view`).catch(() => {});
             }catch(err){    
                 console.error("Error fetching paper:", err);
                 setCurrentPaper(null);
@@ -114,14 +155,162 @@ const IndividualPaperPage = () =>{
                         </div>
 
                         {/* Download Button */}
-                        <div className='pt-4 md:pt-6'>
-                            <button
-                                onClick={() => PaperDownload()}
-                                className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-md transition duration-200"
-                            >
-                                Download PDF
-                            </button>
-                        </div>
+                        {/* ── Action Buttons ─────────────────────────────────────────── */}
+<div className='pt-6 flex flex-col gap-3'>
+
+    {/* Preview — visible to unregistered users only */}
+{!isLoggedIn && (
+    <button
+        onClick={() => setShowPreview(true)}
+        style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: 16,
+            fontWeight: 600,
+            padding: '10px 30px',
+            borderRadius: 8,
+            border: '0.5px solid #d9d9d9',
+            background: 'transparent',
+            color: '#000000',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            width: 'fit-content',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+    >
+        Preview Publication
+    </button>
+)}
+
+    {/* Read */}
+    {canRead ? (
+        <button
+            onClick={handleRead}
+            style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: 16,
+                fontWeight: 600,
+                padding: '10px 30px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#004aad',
+                color: '#ffffff',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease',
+                width: 'fit-content',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#001e47'}
+            onMouseLeave={e => e.currentTarget.style.background = '#004aad'}
+        >
+            Read Publication
+        </button>
+    ) : !isLoggedIn && (
+        <p style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: 14,
+            fontWeight: 300,
+            color: '#d9d9d9',
+            margin: 0,
+            padding: '10px 0',
+            borderBottom: '0.5px solid #d9d9d9',
+        }}>
+            <a href="/sign-in" style={{ color: '#004aad', textDecoration: 'none', fontWeight: 600 }}>
+                Sign in
+            </a>
+            {' '}to read the full publication.
+        </p>
+    )}
+
+    {/* Share */}
+    {canShare && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+                onClick={handleShare}
+                style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    padding: '10px 30px',
+                    borderRadius: 8,
+                    border: '0.5px solid #d9d9d9',
+                    background: 'transparent',
+                    color: '#000000',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    width: 'fit-content',
+                }}
+                onMouseEnter={e => {
+                    e.currentTarget.style.background = '#ffffff';
+                }}
+                onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                }}
+            >
+                Share Publication
+            </button>
+            {shareMsg && (
+                <span style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: 13,
+                    fontWeight: 300,
+                    color: '#d9d9d9',
+                }}>
+                    {shareMsg}
+                </span>
+            )}
+        </div>
+    )}
+
+    {/* Download */}
+    {canDownload ? (
+        <button
+            onClick={PaperDownload}
+            style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: 16,
+                fontWeight: 600,
+                padding: '10px 30px',
+                borderRadius: 8,
+                border: '0.5px solid #d9d9d9',
+                background: 'transparent',
+                color: '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                width: 'fit-content',
+            }}
+            onMouseEnter={e => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#000000';
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#ffffff';
+            }}
+        >
+            Download PDF
+        </button>
+    ) : isLoggedIn && (
+        <p style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: 14,
+            fontWeight: 300,
+            color: '#d9d9d9',
+            margin: 0,
+            padding: '10px 0',
+            borderBottom: '0.5px solid #d9d9d9',
+        }}>
+            A membership is required to download.{' '}
+            <a href="/join-us/pricing" style={{ color: '#004aad', textDecoration: 'none', fontWeight: 600 }}>
+                View plans →
+            </a>
+        </p>
+    )}
+
+</div>
+
+                        {/* Analytics — visible to core and admin only */}
+                        {canViewAnalytics && <AnalyticsPanel paperId={paper_id} />}
+
                     </div>
                 </div>
             </section>
@@ -196,6 +385,155 @@ const IndividualPaperPage = () =>{
                     </div>
                 </div>
             </div>
+
+            {/* ── PDF Preview Modal ───────────────────────────────────────── */}
+{showPreview && (
+    <div
+        onClick={() => setShowPreview(false)}
+        style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+        }}
+    >
+        <div
+            onClick={e => e.stopPropagation()}
+            style={{
+                background: '#000000',
+                borderRadius: 25,
+                border: '0.5px solid #d9d9d9',
+                width: '100%',
+                maxWidth: 720,
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+            }}
+        >
+            {/* Modal header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '20px 28px',
+                borderBottom: '0.5px solid #d9d9d9',
+            }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        fontSize: 11,
+                        fontWeight: 300,
+                        color: '#d9d9d9',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                    }}>
+                        Preview
+                    </span>
+                    <span style={{
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: '#ffffff',
+                    }}>
+                        {currentPaper?.title}
+                    </span>
+                </div>
+                <button
+                    onClick={() => setShowPreview(false)}
+                    style={{
+                        background: 'transparent',
+                        border: '0.5px solid #d9d9d9',
+                        borderRadius: 8,
+                        padding: '6px 14px',
+                        color: '#d9d9d9',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = '#ffffff';
+                        e.currentTarget.style.color = '#000000';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = '#d9d9d9';
+                    }}
+                >
+                    Close
+                </button>
+            </div>
+
+            {/* PDF page — scrollable */}
+            <div style={{
+                overflowY: 'auto',
+                flex: 1,
+                minHeight: 0, // critical — allows flex child to shrink and scroll
+                position: 'relative',
+            }}>
+                <PDFPreview paperId={paper_id} />
+
+                {/* Fade overlay — sits above the PDF, fades at the bottom */}
+                <div style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 120,
+                    background: 'linear-gradient(to bottom, transparent, #000000)',
+                    pointerEvents: 'none',
+                    marginTop: -120,
+                }} />
+            </div>
+
+            {/* Modal footer CTA */}
+            <div style={{
+                padding: '20px 28px',
+                borderTop: '0.5px solid #d9d9d9',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 16,
+            }}>
+                <span style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: 14,
+                    fontWeight: 300,
+                    color: '#d9d9d9',
+                }}>
+                    Sign in to read the full publication
+                </span>
+                <a
+                    href="/sign-in"
+                    style={{
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        padding: '8px 24px',
+                        borderRadius: 8,
+                        background: '#004aad',
+                        color: '#ffffff',
+                        textDecoration: 'none',
+                        transition: 'background 0.2s ease',
+                        whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#001e47'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#004aad'}
+                >
+                    Sign in →
+                </a>
+            </div>
+        </div>
+    </div>
+)}
+            
+            
         </>
     )
 }

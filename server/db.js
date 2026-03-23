@@ -8,17 +8,16 @@ const MONGO_PASS = process.env.MONGO_PASS
 const MONGO_URL = `mongodb+srv://${MONGO_USER}:${MONGO_PASS}@cluster0.a7cnmoq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
 
 
-
-const Connection = async() =>{
-    await mongoose.connect(MONGO_URL)
-    .then(()=>{
-        logger.info({}, "MongoDB connection established successfully");
-    })
-    .catch((err)=>{
-        logger.error({errorMsg: err.message, stack: err.stack}, "Error connecting to MongoDB");
-    })
-}
-
+const Connection = async () => {
+    try {
+        await mongoose.connect(MONGO_URL);
+        logger.info({}, 'MongoDB connection established successfully');
+    } catch (err) {
+        logger.error({ errorMsg: err.message, stack: err.stack }, 'Error connecting to MongoDB');
+        throw err; // re-throw so the caller knows it failed
+    }
+};
+ 
 // Graceful disconnect function
 const disconnectDB = async () => {
     try {

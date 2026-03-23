@@ -148,7 +148,6 @@ const getWorkgroupById = async(req,res)=>{
 const getWorkgroupMembers = async(req, res)=>{
     try{
         const {workgroupId} = req.body;
-        console.log("This is the workgroupId--->", workgroupId);
         const members = await fellowProfileModel.aggregate([
   {
     $lookup: {
@@ -198,7 +197,6 @@ const getWorkgroupMembers = async(req, res)=>{
   }
 ]);
 
-            console.log("These are the members that are fetched ---->", members);
             return res.status(200).json({msg: "Successfully retrieved", members: members});
 
         }catch(err){

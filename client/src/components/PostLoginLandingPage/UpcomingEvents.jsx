@@ -4,45 +4,6 @@ import { ChevronLeft, ChevronRight, Calendar, Monitor, MapPin } from 'lucide-rea
 import axiosInstance from '../../config/apiConfig.js';
 import DataProvider from '../../context/DataProvider.jsx';
 
-// ─── Fallback Data ─────────────────────────────────────────────────────────────
-const FALLBACK_EVENTS = [
-  {
-    _id:         'fallback-event-1',
-    title:       'The Future of AI Governance in a Multipolar World',
-    type:        'Roundtable',
-    workgroup:   [{ title: 'Applied Artificial Intelligence' }],
-    startDate:   '2026-05-10T11:00:00',
-    endDate:     '2026-05-10T13:00:00',
-    isVirtual:   true,
-    location:    null,
-    registerUrl: '#',
-    imageUrl:    'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1920&q=80',
-  },
-  {
-    _id:         'fallback-event-2',
-    title:       'Sustainability in Tech: Driving the Next Industrial Revolution',
-    type:        'Roundtable',
-    workgroup:   [{ title: 'Sustainability in Tech' }],
-    startDate:   '2026-07-17T11:00:00',
-    endDate:     '2026-07-17T13:00:00',
-    isVirtual:   true,
-    location:    null,
-    registerUrl: '#',
-    imageUrl:    'https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=1920&q=80',
-  },
-  {
-    _id:         'fallback-event-3',
-    title:       'Digital Economy Summit: Redefining Global Trade in 2027',
-    type:        'Summit',
-    workgroup:   [{ title: 'Davos 2027' }],
-    startDate:   '2027-01-10T09:00:00',
-    endDate:     '2027-01-16T18:00:00',
-    isVirtual:   false,
-    location:    'Davos, Switzerland',
-    registerUrl: '#',
-    imageUrl:    'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1920&q=80',
-  },
-];
 
 // ─── Date / Time Helpers ───────────────────────────────────────────────────────
 
@@ -89,13 +50,16 @@ const isMultiDay = (startStr, endStr) => {
 // Badge container: 413×30px, radius 100px, border 0.5px #D9D9D9
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
-  const multiDay = isMultiDay(event.startDate, event.endDate);
-
+  
+  const start = event?.eventDate?.start;
+  const end = event?.eventDate?.end;
+  const multiDay = end ? isMultiDay(start, end) : false;
   const handleRegister = () => {
-    if (event.registerUrl && event.registerUrl !== '#') {
-      window.open(event.registerUrl, '_blank', 'noopener,noreferrer');
+    if (event.registrationLink && event.registrationLink !== '#') {
+      window.open(event.registrationLink, '_blank', 'noopener,noreferrer');
     }
   };
+
 
   return (
     // Card: 1107px wide in Figma, full width responsively, 445px height, radius 20px
@@ -103,8 +67,8 @@ const EventCard = ({ event }) => {
 
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${event.imageUrl})` }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${event?.image?.url})` }}
       />
 
       {/* Dark overlay — #000000 50% at top to #000000 100% at bottom */}
@@ -121,7 +85,7 @@ const EventCard = ({ event }) => {
         <div className="flex flex-wrap items-center gap-2 mb-4" style={{ minHeight: '30px' }}>
           {/* Type badge */}
           <span
-            className="flex items-center px-4 text-white text-[13px] font-medium bg-black/65 backdrop-blur-sm"
+            className="flex items-center px-4 text-white capitalize text-[13px] font-medium bg-black/65 backdrop-blur-sm"
             style={{
               height:       '30px',
               borderRadius: '100px',
@@ -132,7 +96,7 @@ const EventCard = ({ event }) => {
           </span>
 
           {/* Workgroup badges */}
-          {event.workgroup && event.workgroup.map((wg, i) => (
+          {event.workgroupTitles && event.workgroupTitles.map((wg, i) => (
             <span
               key={i}
               className="flex items-center px-4 text-white text-[13px] font-medium bg-black/65 backdrop-blur-sm"
@@ -169,23 +133,13 @@ const EventCard = ({ event }) => {
               style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '14px' }}
             >
               {multiDay
-                ? formatDateRange(event.startDate, event.endDate)
-                : `${formatDate(event.startDate)} | ${formatTime(event.startDate, event.endDate)}`
+                ? formatDateRange(start, end)
+                : `${formatDate(start)} | ${formatTime(start, end || start)}`
               }
             </span>
           </div>
 
-          {event.isVirtual ? (
-            <div className="flex items-center gap-2">
-              <Monitor size={15} strokeWidth={1.8} color="white" className="shrink-0" />
-              <span
-                className="text-white font-light"
-                style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '14px' }}
-              >
-                Virtual
-              </span>
-            </div>
-          ) : event.location ? (
+
             <div className="flex items-center gap-2">
               <MapPin size={15} strokeWidth={1.8} color="white" className="shrink-0" />
               <span
@@ -195,7 +149,6 @@ const EventCard = ({ event }) => {
                 {event.location}
               </span>
             </div>
-          ) : null}
         </div>
 
         {/* Buttons — both 140.65×34px, radius 5px, text: Plus Jakarta Sans 500 15px */}
@@ -252,9 +205,9 @@ const EventCard = ({ event }) => {
 // Section title: Plus Jakarta Sans 400, 35px, line height 100%, #FFFFFF
 // Arrow buttons: 35×35px
 // Greeting: Plus Jakarta Sans 400, 35px — same spec as title row
-const UpcomingEvents = () => {
+const UpcomingEvents = ({eventsContent}) => {
   const { account }           = useContext(DataProvider.DataContext);
-  const [events,  setEvents]  = useState(FALLBACK_EVENTS);
+  const events = eventsContent
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(true);
@@ -263,22 +216,6 @@ const UpcomingEvents = () => {
   // Extract first name from full name stored in context
   const firstName = (account?.name || account?.FullName || 'there').split(' ')[0];
 
-  // ── Fetch personalized events ──────────────────────────────────────────
-  /* useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const res  = await axiosInstance.get('/user/highlights/personalized');
-        const data = res.data?.data?.events;
-        if (data && data.length > 0) setEvents(data);
-      } catch (err) {
-        console.error('Failed to fetch events, using fallback data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []); */
 
   // ── Animated navigation ────────────────────────────────────────────────
   const goTo = useCallback((dir) => {

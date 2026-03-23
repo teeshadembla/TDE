@@ -1,101 +1,106 @@
 import { useState, useEffect } from "react";
+import TagCombobox, { EXPERTISE_OPTIONS, INTEREST_OPTIONS } from "./TagCombobox.jsx";
 
 export default function Step3({ formData, formFunction, setStepValid }) {
   const [discoveryError, setDiscoveryError] = useState("");
 
+  // ── helpers ────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
-      formFunction((prev) => ({
-        ...prev,
-        [name]: checked,
-      }));
-    } 
-    else if (name === "followedTopics" || name === "expertise") {
-      // Update raw input value
-      formFunction((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-
-      // Convert to array
-      const arrayValue = value
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => item !== "");
-
-      // Always update array form
-      formFunction((prev) => ({
-        ...prev,
-        [`${name}Array`]: arrayValue,
-      }));
-    } 
-    else {
-      formFunction((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      formFunction((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      formFunction((prev) => ({ ...prev, [name]: value }));
     }
 
-    // Validate discoverySource
     if (name === "discoverySource") {
-      if (value === "") {
-        setDiscoveryError("This field is required.");
-      } else {
-        setDiscoveryError("");
-      }
+      setDiscoveryError(value === "" ? "This field is required." : "");
     }
   };
 
+  // Called by TagCombobox for expertise tags
+  const handleExpertiseChange = (tags) => {
+    formFunction((prev) => ({
+      ...prev,
+      expertise: tags.join(", "),      // keep comma-string for back-compat
+      expertiseArray: tags,
+    }));
+  };
+
+  // Called by TagCombobox for followed-topics tags
+  const handleTopicsChange = (tags) => {
+    formFunction((prev) => ({
+      ...prev,
+      followedTopics: tags.join(", "),
+      followedTopicsArray: tags,
+    }));
+  };
+
+  // ── validation ─────────────────────────────────────────────
   useEffect(() => {
-    const isValid = formData.discoverySource !== "";
-    setStepValid(isValid);
+    setStepValid(formData.discoverySource !== "");
   }, [formData.discoverySource, setStepValid]);
 
   useEffect(() => {
-    // Trigger initial validation on mount if already filled
-    if (formData.discoverySource) {
-      setDiscoveryError("");
-    }
+    if (formData.discoverySource) setDiscoveryError("");
   }, [formData.discoverySource]);
 
+  // Derive tag arrays from stored comma-string (handles pre-filled state)
+  const expertiseTags = formData.expertiseArray ??
+    (formData.expertise
+      ? formData.expertise.split(",").map((s) => s.trim()).filter(Boolean)
+      : []);
+
+  const topicTags = formData.followedTopicsArray ??
+    (formData.followedTopics
+      ? formData.followedTopics.split(",").map((s) => s.trim()).filter(Boolean)
+      : []);
+
+  // ── render ─────────────────────────────────────────────────
   return (
     <div className="space-y-4">
+
       {/* Followed Topics */}
       <div>
         <label htmlFor="followedTopics" className="block mb-1 font-medium">
-          Followed Topics (comma separated)
+          Followed Topics{" "}
+          <span className="text-gray-400 font-normal text-sm">(up to 3)</span>
         </label>
-        <input
-          name="followedTopics"
+        <TagCombobox
           id="followedTopics"
-          type="text"
-          value={formData.followedTopics || ""}
-          placeholder="Artificial Intelligence, Blockchain, etc"
-          className="w-full px-4 py-2 bg-transparent border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-          onChange={handleChange}
+          name="followedTopics"
+          options={INTEREST_OPTIONS}
+          value={topicTags}
+          onChange={handleTopicsChange}
+          max={3}
+          placeholder="e.g. AI Safety, Climate & Tech…"
         />
       </div>
 
       {/* Area of Expertise */}
       <div>
         <label htmlFor="expertise" className="block mb-1 font-medium">
-          Area of Expertise (comma separated)
+          Area of Expertise{" "}
+          <span className="text-gray-400 font-normal text-sm">(up to 3)</span>
         </label>
-        <input
-          name="expertise"
+        <TagCombobox
           id="expertise"
-          value={formData.expertise || ""}
-          placeholder="e.g. Data Science, Policy, Climate"
-          className="w-full px-4 py-2 bg-transparent border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-          onChange={handleChange}
+          name="expertise"
+          options={EXPERTISE_OPTIONS}
+          value={expertiseTags}
+          onChange={handleExpertiseChange}
+          max={3}
+          placeholder="e.g. Data Science, Policy…"
         />
       </div>
 
       {/* Newsletter Subscription */}
       <div>
-        <label htmlFor="isSubscribedToNewsletter" className="flex items-center gap-2">
+        <label
+          htmlFor="isSubscribedToNewsletter"
+          className="flex items-center gap-2"
+        >
           <input
             type="checkbox"
             name="isSubscribedToNewsletter"
@@ -135,7 +140,9 @@ export default function Step3({ formData, formFunction, setStepValid }) {
           <option value="News Article or Blog">News Article or Blog</option>
           <option value="Other">Other</option>
         </select>
-        {discoveryError && <p className="text-red-500 text-sm mt-1">{discoveryError}</p>}
+        {discoveryError && (
+          <p className="text-red-500 text-sm mt-1">{discoveryError}</p>
+        )}
       </div>
     </div>
   );

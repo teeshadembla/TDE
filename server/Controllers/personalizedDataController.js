@@ -2,57 +2,79 @@ import eventsModel from "../Models/eventsModel.js";
 import researchPaperModel from "../Models/researchPaperModel.js";
 import userModel from "../Models/userModel.js";
 import { getAuth } from "@clerk/express";
+import logger from "../utils/logger.js";
+import workgroupModel from "../Models/workgroupModel.js";
+
+
 export const personalizedData = async (req, res) => {
   try {
-
-    console.log("----- Personalized Data API Called -----");
-
     const { userId } = getAuth(req);
 
-    console.log("User ID from request:", userId);
-
     if (!userId) {
-      console.error("User ID missing in request");
       return res.status(400).json({ msg: "User ID missing" });
     }
 
-    console.log("Fetching user from DB...");
-    const user = await userModel.findById(userId).select("interestEmbedding");
+    const user = await userModel
+      .findOne({ clerkUserId: userId })
+      .select("interestEmbedding");
 
     if (!user) {
-      console.error("User not found in database");
       return res.status(404).json({ msg: "User not found" });
     }
 
-    console.log("User found");
-    console.log(
-      "Interest embedding length:",
-      user.interestEmbedding ? user.interestEmbedding.length : "None"
-    );
+    const today = new Date();
 
+    // ── No embedding — return fallbacks immediately ─────────────────
     if (!user.interestEmbedding || user.interestEmbedding.length === 0) {
-      console.warn("User has no interest embeddings");
+      const [publications, upcomingEvents] = await Promise.all([
+        // Latest 5 completed publications
+        researchPaperModel
+          .find({ uploadStatus: 'completed' })
+          .sort({ publishingDate: -1 })
+          .limit(5)
+          .select('title subtitle description publishingDate documentType thumbnailUrl workgroupId')
+          .lean(),
 
-      return res.status(200).json({
-        publications: [],
-        events: [],
-        msg: "User has no interest embeddings"
-      });
+        // Soonest 3 upcoming events
+        eventsModel
+          .find({ 'eventDate.start': { $gt: today } })
+          .sort({ 'eventDate.start': 1 })
+          .limit(3)
+          .populate('workgroup', 'title')
+          .select('title subtitle description type image location locationType eventDate registrationLink workgroup tags')
+          .lean(),
+      ]);
+
+      return res.status(200).json({ publications, upcomingEvents });
     }
 
     const userVector = user.interestEmbedding;
 
-    console.log("Running vector search for publications...");
-
-    const publications = await researchPaperModel.aggregate([
+    // ── Vector search — publications ────────────────────────────────
+    let publications = await researchPaperModel.aggregate([
       {
         $vectorSearch: {
-          index: "publication_embedding_index",
-          path: "embedding",
+          index: 'publication_embedding_index',
+          path: 'embedding',
           queryVector: userVector,
           numCandidates: 100,
-          limit: 4
-        }
+          limit: 5,
+        },
+      },
+      {
+        $lookup: {
+          from: 'workgroups',
+          localField: 'workgroupId',
+          foreignField: '_id',
+          as: 'workgroupData',
+        },
+      },
+      {
+        $addFields: {
+          workgroupTitles: {
+            $map: { input: '$workgroupData', as: 'wg', in: '$$wg.title' },
+          },
+        },
       },
       {
         $project: {
@@ -60,51 +82,147 @@ export const personalizedData = async (req, res) => {
           subtitle: 1,
           description: 1,
           publishingDate: 1,
-          score: { $meta: "vectorSearchScore" }
-        }
-      }
+          documentType: 1,
+          thumbnailUrl: 1,
+          workgroupId: 1,
+          workgroupTitles: 1,
+          score: { $meta: 'vectorSearchScore' },
+        },
+      },
     ]);
 
-    console.log("Publications found:", publications.length);
-
-    console.log("Running vector search for events...");
-
-    const events = await eventsModel.aggregate([
+    // ── Vector search — upcoming events ─────────────────────────────
+    let upcomingEvents = await eventsModel.aggregate([
       {
         $vectorSearch: {
-          index: "event_embedding_index",
-          path: "embedding",
+          index: 'event_embedding_index',
+          path: 'embedding',
           queryVector: userVector,
           numCandidates: 100,
-          limit: 4
-        }
+          limit: 10, // fetch more so we have enough after date filtering
+        },
+      },
+      {
+        // Filter to only future events after vector search
+        $match: {
+          'eventDate.start': { $gt: today },
+        },
+      },
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: 'workgroups',
+          localField: 'workgroup',
+          foreignField: '_id',
+          as:'workgroupData',
+        },
+      },
+      {
+        $addFields: {
+          workgroupTitles: {
+            $map: { input: '$workgroupData', as: 'wg', in: '$$wg.title' },
+          },
+        },
       },
       {
         $project: {
           title: 1,
           subtitle: 1,
           description: 1,
+          type: 1,
+          image: 1,
+          location: 1,
+          locationType: 1,
           eventDate: 1,
-          score: { $meta: "vectorSearchScore" }
-        }
-      }
+          registrationLink: 1,
+          workgroup: 1,
+          workgroupTitles: 1,
+          tags: 1,
+          score: { $meta: 'vectorSearchScore' },
+        },
+      },
     ]);
 
-    console.log("Events found:", events.length);
+    // ── Fallback if vector search returned empty arrays ──────────────
+    if (!publications.length) {
+      publications = await researchPaperModel
+        .find({ uploadStatus: 'completed' })
+        .sort({ publishingDate: -1 })
+        .limit(5)
+        .select('title subtitle description publishingDate documentType thumbnailUrl workgroupId')
+        .lean();
+    }
 
-    console.log("Returning personalized data response");
+    if (!upcomingEvents.length) {
+      upcomingEvents = await eventsModel
+        .find({ 'eventDate.start': { $gt: today } })
+        .sort({ 'eventDate.start': 1 })
+        .limit(3)
+        .populate('workgroup', 'title')
+        .select('title subtitle description type image location locationType eventDate registrationLink workgroup tags')
+        .lean();
+    }
+
+    return res.status(200).json({ publications, upcomingEvents });
+
+  } catch (err) {
+    console.error("Error in personalizedData:", err.message);
+    return res.status(500).json({ msg: "Internal Server Error", err: err.message });
+  }
+};
+
+
+export const workgroupPick = async (req, res) => {
+  try {
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      return res.status(400).json({ msg: "User not authenticated" });
+    }
+
+    const user = await userModel.findOne({ clerkUserId: userId });
+
+    let selectedWorkgroup = null;
+
+    if (user?.workgroupId && user.workgroupId.length > 0) {
+      selectedWorkgroup = user.workgroupId[0];
+    } else {
+      const randomWorkgroup = await workgroupModel.aggregate([
+        { $sample: { size: 1 } }
+      ]);
+      selectedWorkgroup = randomWorkgroup[0]?._id;
+    }
+
+    if (!selectedWorkgroup) {
+      return res.status(404).json({ msg: "No workgroup found" });
+    }
+
+    const workgroupObjectId =
+      typeof selectedWorkgroup === "string"
+        ? new mongoose.Types.ObjectId(selectedWorkgroup)
+        : selectedWorkgroup;
+
+    const workgroupDoc = await workgroupModel.findById(workgroupObjectId).select("title");
+
+    const events = await eventsModel.find({
+      workgroup: { $in: [workgroupObjectId] }
+    }).limit(2);
+
+    const publications = await researchPaperModel.find({
+      workgroupId: { $in: [workgroupObjectId] }
+    }).limit(2);
 
     return res.status(200).json({
-      publications,
-      events
+      workgroup: {
+        _id: workgroupObjectId,
+        title: workgroupDoc?.title || null
+      },
+      events,
+      publications
     });
 
   } catch (err) {
-
-    console.error("----- ERROR in personalizedData API -----");
-    console.error("Error message:", err.message);
-    console.error("Stack trace:", err.stack);
-
+    console.error("Error in workgroupPick:", err);
     return res.status(500).json({
       msg: "Internal Server Error",
       err: err.message

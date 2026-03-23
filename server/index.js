@@ -14,6 +14,7 @@ import { globalLimiter } from './utils/Production/rateLimiter.js';
 import logger from './utils/logger.js';
 import { validateEnv } from './utils/validateEnv.js';
 import { httpLogger } from './middleware/httpLogger.js';
+import seedRBAC from './seedData/seedRBAC.js';
 
 
 /* Routes */
@@ -29,6 +30,8 @@ import fellowProfileRouter from './Routes/fellowProfileRouter.js';
 import adminRouter from './Routes/adminRouter.js';
 import membershipRouter from './Routes/membershipRoutes.js';
 import newsletterSubscriberRouter from './Routes/newsletterSubscriberRouter.js';
+import rolesRouter from './Routes/rolesRouter.js';
+import webhookRouter from './Routes/webhookRouter.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -156,7 +159,7 @@ if (!isTest) {
   );
 }
 
-app.use('/api/webhook', express.raw({ type: 'application/json' }), membershipRouter);
+app.use('/api/webhook', express.raw({ type: 'application/json' }), webhookRouter);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
@@ -197,6 +200,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/membership', membershipRouter);
 app.use('/api/organization', membershipRouter);
 app.use('/api/newsletter', newsletterSubscriberRouter);
+app.use('/api/roles', rolesRouter);
 
 
 /* ======================================================================
@@ -276,9 +280,17 @@ process.on('unhandledRejection', (reason) => {
    Database & Email System Initialization
 ====================================================================== */
 
+ 
 if (!isTest) {
-  Connection();
-
+    Connection()
+        .then(async () => {
+            await seedRBAC();
+        })
+        .catch((err) => {
+            logger.error({ error: err }, 'Failed to connect to database or seed RBAC');
+            process.exit(1);
+        });
 }
+ 
 
 export default app;

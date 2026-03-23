@@ -7,16 +7,6 @@ const membershipSchema = mongoose.Schema({
         required: true,
         index: true
     },
-    organization: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Organization",
-        default: null
-    },
-    tier: {
-        type: String,
-        enum: ["premium", "pro", "organizational"],
-        required: true
-    },
     status: {
         type: String,
         enum: ["active", "past_due", "canceled", "incomplete", "incomplete_expired", "trialing", "unpaid"],
@@ -42,7 +32,7 @@ const membershipSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    // Billing information
+    // Billing
     currentPeriodStart: {
         type: Date,
         required: true
@@ -67,16 +57,6 @@ const membershipSchema = mongoose.Schema({
         type: Date,
         default: null
     },
-    // Trial information (if needed in future)
-    trialStart: {
-        type: Date,
-        default: null
-    },
-    trialEnd: {
-        type: Date,
-        default: null
-    },
-    // Metadata
     metadata: {
         type: Map,
         of: String,
@@ -84,22 +64,18 @@ const membershipSchema = mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Indexes for efficient queries
 membershipSchema.index({ user: 1, status: 1 });
-membershipSchema.index({ organization: 1, status: 1 });
 membershipSchema.index({ stripeSubscriptionId: 1 });
 membershipSchema.index({ currentPeriodEnd: 1 });
 
-// Virtual for checking if membership is currently active
-membershipSchema.virtual('isActive').get(function() {
-    return this.status === 'active' && 
-           this.currentPeriodEnd > new Date() && 
+membershipSchema.virtual('isActive').get(function () {
+    return this.status === 'active' &&
+           this.currentPeriodEnd > new Date() &&
            !this.cancelAtPeriodEnd;
 });
 
-// Method to check if user has access to publications
-membershipSchema.methods.hasPublicationAccess = function() {
-    return ['active', 'trialing'].includes(this.status) && 
+membershipSchema.methods.hasPublicationAccess = function () {
+    return ['active', 'trialing'].includes(this.status) &&
            this.currentPeriodEnd > new Date();
 };
 

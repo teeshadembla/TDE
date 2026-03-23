@@ -129,6 +129,21 @@ export const submitFellowshipApplication = async (req, res) => {
       paymentMethodId,
     });
 
+    if (paymentMethodId && userId) {
+      const user = await userModel.findById(userId);
+
+      if (user && user.stripeCustomerId) {
+        // Set as default payment method on Stripe customer
+        await stripe.customers.update(user.stripeCustomerId, {
+          invoice_settings: { default_payment_method: paymentMethodId }
+        });
+
+        // Save to user record
+        user.stripePaymentMethodId = paymentMethodId;
+        await user.save();
+      }
+    }
+    
     const {name , email} = await userModel.findById(userId).select("FullName email");
     logger.debug({userId, email}, "Sending application confirmation email");
     /* ---------------- Email (fire-and-forget) ---------------- */

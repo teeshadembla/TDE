@@ -6,7 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import DataProvider from '../context/DataProvider';
 import { useClerk } from '@clerk/clerk-react';
+import { toast } from 'react-toastify';
 import { X, Settings, Calendar, LayoutDashboard, ShieldCheck, ChevronRight } from 'lucide-react';
+import { PermissionContext } from '../context/PermissionProvider';
+import usePermission from '../hooks/usePermission';
 
 // ── Brand tokens ──────────────────────────────────────────────────────────────
 const B = {
@@ -21,13 +24,17 @@ const B = {
 export default function ProfileDrawer() {
   const [open, setOpen] = React.useState(false);
   const { account, setAccount } = React.useContext(DataProvider.DataContext);
+  const { clearPermissions } = React.useContext(PermissionContext);
   const { signOut } = useClerk();
   const navigate = useNavigate();
 
   const toggleDrawer = (newOpen) => () => setOpen(newOpen);
 
+  const canAccessAdminDashboard = usePermission('access_admin_dashboard');
+  const canManageRoles = usePermission('change_roles_permissions');
+
   const goToDashboard = () => {
-    account.role === 'core' || account.role === 'admin'
+    canAccessAdminDashboard
       ? navigate('/admin/profile')
       : navigate('/user/profile');
     setOpen(false);
@@ -38,21 +45,18 @@ export default function ProfileDrawer() {
     setOpen(false);
   };
 
-    const handleLogout = async () => {
-      try {
-        setAccount(null);
-  
-        await signOut();
-  
-        navigate('/login');
-        
-        toast.success('Logged out successfully');
-      } catch (err) {
-        console.error('Logout error:', err);
-        toast.error('Failed to logout');
-      }
-    };
-  
+  const handleLogout = async () => {
+    try {
+      clearPermissions();
+      setAccount({ _id: "", name: "", email: "", role: "", profilePicture: "" });
+      await signOut();
+      navigate('/login');
+      toast.success('Logged out successfully');
+    } catch (err) {
+      console.error('Logout error:', err);
+      toast.error('Failed to logout');
+    }
+  };
 
   // White-section nav items
   const whiteNavItems = [
@@ -71,7 +75,7 @@ export default function ProfileDrawer() {
       label: 'Account Settings',
       action: () => { navigate('/settings'); setOpen(false); },
     },
-    ...(account.role === 'admin' ? [{
+    ...(canManageRoles ? [{
       icon: ShieldCheck,
       label: 'Manage Roles & Permissions',
       action: () => { navigate('/admin/roles'); setOpen(false); },
@@ -81,7 +85,7 @@ export default function ProfileDrawer() {
 
   // Black-section items
   const blackNavItems = [
-    { label: 'Sign out',  action: () => { handleLogout(); setOpen(false) } },
+    { label: 'Sign out',  action: () => { handleLogout() } },
     { label: 'Privacy',   action: () => { navigate('/privacy'); setOpen(false); } },
     { label: 'Legal',     action: () => { navigate('/legal'); setOpen(false); } },
   ];

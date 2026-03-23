@@ -1,28 +1,39 @@
 import { useContext } from "react";
 import DataProvider from "../context/DataProvider";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
-const AdminRoute = ({children}) =>{
+/**
+ * AdminRoute
+ * Requires the user to be logged in AND have role 'admin' or 'core'.
+ * Redirects to /login if not authenticated.
+ * Redirects to /user/profile if authenticated but not admin/core.
+ */
+const AdminRoute = ({ children }) => {
     const { account } = useContext(DataProvider.DataContext);
-    
-    console.log("AdminRoute rendering, account:", account);
-    
-    // Don't redirect until account data is loaded
-    if (!account._id) {
-        console.log("AdminRoute: No account ID, showing loading...");
+    const location = useLocation();
+
+    // Still loading auth state — don't redirect yet
+    if (account._id === undefined) {
         return <div>Loading...</div>;
     }
-    
-    const isAdmin = account.role === 'admin' || account.role === 'core';
-    console.log("AdminRoute: isAdmin =", isAdmin, "role =", account.role);
-    
-    if (!isAdmin) {
-        console.log("AdminRoute: User is not admin, redirecting to /user/profile");
-        return <Navigate to="/user/profile" />;
+
+    // Not logged in → send to login
+    if (!account._id) {
+        return (
+            <Navigate
+                to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`}
+                replace
+            />
+        );
     }
-    
-    console.log("AdminRoute: Rendering children");
+
+    // Logged in but wrong role → send to user profile
+    const isAdminOrCore = account.role === 'admin' || account.role === 'core';
+    if (!isAdminOrCore) {
+        return <Navigate to="/user/profile" replace />;
+    }
+
     return children;
-}
+};
 
 export default AdminRoute;

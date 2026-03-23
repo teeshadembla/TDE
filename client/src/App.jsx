@@ -3,219 +3,183 @@ import './App.css';
 import HomePage from './Pages/HomePage.jsx'; 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import Login from './Pages/Auth/Login.jsx';
-import { Signature } from 'lucide-react';
 import Signup from './Pages/Auth/Signup.jsx';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataProvider from "./context/DataProvider.jsx";
+import { PermissionProvider, PermissionContext } from "./context/PermissionProvider.jsx";
 import { HeaderCollapseProvider, HeaderCollapseContext } from "./context/HeaderCollapseContext.jsx";
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import axiosInstance from './config/apiConfig.js';
 import EventsDashboard from './Pages/Events/EventsDashboard.jsx';
 import ProfileDashboard from "./Pages/Profile/ProfileDashboard.jsx";
 import ExecutiveFellowship from './Pages/ExecutiveFellowship.jsx';
-import CenterForExcellence from './Pages/CentreForExcellence.jsx';
-import ApplicationModal from "./components/ExecutiveFellowships/ApplicationModal.jsx";
 import CommunityPage from './Pages/CommunityPage/CommunityPage.jsx';
 import OurPeople from  "./Pages/PeopleAtTDE/OurPeople.jsx";
 import AboutUs from './Pages/AboutUs/AboutUs.jsx';
 import { useAuth, useUser } from "@clerk/clerk-react";
-// ProtectedRoute.jsx
-import { Navigate, useLocation } from "react-router-dom";
 import AdminProfile from './Pages/AdminProfile/AdminProfile.jsx';
 import AdminRoute from './Utils/AdminRoute.jsx';
-import UserRoute from './Utils/UserRoute.jsx';
+import ProtectedRoute from './Utils/ProtectedRoute.jsx';
 import PracticeArea from './Pages/PracticeArea/PracticeArea.jsx';
-import NewsPage from './Pages/News/NewsPage.jsx';
 import UserProfile from './components/PeopleAtTDE/UserProfile.jsx';
-import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';
 import ResearchPaperUploadForm from './components/DocumentUpload/ResearchPaperUploadForm.jsx';
 import Publications from './Pages/Publications/Publications.jsx';
 import IndividualPaperPage from './components/Publications/IndividualPaperPage.jsx';
-import ArticlePage from "./components/News/ArticlePage.jsx";
 import OnboardingForm from './Pages/OnboardingForm/OnboardingForm.jsx';
 import Setup2FA from "../src/Pages/Auth/Setup2FA.jsx";
 import ForgotPassword from './Pages/Auth/ForgotPassword.jsx';
 import MemberProfile from './components/PeopleAtTDE/MemberProfile.jsx';
 import PricingCard from './components/Memberships/PricingCard.jsx';
 import MembershipSuccess from './Pages/Memberships/MembershipSuccess.jsx';
-import AdminSettings from './components/AdminProfile/AdminSettings.jsx';
 import AccountSettings from "./Pages/AccountSettings/AccountSettingsPage.jsx";
 import IndividualEventsPage from './components/Events/IndicidualEventsPage.jsx';
 import RolePermissions from './Pages/RolePermissions/RolePermissions.jsx';
 import PostLoginLandingPage from './Pages/PostLoginLandingPage/PostLoginLandingPage.jsx';
 import HeaderSwitcher from './components/HeaderSwitcher.jsx';
-
-function ProtectedRoute({ children, authLoading}) {
-  const {account, setAccount} = useContext(DataProvider.DataContext);
-  const location = useLocation();
-  console.log("This is account at the time of protected route rendering--->",account);
-
-  if (authLoading) {
-    return <div>Loading...</div>; 
-  }
-
-  if (!account._id) {
-    return (
-      <Navigate
-        to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`}
-        replace
-      />
-    );
-  }
-  return children;
-}
-
+import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';
+import DavosLaunch from './Pages/DavosLaunch.jsx';
 
 function App() {
-  const {account, setAccount} = useContext(DataProvider.DataContext);
-  const [authLoading, setAuthLoading] = useState(true); 
-  const {isLoaded, isSignedIn} = useAuth();
-  const {user} = useUser();
+    const { account, setAccount } = useContext(DataProvider.DataContext);
+    const { fetchPermissions, clearPermissions } = useContext(PermissionContext);
+    const [authLoading, setAuthLoading] = useState(true);
+    const { isLoaded, isSignedIn } = useAuth();
+    const { user } = useUser();
 
-  useEffect(()=>{
-  },[isLoaded, isSignedIn, user?.id])
+    useEffect(() => {
+        if (!isLoaded) return;
 
-  useEffect(()=>{
-    if(!isLoaded) return;
+        if (!isSignedIn) {
+            // User logged out — clear both account and permissions
+            setAccount({ _id: "", name: "", email: "", role: "", profilePicture: "" });
+            clearPermissions();
+            setAuthLoading(false);
+            return;
+        }
 
-      if (!isSignedIn) {
-        setAccount({ _id: "", name: "", email: "", role: "", profilePicture: "" });
-        setAuthLoading(false);
-        return;
-      }
+        const syncUser = async () => {
+            try {
+                const res = await axiosInstance.get("/api/user/me");
+                const u = res.data.user;
 
-    const syncUser = async () =>{
-      try{
-        console.log("Attempting to fetch user from /api/user/me...");
-        const res = await axiosInstance.get("/api/user/me");
-        console.log("User data received:", res.data);
+                setAccount({
+                    _id: u._id,
+                    name: u.FullName,
+                    role: u.role.trim(),
+                    email: u.email,
+                    profilePicture: u.profilePicture,
+                    verified: u.isVerifiedbyAdmin,
+                    activeMembership: u.activeMembership ?? null,
+                });
 
-        const u = res.data.user;
-        setAccount({
-          _id: u._id,
-          name: u.FullName,
-          role: u.role.trim(),  // Remove whitespace/newlines
-          email: u.email,
-          profilePicture: u.profilePicture,
-          verified: u.isVerifiedbyAdmin,
-        });
-        console.log("Account state updated successfully");
-      }catch(err){
-        console.error("ERROR syncing user - Details:", {
-          message: err.message,
-          code: err.code,
-          status: err.response?.status,
-          data: err.response?.data,
-          fullError: err
-        });
-      }finally{
-        setAuthLoading(false);
-      }
-    }
-    syncUser();
-  },[isLoaded, isSignedIn, user?.id]);
+                // Fetch permissions immediately after account is set
+                await fetchPermissions();
 
-  useEffect(() => {
-    console.log("Account has been updated:", account);
-  }, [account]);
+            } catch (err) {
+                console.error("ERROR syncing user:", err);
+            } finally {
+                setAuthLoading(false);
+            }
+        };
 
-  
-  return (
-    <HeaderCollapseProvider>
-      <BrowserRouter>
-        <HeaderSwitcher/>
-        <AppContent authLoading={authLoading} />
-        <ToastContainer position="top-right" autoClose={3000}/>
-      </BrowserRouter>
-    </HeaderCollapseProvider>
-  );
+        syncUser();
+    }, [isLoaded, isSignedIn, user?.id]);
+
+    return (
+        <HeaderCollapseProvider>
+            <BrowserRouter>
+                <HeaderSwitcher />
+                <AppContent authLoading={authLoading} />
+                <ToastContainer position="top-right" autoClose={3000} />
+            </BrowserRouter>
+        </HeaderCollapseProvider>
+    );
 }
 
 function AppContent({ authLoading }) {
-  const { headerCollapsed } = useContext(HeaderCollapseContext);
-  const location = useLocation();
-  const {isSignedIn} = useAuth();
-  const isAdminProfile = location.pathname === '/admin/profile';
+    const { headerCollapsed } = useContext(HeaderCollapseContext);
+    const location = useLocation();
+    const { isSignedIn } = useAuth();
+    const isAdminProfile = location.pathname === '/admin/profile';
 
-  const PUBLIC_HEADER_HEIGHT = 180;
-  const PRIVATE_HEADER_HEIGHT = 0; // because it's overlay (transparent)
+    const PUBLIC_HEADER_HEIGHT = 180;
+    const PRIVATE_HEADER_HEIGHT = 0;
 
-  const paddingTop = isSignedIn
-    ? PRIVATE_HEADER_HEIGHT
-    : (isAdminProfile && headerCollapsed ? 110 : PUBLIC_HEADER_HEIGHT);
+    const paddingTop = isSignedIn
+        ? PRIVATE_HEADER_HEIGHT
+        : (isAdminProfile && headerCollapsed ? 110 : PUBLIC_HEADER_HEIGHT);
 
+    return (
+        <div className="App font-montserrat m-0 p-0" style={{ paddingTop }}>
+            <Routes>
 
-  return (
-    <div 
-      className="App font-montserrat m-0 p-0"
-      style={{
-        paddingTop
-      }}
-    >
-          <Routes>
-          *<Route path='/' element={<HomePage/>}></Route>
-            *<Route path='/about' element={<AboutUs/>}></Route>
-            {/* ---------------------------------------------------------------------------------------------------------------------------------- */}
+                {/* ── PUBLIC ROUTES ──────────────────────────────────────────
+                    No auth required. Accessible by anyone. */}
+                <Route path='/' element={<HomePage />} />
+                <Route path='/about' element={<AboutUs />} />
+                <Route path='/login' element={<Login />} />
+                <Route path='/signup' element={<Signup />} />
+                <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path='/setup-2fa' element={<Setup2FA />} />
+                <Route path='/events' element={<EventsDashboard />} />
+                <Route path='/execFellowship' element={<ExecutiveFellowship authLoading={authLoading} />} />
+                <Route path='/fellowship/fellows' element={<OurPeople />} />
+                <Route path='/about/profile/:id' element={<MemberProfile />} />
+                <Route path='/practice/:id' element={<PracticeArea />} />
+                <Route path='/publications' element={<Publications />} />
+                <Route path='/research-paper/:paper_id' element={<IndividualPaperPage />} />
+                <Route path='/membership/pricing' element={<PricingCard />} />
+                <Route path='/davos' element={<DavosLaunch/>}/>
 
-            {/* Authentication elements */}
-            *<Route path='/login' element={<Login/>}></Route>
-            *<Route path='/signup' element={<Signup/>}></Route>
-            *<Route path='/forgot-password' element={<ForgotPassword/>}></Route>
-            *<Route path="/setup-2fa" element={<Setup2FA />} />
-            {/* ----------------------------------------------------------------------------------------------------------------------------------- */}
-          
-            {/* Events Dashboard */}
-            
-              *<Route path='/events' element={<EventsDashboard/>}></Route>
+                {/* ── PROTECTED ROUTES ───────────────────────────────────────
+                    Requires login. Fine-grained checks inside components. */}
+                <Route path='/user/profile' element={
+                    <ProtectedRoute><ProfileDashboard /></ProtectedRoute>
+                } />
+                <Route path='/settings/*' element={
+                    <ProtectedRoute><AccountSettings /></ProtectedRoute>
+                } />
+                <Route path='/just-for-you' element={
+                    <ProtectedRoute><PostLoginLandingPage /></ProtectedRoute>
+                } />
+                <Route path='/doc-upload' element={
+                    <AdminRoute><ResearchPaperUploadForm /></AdminRoute>
+                } />
+                <Route path='/community' element={
+                    <CommunityPage />
+                } />
+                <Route path='/profile/:user_id' element={
+                    <ProtectedRoute><UserProfile /></ProtectedRoute>
+                } />
+                <Route path='/onboarding/:userId' element={
+                    <ProtectedRoute><OnboardingForm /></ProtectedRoute>
+                } />
+                <Route path='/events/:id' element={
+                    <IndividualEventsPage />
+                } />
+                <Route path='/membership/success' element={
+                    <MembershipSuccess />
+                } />
 
-            {/* Profile Dahsboard */}
-              
-              *<Route path='/user/profile' element={<UserRoute><ProfileDashboard/></UserRoute>}></Route>  
-              <Route path='/admin/profile' element={<AdminRoute><AdminProfile/></AdminRoute>}></Route>     
+                <Route path='/join-us/pricing' element={
+                    <MembershipBrowse></MembershipBrowse>
+                }></Route>
 
-            {/* Executive Fellowships */}
-              *<Route path='/execFellowship' element={<ExecutiveFellowship authLoading={authLoading}/>}></Route>
+                {/* ── ADMIN ROUTES ───────────────────────────────────────────
+                    Requires login AND role === 'admin' or 'core'. */}
+                <Route path='/admin/profile' element={
+                    <AdminRoute><AdminProfile /></AdminRoute>
+                } />
+                <Route path='/admin/roles' element={
+                    <AdminRoute><RolePermissions /></AdminRoute>
 
-              {/* Community Page */}
-              <Route path='/community' element={<CommunityPage/>}></Route>
+                } />
 
-            {/* Our People Page */}
-              <Route path='/fellowship/fellows' element={<OurPeople/>}></Route>
-              <Route path='/about/profile/:id' element={<MemberProfile/>}></Route>
-              <Route path='/profile/:user_id' element={<UserProfile/>}></Route>
-
-              {/* Memberships browse page */}
-              <Route path='/join-us/pricing' element={<MembershipBrowse/>}></Route>
-              <Route path="/membership/success" element={<MembershipSuccess />} />
-              <Route path="/membership/pricing" element={<PricingCard/>}/>
-
-
-              {/* Practice Area dynamic pages */}
-              <Route path='/practice/:id' element={<PracticeArea/>}></Route>
-{/* 
-              <Route path='/news' element={<NewsPage/>}></Route>
-              <Route path='/news/:articleId' element={<ArticlePage/>}></Route> */}
-
-              <Route path='/doc-upload' element={<ResearchPaperUploadForm/>}></Route>
-
-              {/* Publications Page */}
-              <Route path='/publications' element={<Publications/>} ></Route>
-              <Route path='/research-paper/:paper_id' element={<IndividualPaperPage/>} ></Route>
-
-              {/* User Profile */}
-              <Route path='/onboarding/:userId' element={<OnboardingForm/>}></Route>
-
-              <Route path='/settings/*' element={<AccountSettings/>}/>
-              <Route path='/events/:id' element={<IndividualEventsPage/> }/>
-
-              <Route path='/admin/roles' element={<RolePermissions/>}/>
-
-              <Route path='/new-landing' element={<PostLoginLandingPage/>}/>
             </Routes>
-          </div>
+        </div>
     );
 }
 

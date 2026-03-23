@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { useNavigate } from "react-router";
 
 export const practiceHighlightsDummyData = {
   practiceArea: "Applied Artificial Intelligence",
@@ -60,7 +61,7 @@ export const practiceHighlightsDummyData = {
   ],
 };
 
-const PracticeHighlightsSection = ({ data= practiceHighlightsDummyData }) => {
+const PracticeHighlightsSection = ({ workgroup, data }) => {
   const scrollRef = useRef(null);
 
   const scroll = (dir) => {
@@ -81,14 +82,14 @@ const PracticeHighlightsSection = ({ data= practiceHighlightsDummyData }) => {
         </h2>
 
         
-        <div className="flex items-center gap-2 cursor-pointer">
+       {/*  <div className="flex items-center gap-2 cursor-pointer">
           <div className="w-[25px] h-[25px] border border-white rounded-full flex items-center justify-center text-sm">
             +
           </div>
           <span className="text-[25px] font-extralight">
             Add Practice Area
           </span>
-        </div>
+        </div> */}
         
       </div>
 
@@ -111,7 +112,7 @@ const PracticeHighlightsSection = ({ data= practiceHighlightsDummyData }) => {
         {/* TITLE + ARROWS */}
         <div className="flex justify-between items-center mb-10">
           <h3 className="text-[25px] font-medium text-black">
-            {data.practiceArea}
+            {workgroup?.title}
           </h3>
 
           <div className="flex gap-4 text-black">
@@ -125,8 +126,8 @@ const PracticeHighlightsSection = ({ data= practiceHighlightsDummyData }) => {
           ref={scrollRef}
           className="flex gap-8 overflow-x-auto scroll-smooth no-scrollbar"
         >
-          {data.items.map((item) => (
-            <PracticeCard key={item.id} item={item} />
+          {data?.items?.map((item, i) => (
+            <PracticeCard key={item.id} item={item} cta={item?.type === "event" ? `/events/${item?.data?._id}`:`/research-paper/${item?.data?._id}`} type={ item?.type === "publication" ? item?.data?.documentType: item?.data?.type} image={item?.type === "event" ? item?.data?.image?.url : item?.data?.thumbnailUrl} date={item?.type === "event" ? item?.data?.eventDate?.start: item?.data?.publishingDate} title={item?.data?.title}/>
           ))}
         </div>
       </div>
@@ -136,7 +137,7 @@ const PracticeHighlightsSection = ({ data= practiceHighlightsDummyData }) => {
 
 export default PracticeHighlightsSection;
 
-const PracticeCard = ({ item }) => {
+const PracticeCard = ({ item, type, image, date, title, cta }) => {
   return (
     <div
       className="
@@ -158,30 +159,34 @@ const PracticeCard = ({ item }) => {
         <div className="flex justify-between items-center mb-6">
           
           {/* TAG */}
-          <div className="px-4 py-1 border-[0.5px] border-[#D9D9D9] rounded-full text-[15px] font-light">
-            {item.type}
+          <div className="px-4 py-1 capitalize border-[0.5px] border-[#D9D9D9] rounded-full text-[15px] font-light">
+            {type}
           </div>
 
           {/* DATE */}
           <div className="text-[12px] font-extralight opacity-80">
-            {item.date}
+            {new Date(date).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric"
+            })}
           </div>
         </div>
 
         {/* TITLE */}
-        <h4 className="text-[25px] font-normal leading-[100%] mb-6 w-[299px]">
-          {item.title}
+        <h4 className="text-[20px] font-normal leading-[100%] mb-6 w-[299px]">
+          {title}
         </h4>
 
         {/* BUTTON */}
-        <Button>{item.cta}</Button>
+        <Button redirectLink={cta}>Access Here</Button>
       </div>
 
       {/* IMAGE */}
       <div className="mt-6 w-full h-[317px] rounded-[20px] overflow-hidden">
         <img
-          src={item.image}
-          alt={item.title}
+          src={image}
+          alt={title}
           className="w-full h-full object-cover"
         />
       </div>
@@ -190,9 +195,11 @@ const PracticeCard = ({ item }) => {
 };
 
 
-const Button = ({ children }) => {
+const Button = ({ children, redirectLink }) => {
+  const navigate = useNavigate();
   return (
     <button
+      onClick={()=> navigate(redirectLink)}
       className="
         w-[139px]
         h-[34px]
@@ -203,6 +210,7 @@ const Button = ({ children }) => {
         font-light
         hover:bg-gray-200
         transition
+        cursor-pointer
       "
     >
       {children}

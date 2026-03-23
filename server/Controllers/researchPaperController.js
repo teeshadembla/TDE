@@ -341,6 +341,14 @@ export const getDownloadUrl = async (req, res) => {
 
     const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 minutes
 
+
+    // Track the download
+    await researchPaperModel.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { downloadCount: 1 } },
+      { new: false }
+    );
+
     logger.debug({documentId: req.params.id}, "Download URL generated successfully");
     res.status(200).json({
       success: true,
@@ -443,24 +451,96 @@ export const getAllPapers = async(req, res)=> {
 
 export const findSimilarPapers = async (req, res) => {
   try {
-    const paper = await researchPaperModel.findById(req.params.id);
+    const paper = await researchPaperModel.findById(req.params.id)
+      .select('embedding tags title');
+
     if (!paper) {
-      logger.debug({paperId: req.params.id}, "Paper not found for similarity search");
-      return res.status(404).json({ message: "Paper not found" });
+      logger.debug({ paperId: req.params.id }, 'Paper not found for similarity search');
+      return res.status(404).json({ message: 'Paper not found' });
     }
 
-    const similarPapers = await researchPaperModel.find({
-      _id: { $ne: paper._id }, // exclude current paper
-      tags: { $in: paper.tags }, // match at least one tag
-    }).limit(5).populate('Authors', 'FullName');
+    // ── Embedding-based search (primary) ────────────────────────────
+    if (paper.embedding && paper.embedding.length === 384) {
+      const similarPapers = await researchPaperModel.aggregate([
+        {
+          $vectorSearch: {
+            index: 'publication_embedding_index',
+            path: 'embedding',
+            queryVector: paper.embedding,
+            numCandidates: 50,  // cast a wider net, Atlas re-ranks to limit
+            limit: 6,           // fetch 6 so we can drop the current paper
+          },
+        },
+        {
+          // Exclude the current paper from results
+          $match: {
+            _id: { $ne: paper._id },
+          },
+        },
+        {
+          $limit: 5,
+        },
+        {
+          $lookup: {
+            from: 'users',
+            let: { authorIds: '$Authors' },
+            pipeline: [
+              { $match: { $expr: { $in: ['$_id', '$$authorIds'] } } },
+              { $project: { FullName: 1, _id: 1 } },
+            ],
+            as: 'Authors',
+          },
+        },
+        {
+          $project: {
+            title: 1,
+            subtitle: 1,
+            documentType: 1,
+            publishingDate: 1,
+            thumbnailUrl: 1,
+            tags: 1,
+            Authors: 1,
+            score: { $meta: 'vectorSearchScore' },
+          },
+        },
+      ]);
 
-    logger.debug({paperId: req.params.id, similarCount: similarPapers.length}, "Similar papers retrieved successfully");
-    res.json(similarPapers);
+      logger.debug(
+        { paperId: req.params.id, similarCount: similarPapers.length, method: 'vector' },
+        'Similar papers retrieved via vector search'
+      );
+      return res.json(similarPapers);
+    }
+
+    // ── Tag-based fallback (if embedding missing) ───────────────────
+    logger.warn(
+      { paperId: req.params.id },
+      'No embedding found — falling back to tag-based similarity'
+    );
+
+    const similarPapers = await researchPaperModel.find({
+      _id: { $ne: paper._id },
+      tags: { $in: paper.tags },
+      uploadStatus: 'completed',
+    })
+      .limit(5)
+      .populate('Authors', 'FullName')
+      .select('title subtitle documentType publishingDate thumbnailUrl tags Authors');
+
+    logger.debug(
+      { paperId: req.params.id, similarCount: similarPapers.length, method: 'tags' },
+      'Similar papers retrieved via tag fallback'
+    );
+    return res.json(similarPapers);
+
   } catch (err) {
-    logger.error({paperId: req.params.id, errorMsg: err.message, stack: err.stack}, "Error finding similar papers");
-    res.status(500).json({ message: err.message });
+    logger.error(
+      { paperId: req.params.id, errorMsg: err.message, stack: err.stack },
+      'Error finding similar papers'
+    );
+    return res.status(500).json({ message: err.message });
   }
-}
+};
 
 export const getFeaturedPublication = async (req, res) => {
   try {
@@ -571,5 +651,75 @@ export const getFeaturedPublication = async (req, res) => {
       message: "Failed to fetch featured publications",
       error: err
     });
+  }
+};
+
+// Track a view — no auth required, anyone can increment
+export const trackView = async (req, res) => {
+  try {
+    const document = await researchPaperModel.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { viewCount: 1 } },
+      { new: false } // we don't need the updated doc back
+    );
+
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    logger.debug({ documentId: req.params.id }, 'View tracked');
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    logger.error({ documentId: req.params.id, errorMsg: err.message }, 'Error tracking view');
+    return res.status(500).json({ success: false, message: 'Failed to track view' });
+  }
+};
+
+// Track a share — requires auth (only registered users can share)
+export const trackShare = async (req, res) => {
+  try {
+    const document = await researchPaperModel.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { shareCount: 1 } },
+      { new: false }
+    );
+
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    logger.debug({ documentId: req.params.id, userId: req.user.userId }, 'Share tracked');
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    logger.error({ documentId: req.params.id, errorMsg: err.message }, 'Error tracking share');
+    return res.status(500).json({ success: false, message: 'Failed to track share' });
+  }
+};
+
+// Get analytics — requires view_publication_analytics permission
+export const getAnalytics = async (req, res) => {
+  try {
+    const document = await researchPaperModel.findById(req.params.id)
+      .select('title viewCount shareCount downloadCount publishingDate documentType');
+
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    logger.debug({ documentId: req.params.id, userId: req.user.userId }, 'Analytics retrieved');
+    return res.status(200).json({
+      success: true,
+      data: {
+        title:         document.title,
+        documentType:  document.documentType,
+        publishingDate: document.publishingDate,
+        viewCount:     document.viewCount     ?? 0,
+        shareCount:    document.shareCount    ?? 0,
+        downloadCount: document.downloadCount ?? 0,
+      },
+    });
+  } catch (err) {
+    logger.error({ documentId: req.params.id, errorMsg: err.message }, 'Error fetching analytics');
+    return res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
   }
 };
