@@ -2,13 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import TagCombobox, { EXPERTISE_OPTIONS, INTEREST_OPTIONS } from "../../components/Auth/TagCombobox.jsx";
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-function ExpertiseModal({ onClose, onSave, initialData = {} }) {
+function ExpertiseModal({ onClose, onSave, initialData = {}, userId, token }) {
   const [expertiseTags, setExpertiseTags] = useState(
     initialData.expertiseArray || []
   );
   const [topicTags, setTopicTags] = useState(
     initialData.followedTopicsArray || []
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
   const overlayRef = useRef(null);
 
   // Close on overlay click
@@ -23,14 +25,40 @@ function ExpertiseModal({ onClose, onSave, initialData = {} }) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const handleSave = () => {
-    onSave({
-      expertiseArray: expertiseTags,
-      expertise: expertiseTags.join(", "),
-      followedTopicsArray: topicTags,
-      followedTopics: topicTags.join(", "),
-    });
-    onClose();
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/users/update/${userId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          expertise: expertiseTags,
+          followedTopics: topicTags,
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to save. Please try again.");
+      }
+
+      onSave({
+        expertiseArray: expertiseTags,
+        expertise: expertiseTags.join(", "),
+        followedTopicsArray: topicTags,
+        followedTopics: topicTags.join(", "),
+      });
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -70,6 +98,13 @@ function ExpertiseModal({ onClose, onSave, initialData = {} }) {
               ×
             </button>
           </div>
+
+          {/* Error banner */}
+          {error && (
+            <div className="mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Fields */}
           <div className="space-y-5">
@@ -114,15 +149,27 @@ function ExpertiseModal({ onClose, onSave, initialData = {} }) {
           <div className="mt-8 flex gap-3 justify-end">
             <button
               onClick={onClose}
-              className="px-5 py-2 text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
+              disabled={isSaving}
+              className="px-5 py-2 text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-5 py-2 text-sm font-medium text-white bg-[#004AAD] hover:bg-blue-600 rounded-lg transition-colors"
+              disabled={isSaving}
+              className="px-5 py-2 text-sm font-medium text-white bg-[#004AAD] hover:bg-blue-600 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Save
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Saving…
+                </>
+              ) : (
+                "Save"
+              )}
             </button>
           </div>
         </div>
@@ -141,11 +188,21 @@ function TagPill({ label }) {
 }
 
 // ─── ExpertiseSection ─────────────────────────────────────────────────────────
-const ExpertiseSection = () => {
+// Props:
+//   userId  – the MongoDB _id of the currently logged-in user  (required)
+//   token   – the JWT auth token for the Authorization header  (required)
+//   initialExpertise     – string[] pre-loaded from user profile (optional)
+//   initialFollowedTopics – string[] pre-loaded from user profile (optional)
+const ExpertiseSection = ({
+  userId,
+  token,
+  initialExpertise = [],
+  initialFollowedTopics = [],
+}) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [savedData, setSavedData] = useState({
-    expertiseArray: [],
-    followedTopicsArray: [],
+    expertiseArray: initialExpertise,
+    followedTopicsArray: initialFollowedTopics,
   });
 
   const hasSaved =
@@ -240,6 +297,8 @@ const ExpertiseSection = () => {
           onClose={() => setModalOpen(false)}
           onSave={setSavedData}
           initialData={savedData}
+          userId={userId}
+          token={token}
         />
       )}
     </section>

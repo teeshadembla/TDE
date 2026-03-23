@@ -93,7 +93,7 @@ const AdminProfile = () => {
   }
 
   return (
-    <div className="w-screen h-screen bg-gray-50 flex overflow-hidden">
+    <div className="w-screen pt-[100px] h-screen bg-gray-50 flex overflow-hidden">
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}

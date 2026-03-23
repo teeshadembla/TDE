@@ -146,7 +146,7 @@ function AppContent({ authLoading }) {
                     <ProtectedRoute><PostLoginLandingPage /></ProtectedRoute>
                 } />
                 <Route path='/doc-upload' element={
-                    <AdminRoute><ResearchPaperUploadForm /></AdminRoute>
+                    <ResearchPaperUploadForm />
                 } />
                 <Route path='/community' element={
                     <CommunityPage />

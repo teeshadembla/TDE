@@ -147,15 +147,20 @@ export const submitFellowshipApplication = async (req, res) => {
     const {name , email} = await userModel.findById(userId).select("FullName email");
     logger.debug({userId, email}, "Sending application confirmation email");
     /* ---------------- Email (fire-and-forget) ---------------- */
+
+    const emailContent = applicationSubmittedTemplate({
+      name: name,
+      fellowshipName: `${workGroupId} - Cycle ${cycle}`,
+    });
+
+
     if (email) {
       sgMail.send({
         to: email,
         from: "teesha@thedigitaleconomist.com",
         subject: "Fellowship Application Received",
-        html: applicationSubmittedTemplate({
-          name: name,
-          fellowshipName: `${workGroupId} - Cycle ${cycle}`,
-        }),
+        html: emailContent.html,
+        text: emailContent.text
       }).catch((err) =>
         logger.error({userId, email, errorMsg: err.message}, "Application submission email failed")
       );
@@ -231,16 +236,20 @@ export const chargeApprovedApplication = async (req, res) => {
     await application.save();
 
     /* ---------------- Email (fire-and-forget) ---------------- */
+
+    const emailContent = paymentConfirmationTemplate({
+      name: user.FullName,
+      fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
+      amount: application.amount / 100,
+      dashboardUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`
+    });
+
     sgMail.send({
       to: user.email,
       from: "teesha@thedigitaleconomist.com",
       suject: "Payment for your fellowship application is complete!",
-      html : paymentConfirmationTemplate({
-        name: user.FullName,
-        fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
-        amount: application.amount / 100,
-        dashboardUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`
-      }),
+      html : emailContent.html,
+      text : emailContent.text
     }).catch((err) =>
       logger.error({userId: user._id, applicationId, errorMsg: err.message}, "Payment confirmation email failed")
     );

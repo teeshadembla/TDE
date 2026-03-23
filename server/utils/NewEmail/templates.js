@@ -24,62 +24,158 @@ If you did not initiate this action, contact support immediately.
 
 
 // src/services/email/templates/application.templates.js
-export const applicationSubmittedTemplate = ({ name, fellowshipName }) => ({
-  subject: `Application Received – ${fellowshipName}`,
+export const applicationSubmittedTemplate = ({ name }) => ({
+  subject: "Executive Fellowship 2026 – Interview Invitation",
   html: `
-    <p>Dear ${name},</p>
-    <p>Your application for <strong>${fellowshipName}</strong> has been received.</p>
-    <p>Our team will review it and get back to you.</p>
-    <br />
-    <p>— The Digital Economist Team</p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+      
+      <p>Dear ${name},</p>
+
+      <p>
+        Thank you for applying to <strong>The Digital Economist’s Executive Fellowship 2026</strong> 
+        and for your interest in joining our global, impact-driven community.
+      </p>
+
+      <p>
+        We’re pleased to share that we’ve now begun the interview process for the April 2026 intake. 
+        As part of this next step, we’d like to invite you to a bilateral conversation with one of our senior executives. 
+        This will be an opportunity to reflect on your work and aspirations, explore alignment with the fellowship’s mission 
+        of building inclusive, resilient, and sustainable systems, and learn more about the fellowship experience.
+      </p>
+
+      <p><strong>Please schedule your conversation at your convenience using one of the following links:</strong></p>
+
+      <ul>
+        <li>
+          Jose Carvalho – 
+          <a href="https://calendly.com/jose-thedigitaleconomist/executive-interview">Schedule here</a>
+        </li>
+        <li>
+          Shannon Kennedy – 
+          <a href="https://calendly.com/digitaleconomist/30min">Schedule here</a>
+        </li>
+        <li>
+          Ambriel Pouncy – 
+          <a href="https://calendly.com/institutionalresearchnetwork/the-digital-economist-fellowship">Schedule here</a>
+        </li>
+      </ul>
+
+      <p>
+        For more details, find the brochure 
+        <a href="https://docsend.com/view/7mi27yzbv5q3hbax">here</a>.
+      </p>
+
+      <p>
+        We look forward to connecting with you and learning more about the perspective you’ll bring 
+        to The Digital Economist community.
+      </p>
+
+      <br />
+
+      <p>— The Digital Economist Team</p>
+
+    </div>
   `,
   text: `
-Hi ${name},
+Dear ${name},
 
-Your application for ${fellowshipName} has been received.
-Our team will review it shortly.
+Thank you for applying to The Digital Economist’s Executive Fellowship 2026 and for your interest in joining our global, impact-driven community.
+
+We’re pleased to share that we’ve now begun the interview process for the April 2026 intake. As part of this next step, we’d like to invite you to a bilateral conversation with one of our senior executives.
+
+Please schedule your conversation using one of the links below:
+
+Jose Carvalho – https://calendly.com/jose-thedigitaleconomist/executive-interview  
+Shannon Kennedy – https://calendly.com/digitaleconomist/30min  
+Ambriel Pouncy – https://calendly.com/institutionalresearchnetwork/the-digital-economist-fellowship  
+
+For more details, find the brochure here:  
+https://docsend.com/view/7mi27yzbv5q3hbax  
+
+We look forward to connecting with you.
 
 — The Digital Economist Team
   `,
 });
 
-export const applicationApprovalTemplate = ({ name, fellowshipName, applicationId, paymentAmount, paymentLink }) => ({
-  subject: `🎉 Congratulations! Your Application Has Been Approved – ${fellowshipName}`,
+export const applicationApprovalTemplate = ({ name, userId, FRONTEND_URL }) => ({
+  subject: "Welcome to The Digital Economist Executive Fellowship 2026",
   html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #27ae60;">🎉 Congratulations! Your Application Has Been Approved</h2>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+      
       <p>Dear ${name},</p>
-      <p>We're excited to inform you that your application for the <strong>${fellowshipName}</strong> fellowship has been <strong style="color: #27ae60;">APPROVED</strong>!</p>
-      
-      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin-top: 0; color: #2c3e50;">Next Steps:</h3>
-        <p>To secure your spot in the fellowship, please complete your payment of <strong>$${paymentAmount}</strong>.</p>
-        <p style="margin-bottom: 0;"><a href="${paymentLink}" style="background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Complete Payment Now</a></p>
-      </div>
-      
-      <p><strong>Important:</strong> Please complete your payment within 7 days to confirm your participation.</p>
-      
-      <p>If you have any questions about the fellowship or payment process, please contact us.</p>
-      
-      <p>We look forward to having you in our program!</p>
+
+      <p>
+        We are pleased to formally welcome you to the <strong>2026 Executive Fellowship Program at The Digital Economist</strong>. 
+        Congratulations on being selected to join this exceptional community of global leaders and changemakers! 
+        Your selection reflects both your demonstrated leadership and your alignment with our mission to build a human-centered global economy.
+      </p>
+
+      <p>
+        The Fellowship will run from <strong>1st of January 2026 to 31st of March 2027</strong>. 
+        To confirm your participation, please complete the following requirements by 
+        <strong>January 31, 2026 (11:59 PM EST)</strong>:
+      </p>
+
+      <h3>1. Sign the Executive Fellowship Terms & Conditions</h3>
+      <p>
+        The combined agreement includes the Mutual Non-Disclosure Agreement (MNDA), Executive Fellowship Terms & Conditions, 
+        and The Digital Economist Code of Conduct. You will receive the link to sign electronically via Dropbox Sign. 
+        Please check your spam folder if you do not receive it within 24 hours.
+      </p>
+
+      <h3>2. Complete the Executive Fellowship Onboarding Form</h3>
+      <p>
+        This form grants us permission to feature you in our social media announcements and on our website. 
+        Please ensure you upload a high-quality, professional headshot (AI-generated images will not be accepted). 
+        We reserve the right to request a new photo if the submitted image does not meet our standards.
+      </p>
+
+      <p>
+        Complete your onboarding form here: 
+        <a href="${FRONTEND_URL}/onboarding/${userId}">Access Onboarding Form</a>
+      </p>
+
+      <h3>3. Complete the Administrative Fee Payment</h3>
+      <p>
+        You will receive an invoice directly via Stripe with a link to pay the administrative fee. 
+        Please check your spam folder if you do not receive it within 24 hours.
+      </p>
+
+      <p>
+        Following the completion of these steps, your onboarding to The Digital Economist digital platforms, 
+        including Slack—our primary collaboration and communication hub—will be initiated.
+      </p>
+
+      <p>
+        The year ahead will challenge and inspire you—to think systemically, engage deeply, and contribute meaningfully 
+        to shaping the future of our interconnected world.
+      </p>
+
       <br />
-      <p>— The Digital Economist Team</p>
+
+      <p>
+        <strong>Welcome to The Digital Economist!</strong> We look forward to your active engagement in this Fellowship 
+        and to witnessing the impact of your leadership within this community of global change agents.
+      </p>
+
     </div>
   `,
   text: `
-Hi ${name},
+Dear ${name},
 
-Congratulations! Your application for the ${fellowshipName} fellowship has been APPROVED!
+We are pleased to formally welcome you to the 2026 Executive Fellowship Program at The Digital Economist.
 
-To secure your spot, please complete your payment of $${paymentAmount}.
+The Fellowship will run from January 1, 2026 to March 31, 2027.
 
-Payment Link: ${paymentLink}
+To confirm your participation, please complete the following by January 31, 2026 (11:59 PM EST):
 
-Important: Please complete your payment within 7 days to confirm your participation.
+1. Sign Terms & Conditions (sent via Dropbox Sign)
+2. Complete Onboarding Form:
+${FRONTEND_URL}/onboarding/${userId}
+3. Complete Administrative Fee Payment (via Stripe)
 
-If you have any questions, please contact us.
-
-We look forward to having you in our program!
+We look forward to your participation and impact.
 
 — The Digital Economist Team
   `,
