@@ -104,7 +104,7 @@ export const createSubscriptionCheckout = async (req, res) => {
       subscription_data: {
         metadata: { userId: user._id.toString() }
       },
-      success_url: `/membership/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.FRONTEND_URL}/membership/success?session_id={CHECKOUT_SESSION_ID}`,      
       cancel_url:  `${process.env.FRONTEND_URL}/join-us/pricing`,
       metadata: { userId: user._id.toString() }
     });

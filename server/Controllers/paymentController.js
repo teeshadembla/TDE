@@ -150,7 +150,8 @@ export const submitFellowshipApplication = async (req, res) => {
 
     const emailContent = applicationSubmittedTemplate({
       name: name,
-      fellowshipName: `${workGroupId} - Cycle ${cycle}`,
+      userId: userId,
+      FRONTEND_URL: process.env.FRONTEND_URL
     });
 
 
