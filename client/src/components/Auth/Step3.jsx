@@ -47,13 +47,20 @@ export default function Step3({ formData, formFunction, setStepValid }) {
   }, [formData.discoverySource]);
 
   // Derive tag arrays from stored comma-string (handles pre-filled state)
-  const expertiseTags = formData.expertiseArray ??
-    (formData.expertise
+ const expertiseTags =
+  formData.expertiseArray ??
+  (Array.isArray(formData.expertise)
+    ? formData.expertise
+    : typeof formData.expertise === "string"
       ? formData.expertise.split(",").map((s) => s.trim()).filter(Boolean)
       : []);
 
-  const topicTags = formData.followedTopicsArray ??
-    (formData.followedTopics
+      
+  const topicTags =
+  formData.followedTopicsArray ??
+  (Array.isArray(formData.followedTopics)
+    ? formData.followedTopics
+    : typeof formData.followedTopics === "string"
       ? formData.followedTopics.split(",").map((s) => s.trim()).filter(Boolean)
       : []);
 
