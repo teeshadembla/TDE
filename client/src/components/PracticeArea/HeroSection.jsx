@@ -2,7 +2,7 @@ import React from "react";
 
 const HeroSection = ({ name, subtitle,description, bgImg }) => {
   return (
-    <div id={`hero-${name}`}   style={{ backgroundImage: `url(${bgImg})` }} className="items-center bg-center bg-no-repeat bg-cover box-border text-[#333333] flex flex-row flex-nowrap font-sans text-[14px] h-[486.4px] justify-start leading-[20px] object-cover pb-0 pl-[144px] pr-[72px] pt-0 [text-size-adjust:100%] [unicode-bidi:isolate] w-screen">
+    <div id={`hero-${name}`}   style={{ backgroundImage: `url(${bgImg})` }} className="items-center bg-center bg-no-repeat bg-cover box-border text-[#333333] flex flex-row flex-nowrap font-sans text-[14px] h-[700px] justify-start leading-[20px] object-cover pb-0 pl-[144px] pr-[72px] pt-0 [text-size-adjust:100%] [unicode-bidi:isolate] w-screen">
       <div id="container-workgroup" className="items-start box-border text-[#333333] gap-x-[20px] flex flex-row flex-nowrap font-sans text-[16px] h-[349.087px] justify-start leading-[20px] mb-[61.2px] ml-0 mr-0 mt-[61.2px] max-w-[1200px] pb-0 pl-0 pr-[61.2px] pt-0 static gap-y-[20px] [text-size-adjust:100%] [unicode-bidi:isolate] w-[861.2px]">
         <div id="div-block-27" className="box-border text-[#333333] block font-sans text-[16px] h-[349.087px] leading-[20px] [text-size-adjust:100%] [unicode-bidi:isolate] w-[800px]">
           <div id="div-block-22" className="items-center box-border text-[#333333] gap-x-[12px] flex font-sans text-[16px] h-[48.6375px] leading-[20px] gap-y-[12px] [text-size-adjust:100%] [unicode-bidi:isolate] w-[800px]">

@@ -202,7 +202,7 @@ const PostLoginLandingPage = () =>{
             <HeroCarousel onHamburgerClick={()=> console.log("Click")} slideContent={heroSlides}/>
             <UpcomingEvents eventsContent={upcomingEvents}/>
             <PublicationCarousel publicationContent={publications}/>
-            <ExpertiseSection/>
+            <ExpertiseSection userId={account._id} initialExpertise={[]} initialFollowedTopics={[]}/>
             <PracticeHighlightsSection workgroup={workgroupData?.workgroup} data={workgroupData}/>
             <Footer/>
         </>

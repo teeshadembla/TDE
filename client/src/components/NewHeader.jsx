@@ -52,7 +52,7 @@ const NewHeader = () => {
     <>
       <div
         style={{
-          position: "fixed",
+          position: "absolute",
           top: 0,
           left: 0,
           width: "100%",
@@ -60,7 +60,7 @@ const NewHeader = () => {
           display: "flex",
           flexDirection: "column",
           background:
-            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%,rgba(0,0,0,0.9) 50%,rgba(0,0,0,0.7) 70% ,rgba(0,0,0,0) 100%)",
         }}
       >
         {/* Blue announcement bar */}

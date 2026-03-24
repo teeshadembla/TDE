@@ -10,31 +10,27 @@ const Footer = () => {
   return (
     <footer className="bg-black text-gray-300 pt-12 sm:pt-16 pb-6 sm:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 w-[850px] lg:grid-cols-2 gap-8 lg:gap-20">
+        <div className="flex flex-col gap-10">
 
-          {/* Logo and Contact Info */}
+          {/* Contact Info (Top) */}
           <ContactInfo />
-            <div className='grid grid-cols-4 lg:grid-cols-4 gap-12 lg:gap-12 w-[800px]'>
-              {/* About Us Column */}
-              <AboutUsColumn />
 
-              {/* Center of Excellence Column */}
-              <COEColumn/>
-
-              {/* Executive Fellowship Column */}
-              <ExecFellowshipColumn/>
-
-              {/* Ventures Column */}
-              <VenturesColumn/>
-            </div>
+          {/* Links Section (Below Contact Info) */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-40">
+            <AboutUsColumn />
+            <COEColumn />
+            <ExecFellowshipColumn />
+            <VenturesColumn />
           </div>
+
+        </div>
 
         <FooterBottom/>
       </div>
     </footer>
   );
 };
-
 
 export default Footer;

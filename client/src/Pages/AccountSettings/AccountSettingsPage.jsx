@@ -102,7 +102,7 @@ const AccountSettingsPage = () => {
   const activeItem = NAV_ITEMS.find(item => location.pathname.endsWith(item.path));
 
   return (
-    <div style={{ minHeight: '100vh', background: c.bg, color: c.textPrimary, fontFamily: 'inherit' }}>
+    <div className='pt-[100px]' style={{ minHeight: '100vh', background: c.bg, color: c.textPrimary, fontFamily: 'inherit' }}>
 
       {/* ── Page header ── */}
       <div style={{ borderBottom: `1px solid ${c.border}`, background: c.brand950grey }}>

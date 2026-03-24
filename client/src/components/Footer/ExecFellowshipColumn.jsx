@@ -1,6 +1,6 @@
 const ExecFellowshipColumn = () => {
     return(
-                  <div className="space-y-4 w-[180px] pr-[20px] dmsans-text">
+                  <div className="space-y-4 w-[180px] pr-[20px] dmsans-text leading-tight">
             <h3 className="text-[rgb(173,173,173)] font-semibold  text-[15.4px] text-base mb-6">Executive Fellowship</h3>
             <ul className="space-y-4">
               <li>

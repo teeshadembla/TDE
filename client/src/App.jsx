@@ -41,6 +41,8 @@ import PostLoginLandingPage from './Pages/PostLoginLandingPage/PostLoginLandingP
 import HeaderSwitcher from './components/HeaderSwitcher.jsx';
 import MembershipBrowse from './Pages/Memberships/MembershipBrowse.jsx';
 import DavosLaunch from './Pages/DavosLaunch.jsx';
+import IRN from './Pages/IRN.jsx';
+import PrivacyPolicy from './Pages/PrivacyPolicy/PrivacyPolicy.jsx';
 
 function App() {
     const { account, setAccount } = useContext(DataProvider.DataContext);
@@ -106,7 +108,7 @@ function AppContent({ authLoading }) {
     const isAdminProfile = location.pathname === '/admin/profile';
 
     const PUBLIC_HEADER_HEIGHT = 180;
-    const PRIVATE_HEADER_HEIGHT = 0;
+    const PRIVATE_HEADER_HEIGHT = 50;
 
     const paddingTop = isSignedIn
         ? PRIVATE_HEADER_HEIGHT
@@ -133,6 +135,8 @@ function AppContent({ authLoading }) {
                 <Route path='/research-paper/:paper_id' element={<IndividualPaperPage />} />
                 <Route path='/membership/pricing' element={<PricingCard />} />
                 <Route path='/davos' element={<DavosLaunch/>}/>
+                <Route path='/regenerative-digital-infrastructure' element={<IRN/>}/>
+                <Route path='privacy-policy' element={<PrivacyPolicy/>}/>
 
                 {/* ── PROTECTED ROUTES ───────────────────────────────────────
                     Requires login. Fine-grained checks inside components. */}

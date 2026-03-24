@@ -51,7 +51,7 @@ const FOOTER_LINKS = [
   { label: "About Us", href: "/about" },
   { label: "Institutional Research Network", href: "https://docsend.com/view/8ken6c6i84m8bwcu" },
   { label: "Davos 2026", href: "/davos" },
-  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
   { label: "All Rights Reserved", href: "#" },
 ];
 
@@ -386,7 +386,7 @@ const HamburgerMenu = ({ isOpen, onClose, data }) => {
   }, [isOpen]);
 
   return (
-    <>
+    <div className="z-[20]">
       {/* Dark backdrop */}
       <div
         ref={overlayRef}
@@ -424,7 +424,7 @@ const HamburgerMenu = ({ isOpen, onClose, data }) => {
 
         <MenuFooter />
       </div>
-    </>
+    </div>
   );
 };
 

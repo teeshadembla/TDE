@@ -50,9 +50,6 @@ const eventsSchema = new mongoose.Schema({
         speakerRef:{
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
-        },
-        link:{
-            type: String,
         }
     }],
     tags:

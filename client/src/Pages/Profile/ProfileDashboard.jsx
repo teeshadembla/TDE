@@ -84,7 +84,7 @@ useEffect(() => {
   }
 
   return (
-    <div className="w-screen h-screen bg-gray-50 flex pt-[120px]">
+    <div className="w-screen h-screen bg-gray-50 flex pt-[50px]">
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col">

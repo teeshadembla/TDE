@@ -250,7 +250,7 @@ const PracticeArea = () => {
     };
 
     findAreaData();
-  }, []);
+  }, [id]);
 
   //to fetch all public fellow profiles for this workgroup
   useEffect(()=>{
@@ -266,7 +266,7 @@ const PracticeArea = () => {
     }
 
     fetchMembersByWorkgroup();
-  },[])
+  },[id])
 
   useEffect(()=>{
     const fetchPublicationsByWorkgroup = async() => {
@@ -280,7 +280,7 @@ const PracticeArea = () => {
     }
 
     fetchPublicationsByWorkgroup();
-  },[])
+  },[id])
 
 
   // loading state first

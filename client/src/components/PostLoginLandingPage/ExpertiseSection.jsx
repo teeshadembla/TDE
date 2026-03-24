@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import TagCombobox, { EXPERTISE_OPTIONS, INTEREST_OPTIONS } from "../../components/Auth/TagCombobox.jsx";
+import axiosInstance from "../../config/apiConfig.js";
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 function ExpertiseModal({ onClose, onSave, initialData = {}, userId, token }) {
@@ -30,22 +31,11 @@ function ExpertiseModal({ onClose, onSave, initialData = {}, userId, token }) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/users/update/${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
+      const response = await axiosInstance.patch(`/api/user/update/${userId}`, {
           expertise: expertiseTags,
           followedTopics: topicTags,
-        }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || "Failed to save. Please try again.");
-      }
+        },
+      );
 
       onSave({
         expertiseArray: expertiseTags,
