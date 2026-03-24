@@ -5,7 +5,7 @@ const SpeakerCard = ({speaker, i})=>{
     return(
         <div className="box-border block text-[#333333] font-sans text-[14px] w-[150px] h-[150px] leading-[20px] text-justify">
             <a href={speaker?.linkedIn} className="flex flex-col items-center justify-start bg-white border-[0.8px] border-solid border-[#d9d9d9] rounded-[20px] cursor-pointer box-border text-[#551a8b] dmsans-text text-[14px] w-[150px] h-[150px] pt-[20px] leading-[18.2px] text-justify no-underline"> 
-              <img className="box-border block object-cover rounded-full cursor-pointer w-[60px] h-[60px] mb-[10px] overflow-clip align-middle dmsans-text text-[14px] text-[#551a8b] leading-none text-justify border-none"></img>  
+              <img src={speaker?.profilePicture} className="box-border block object-cover rounded-full cursor-pointer w-[60px] h-[60px] mb-[10px] overflow-clip align-middle dmsans-text text-[14px] text-[#551a8b] leading-none text-justify border-none"></img>  
                 <div className="box-border block text-black cursor-pointer dmsans-text text-[11.2px] font-semibold h-[18.2px] w-fit leading-none text-center">{speaker.FullName}</div>
                 <div className="box-border block text-[#474646] cursor-pointer dmsans-text text-[8.4px] font-normal h-[10.075px] w-[148.4px] leading-[10.08px] px-[10px] text-center">{speaker.title},{speaker.company}</div>
             

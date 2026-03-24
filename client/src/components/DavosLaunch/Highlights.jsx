@@ -13,12 +13,12 @@ export const highlightItems = [
   { id: 4,  type: "photo", src: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6939d66cfc95bbc6f7384202_A6-p-500.jpg", alt: "Highlight photo 4" },
   { id: 5,  type: "photo", src: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6939d66c4a29d9634ad5a234_DSCF0379-p-500.jpg", alt: "Highlight photo 5" },
   { id: 6,  type: "photo", src: "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6939d66c4036196ccb6302a8_15-p-500.jpg", alt: "Highlight photo 6" },
-  { id: 7,  type: "video", youtubeId: "QuFUJUZatNE&t=2s", title: "The Digital Economist Davos 2025",                    channel: "The Digital Economist" },
-  { id: 8,  type: "video", youtubeId: "hAPrEJpYFhs&t=99s", title: "Ambassador Bitange Ndemo at Davos 2025",              channel: "The Digital Economist" },
-  { id: 9,  type: "video", youtubeId: "v=B-dGuZLO_rg", title: "Ann Dunkin at Davos 2025 | The Digital Economist",    channel: "The Digital Economist" },
-  { id: 10, type: "video", youtubeId: "v=cU5RVz9D1h0", title: "Nicole Sulu at Davos 2025 | The Digital Economist",   channel: "The Digital Economist" },
+  { id: 7,  type: "video", youtubeId: "QuFUJUZatNE", title: "The Digital Economist Davos 2025",                    channel: "The Digital Economist" },
+  { id: 8,  type: "video", youtubeId: "hAPrEJpYFhs", title: "Ambassador Bitange Ndemo at Davos 2025",              channel: "The Digital Economist" },
+  { id: 9,  type: "video", youtubeId: "B-dGuZLO_rg", title: "Ann Dunkin at Davos 2025 | The Digital Economist",    channel: "The Digital Economist" },
+  { id: 10, type: "video", youtubeId: "cU5RVz9D1h0", title: "Nicole Sulu at Davos 2025 | The Digital Economist",   channel: "The Digital Economist" },
   { id: 11, type: "video", youtubeId: "3DCfdCKia1I", title: "Lisa Loud at Davos 2025 | The Digital Economist",     channel: "The Digital Economist" },
-  { id: 12, type: "video", youtubeId: "CHVA2p3HPjs&t=23s", title: "Navroop Sahdev at Davos 2025 | The Digital Economist",channel: "The Digital Economist" },
+  { id: 12, type: "video", youtubeId: "CHVA2p3HPjs", title: "Navroop Sahdev at Davos 2025 | The Digital Economist",channel: "The Digital Economist" },
 ];
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
@@ -110,20 +110,7 @@ const VideoCell = ({ item }) => {
       {/* Dark gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/40" />
 
-      {/* Header: globe + title */}
-      <div className="absolute top-[8px] left-[8px] right-[8px] flex items-start gap-[6px]">
-        <div className="flex-shrink-0 w-[22px] h-[22px] sm:w-[26px] sm:h-[26px] rounded-full bg-white flex items-center justify-center p-[3px]">
-          <GlobeIcon />
-        </div>
-        <div className="min-w-0">
-          <p className="text-white font-['DM_Sans',sans-serif] font-bold text-[10px] sm:text-[11px] lg:text-[12px] leading-tight line-clamp-2">
-            {item.title}
-          </p>
-          <p className="text-white/70 font-['DM_Sans',sans-serif] text-[9px] sm:text-[10px] mt-[1px]">
-            {item.channel}
-          </p>
-        </div>
-      </div>
+      
 
       {/* Play button */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -173,7 +160,7 @@ const Highlights = ({
 }) => (
   <section className="w-full bg-[#f6f5f5] py-[48px] sm:py-[64px] lg:py-[72px]">
     {/* ── Constrained container ~1200px ── */}
-    <div className="w-full max-w-[1200px] mx-auto px-[16px] sm:px-[40px] lg:px-[120px] flex flex-col gap-y-[24px]">
+    <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[40px] lg:px-[120px] flex flex-col gap-y-[24px]">
 
       {title && (
         <h2 className="text-center text-[#333333] font-['DM_Sans',sans-serif] text-[18px] sm:text-[21px] font-bold leading-tight">

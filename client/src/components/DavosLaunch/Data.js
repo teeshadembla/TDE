@@ -256,11 +256,11 @@ export const panelSessionData = [
     embedding: null,
     slackLink: "",
     speakers: [
-      { _id: null, FullName: "Sandy Carter", title: "CBO", company: "Unstoppable Domains", linkedIn: "" },
-      { _id: null, FullName: "Dr. Maria Azua Himmel", title: "Advisor", company: "Capri Ventures", linkedIn: "" },
-      { _id: null, FullName: "Sowgandhika Dusa", title: "Chief of Data", company: "Cadent", linkedIn: "" },
-      { _id: null, FullName: "Amii Barnard-Bahn", title: "Founder & CEO", company: "Barnard-Bahn Coaching & Consulting", linkedIn: "" },
-      { _id: null, FullName: "Raj Vattikuti", title: "Chairman", company: "Calibo", linkedIn: "" }
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6989a46275007f2e2f893f1c_Sandy%20Carter.jpg", FullName: "Sandy Carter", title: "CBO", company: "Unstoppable Domains", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696fb153a1636324a9a84413_Dr.%20Maria%20Azua%20Himmel.jpg", FullName: "Dr. Maria Azua Himmel", title: "Advisor", company: "Capri Ventures", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6985c2427ff91652256f37c2_Sowgandhika%20Dusa.jpg", FullName: "Sowgandhika Dusa", title: "Chief of Data", company: "Cadent", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/6989a5fb650ba220510781a8_Amii%20Barnard-Bahn.jpg", FullName: "Amii Barnard-Bahn", title: "Founder & CEO", company: "Barnard-Bahn Coaching & Consulting", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a58d7e21fb324b6709bb1_Raj%20Vattikuti.jpg", FullName: "Raj Vattikuti", title: "Chairman", company: "Calibo", linkedIn: "" }
     ],
     tags: ["davos", "AI", "governance"],
     createdBy: null
@@ -283,10 +283,10 @@ export const panelSessionData = [
     embedding: null,
     slackLink: "",
     speakers: [
-      { _id: null, FullName: "Vijay Karia", title: "Chief Executive Officer", company: "OptiCloud", linkedIn: "" },
-      { _id: null, FullName: "Nathaniel Burola", title: "Research Consultant, AI & Environment", company: "Resource Hub", linkedIn: "" },
-      { _id: null, FullName: "Lex Poon", title: "Partner", company: "LSW Accounting Firm", linkedIn: "" },
-      { _id: null, FullName: "Donna Burbank", title: "Managing Director, Global Data Strategy", company: "", linkedIn: "" }
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5ae9a15eede5ebd975b3_Vijay.jpg", FullName: "Vijay Karia", title: "Chief Executive Officer", company: "OptiCloud", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5a64d7f77ac845329337_Nathaniel%20Burola.jpg", FullName: "Nathaniel Burola", title: "Research Consultant, AI & Environment", company: "Resource Hub", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5abea15eede5ebd96c0f_Lex%20Poon.jpg", FullName: "Lex Poon", title: "Partner", company: "LSW Accounting Firm", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a59cede5d46a276551124_Donna%20Burbank.jpg", FullName: "Donna Burbank", title: "Managing Director, Global Data Strategy", company: "", linkedIn: "" }
     ],
     tags: ["davos", "infrastructure", "AI"],
     createdBy: null
@@ -309,10 +309,10 @@ export const panelSessionData = [
     embedding: null,
     slackLink: "",
     speakers: [
-      { _id: null, FullName: "Eric Piscini", title: "Chief Executive Officer", company: "Hashgraph", linkedIn: "" },
-      { _id: null, FullName: "Navroop Sahdev", title: "Connection Science Fellow", company: "MIT", linkedIn: "" },
-      { _id: null, FullName: "Nitin Gaur", title: "Head of Institutions", company: "Nethermind", linkedIn: "" },
-      { _id: null, FullName: "Prof. George Samakovitis", title: "Professor of Fintech", company: "University of Greenwich", linkedIn: "" }
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5b624b39835a5b97bc54_Eric%20Piscini.jpg", FullName: "Eric Piscini", title: "Chief Executive Officer", company: "Hashgraph", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5cc9dafd7f5f215190d7_Navroop%20Sahdev.jpg", FullName: "Navroop Sahdev", title: "Connection Science Fellow", company: "MIT", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696dbee9a04814eda1372306_Nitin%20Gaur.jpg", FullName: "Nitin Gaur", title: "Head of Institutions", company: "Nethermind", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/698c35abdc8444477628d33f_Prof.%20George%20Samakovitis.jpg", FullName: "Prof. George Samakovitis", title: "Professor of Fintech", company: "University of Greenwich", linkedIn: "" }
     ],
     tags: ["davos", "finance", "blockchain"],
     createdBy: null
@@ -335,11 +335,11 @@ export const panelSessionData = [
     embedding: null,
     slackLink: "",
     speakers: [
-      { _id: null, FullName: "Scott Sandschafer", title: "Chief Executive Officer", company: "Calibo", linkedIn: "" },
-      { _id: null, FullName: "Dr. Denise Howard", title: "Associate Professor Clinical Obstetrics & Gynecology", company: "Weill Cornell Medicine", linkedIn: "" },
-      { _id: null, FullName: "Dr. Steph Sharma", title: "Managing Director & Founder", company: "Symbio Strategies", linkedIn: "" },
-      { _id: null, FullName: "Laurel Hudson Cipriani", title: "Chief Information Officer", company: "AffirmedRx", linkedIn: "" },
-      { _id: null, FullName: "Linda Du", title: "Co-Founder & CEO", company: "Moola Money", linkedIn: "" }
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5f029fe6372830f6662b_Scott%20Sandschafer.jpg", FullName: "Scott Sandschafer", title: "Chief Executive Officer", company: "Calibo", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5ecdebe4570dbd00f87e_Dr.%20Denise%20Howard.jpg", FullName: "Dr. Denise Howard", title: "Associate Professor Clinical Obstetrics & Gynecology", company: "Weill Cornell Medicine", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/698c39f0f77c3ce9ee5c4510_Dr.%20Steph%20Sharma.jpg", FullName: "Dr. Steph Sharma", title: "Managing Director & Founder", company: "Symbio Strategies", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5f47d679975631d2295c_Laurel%20Hudson%20Cipriani.jpg", FullName: "Laurel Hudson Cipriani", title: "Chief Information Officer", company: "AffirmedRx", linkedIn: "" },
+      { _id: null,profilePicture:"https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/696a5e5248e4a5f3f9561743_Linda%20Du.jpg", FullName: "Linda Du", title: "Co-Founder & CEO", company: "Moola Money", linkedIn: "" }
     ],
     tags: ["davos", "health", "education", "AI"],
     createdBy: null

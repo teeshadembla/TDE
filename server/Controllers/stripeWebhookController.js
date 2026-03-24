@@ -9,6 +9,8 @@ import {
   sendCancellationEmail,
   sendPaymentFailedEmail,
 } from "../utils/SendGrid/htmlTemplateForMembership.js"
+import sgMail from '../utils/SendGrid/emailSetup.js';
+import { membershipWelcomeTemplate } from '../utils/SendGrid/htmlTemplatesForMembership.js';
 
 dotenv.config();
 
@@ -76,12 +78,20 @@ export const handleStripeWebhook = async (req, res) => {
           { new: true }
         );
 
+        const emailContent = membershipWelcomeTemplate({
+              name: user.FullName,
+              FRONTEND_URL: process.env.FRONTEND_URL
+            });
+
         // Send welcome email
         if (user) {
-          await sendWelcomeEmail({
-            to:   user.email,
-            name: user.FullName,
-          });
+          sgMail.send({
+            to: user.email,
+            from: process.env.FROM_EMAIL,
+            subject: "Thankyou for subscribing to our membership!",
+            html: emailContent.html,
+            text: emailContent.text
+          })
         }
 
         logger.info({ userId, membershipId: membership._id }, 'Membership created via checkout webhook');

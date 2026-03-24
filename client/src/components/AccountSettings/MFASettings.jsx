@@ -59,4 +59,4 @@ const MFASettings = () => {
   );
 };
 
-export default MFASettings;a
+export default MFASettings;

@@ -13,6 +13,7 @@ import Footer from "../components/Footer.jsx";
 import Highlights from "../components/DavosLaunch/Highlights.jsx";
 import YouTubeVideoGrid from '../components/YoutubeVideoGrid.jsx';
 import { panelSessionData, registrationData, phaseData, davosFaqs } from '../components/DavosLaunch/Data.js'; 
+import axios from 'axios';
 
 
 // ─── Davos Delegate FAQ data (transcribed from design images) ───────────────
@@ -31,7 +32,18 @@ const DavosLaunch = () => {
             }
         }
 
+        const fetchDelegates = async() => {
+          try{  
+            const res = await axiosInstance.get("/api/events/getDelegatesByEvent/69a9ac20317bff1ec3a9eb7d");
+            console.log(res.data);
+            setDelegates(res.data.delegates);
+          }catch(Err){
+            console.log("This error is occurring while trying to fetch delegates--->", Err);
+          }
+        }
+
         fetchDavos();
+        fetchDelegates();
     }, [])
 
     return(

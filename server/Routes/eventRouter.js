@@ -14,4 +14,7 @@ eventRouter.get("/getPastEvents", eventsController.getPastEvents);
 
 eventRouter.get("/getEventById/:id", eventsController.getEventById);
 
+/* Get delegates by event */
+eventRouter.get("/getDelegatesByEvent/:id", eventsController.getDelegatesByEvent);
+
 export default eventRouter;

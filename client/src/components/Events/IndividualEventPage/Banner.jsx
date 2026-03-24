@@ -4,7 +4,7 @@ const Banner = ({image, title,subtitle, locationType, type}) => {
     return (
   <div
     id="image-banner-top"
-    className="flex flex-col box-content justify-center bg-black bg-center bg-no-repeat bg-contain text-[#333] font-sans text-[14px] leading-[20px] w-full h-[700px] px-[72px] pt-[10px] pb-0 overflow-hidden relative text-justify"
+    className="flex flex-col box-content justify-center bg-black bg-center bg-no-repeat bg-cover text-[#333] dmsans-text  text-[14px] leading-[20px] w-[1440px] h-[700px] px-[40.5px] pt-[10px] pb-0 overflow-hidden relative text-justify"
     style={{
       backgroundImage: `url(${image})`,
       backgroundPosition: "center"
@@ -15,7 +15,7 @@ const Banner = ({image, title,subtitle, locationType, type}) => {
     {/* Tags pinned to the top */}
     <div
       id="locationType-event-type"
-      className="absolute top-[40px] left-0 right-0 z-[2] flex items-center justify-center gap-[13px]"
+      className="absolute top-[140px] left-0 right-0 z-[2] flex items-center justify-center gap-[13px]"
     >
       <h6 className="bg-[rgba(71,70,70,0.45)] text-white font-dmsans text-[19.2px] font-normal leading-[24.96px] capitalize text-center rounded-[20px] border border-[#ADADAD] px-[10px] py-[5px]">{type}</h6>
       <h6 className="bg-[rgba(71,70,70,0.45)] text-white font-dmsans text-[19.2px] font-normal leading-[24.96px] capitalize text-center rounded-[20px] border border-[#ADADAD] px-[10px] py-[5px]">{locationType}</h6>

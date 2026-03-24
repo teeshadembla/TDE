@@ -2,6 +2,7 @@ import eventsModel from "../Models/eventsModel.js";
 import mongoose from "mongoose";
 import registrationModel from "../Models/regitrationsModel.js";
 import logger from "../utils/logger.js";
+import userModel from "../Models/userModel.js";
 
 const getCurrentEvents = async (req, res) => {
   try {
@@ -172,4 +173,17 @@ const getEventById = async(req, res) => {
   }
 }
 
-export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents, getEventById}
+const getDelegatesByEvent = async(req, res) => {
+  try{
+    const {id} = req.params;
+
+    const delegates = await userModel.find({eventsParticipated: id});
+    
+    return res.status(200).json({msg: "Delegated fetched successfully", delegates: delegates});
+  }catch(err){
+    console.log("This error is occuring while trying to fetch all delegates of event-->", err);
+    return res.status(500).json({msg:"Internal Server Error", err:err});
+  }
+}
+
+export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents, getEventById, getDelegatesByEvent}
