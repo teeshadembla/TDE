@@ -150,6 +150,9 @@ app.use(
   })
 ); */
 
+app.use('/api/webhook', express.raw({ type: 'application/json' }), webhookRouter);
+
+
 if (!isTest) {
   app.use(
     clerkMiddleware({
@@ -159,7 +162,6 @@ if (!isTest) {
   );
 }
 
-app.use('/api/webhook', express.raw({ type: 'application/json' }), webhookRouter);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));

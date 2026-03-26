@@ -348,6 +348,9 @@ const rejectApplication = async (req, res) => {
   }
 };
 
+
+
+
 export default {
   getAllFellowshipRegistrations,
   reviewFellowshipApplication,

@@ -9,7 +9,7 @@ const membershipSchema = mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["active", "past_due", "canceled", "incomplete", "incomplete_expired", "trialing", "unpaid"],
+        enum: ["active", "cancelled", "expired"],
         default: "active",
         required: true
     },

@@ -16,6 +16,8 @@ router.post('/checkout', membershipController.createSubscriptionCheckout);
  */
 router.get('/current/:userId', membershipController.getCurrentMembership);
 
+
+
 /**
  * POST /api/membership/cancel
  * Cancel subscription at period end

@@ -18,6 +18,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
  */
 export const createSubscriptionCheckout = async (req, res) => {
   const { userId } = req.body;
+  console.log("This is the user id of the user trying to checkout--->", userId);
 
   try {
     const user = await userModel.findById(userId);
