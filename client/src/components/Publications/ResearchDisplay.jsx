@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ResearchItem from './ResearchItem.jsx';
 import axiosInstance from '../../config/apiConfig.js';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBigDown } from 'lucide-react';
+import DataProvider from '../../context/DataProvider.jsx';
 
 const ResearchDisplay = () => {
     const [papers, setPapers] = useState([]);
@@ -13,6 +14,7 @@ const ResearchDisplay = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
     const navigate = useNavigate();
+    const {account} = useContext(DataProvider.DataContext);
 
     const documentTypes = [
         { id: 'Report', name: 'Report' },
@@ -110,7 +112,13 @@ const ResearchDisplay = () => {
         <div id='publication-list' className='bg-[#000] p-0 flex jutsify-center w-full items-center'>
             <div id='publication-list wrapper' className='w-full max-w-[1092px] flex flex-col justify-center items-center gap-x-16 gap-y-16 mx-auto px-0 p-0 relative'>
                 <div id='publication-list-top' className='flex flex-col justify-between items-start gap-x-[40px] gap-y-[40px] w-[1200px]'>
-                    <h4 className='text-white font-sans text-[32px] my-10 font-semibold'>All Publications</h4>
+                    <div className='flex justify-between items-center gap-x-[800px]'>
+                        <h4 className='text-white font-sans text-[32px] amy-10 font-semibold'>All Publications</h4>
+                        {
+                            account.role === "admin" &&
+                            <button onClick={()=>navigate("/doc-upload")} className='bg-white cursor-pointer h-[40px] text-black p-2 rounded-[5px]'>Add New Publication</button>
+                        }
+                    </div>
                     <div className='flex justify-end items-stretch w-full gap-x-4 gap-y-4 pl-4'>
                         <div id='filter-workgroup' className='flex flex-col gap-x-1 gap-y-1 border-[0.8px] border-black'>
                             <select

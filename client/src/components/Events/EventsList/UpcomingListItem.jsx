@@ -29,7 +29,7 @@ const UpcomingListItem = ({event}) => {
             <div id="side-banner-horizontal" className="flex flex-col items-start justify-center gap-y-[10px] gap-x-[10px] bg-[#F6F5F5] text-white font-dmsans text-[14px] font-normal leading-[18.9px] box-border rounded-b-[20px] pt-[12px] pb-[24px] px-[24px] w-full">
                 <div className="block box-border text-white font-dmsans text-[14px] font-normal leading-[18.9px] h-[95.4375px] w-[364.438px]">
                     <h2 id="heading-49" className="block box-border text-[#161616] font-dmsans text-[28px] font-bold leading-[33.6px] h-[67.2px] w-[552px] mt-[20px] mb-[10px] mx-0">{event?.title}</h2>
-                    <h4></h4>
+                    <h4>{event?.subtitle}</h4>
                 </div>
                 <div className="block box-border text-white font-dmsans text-[14px] font-normal leading-[18.9px] h-[39px] w-[155.938px]">
                     <div id="div-block-87" className="flex flex-col flex-nowrap box-border text-white font-dmsans text-[14px] font-normal leading-[18.9px] h-[40.95px] w-[90.9625px] mt-[-2.725px]">

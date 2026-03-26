@@ -46,7 +46,8 @@ const EventDetails = ({event}) => {
                         
                         {event?.registrationLink ? 
                             <a href={event?.registrationLink} 
-                            className="hidden box-border bg-[#D47F09] text-white font-dmsans text-[16px] font-normal leading-[20px] text-center cursor-pointer rounded-[4px] px-[15px] py-[9px] w-[40%]">
+                            className="box-border bg-[#105abd] text-white font-dmsans text-[16px] font-normal leading-[20px] text-center cursor-pointer rounded-[4px] px-[15px] py-[9px] w-[40%]">
+                                Registraion Form
                             </a> 
                             : 
                             <></>

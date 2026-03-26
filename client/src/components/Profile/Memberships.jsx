@@ -75,8 +75,9 @@ const Memberships = ({ userId }) => {
       setLoading(true);
       const { data } = await axiosInstance.get(`/api/membership/current/${userId}`);
       if (data?.hasMembership) setMembership(data.membership);
-      const hist = await axiosInstance.get(`/api/users/${userId}/memberships`);
-      setMemberships(hist.data.membership || []);
+      const hist = await axiosInstance.get(`/api/membership/payments/${userId}`);
+      console.log("History of payments--->",hist);
+      /*setMemberships(hist.data.membership || []); */
     } catch (err) {
       console.error('Membership fetch error', err);
     } finally {

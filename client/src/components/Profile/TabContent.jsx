@@ -106,7 +106,7 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
   }else if(activeTab === 'membership'){
     return (
       <div>
-        <Memberships/> 
+        <Memberships userId={account._id}/> 
       </div>
     )
   }else if(activeTab === 'track-application'){
