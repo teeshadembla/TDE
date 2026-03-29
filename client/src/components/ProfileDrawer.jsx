@@ -86,8 +86,7 @@ export default function ProfileDrawer() {
   // Black-section items
   const blackNavItems = [
     { label: 'Sign out',  action: () => { handleLogout() } },
-    { label: 'Privacy',   action: () => { navigate('/privacy'); setOpen(false); } },
-    { label: 'Legal',     action: () => { navigate('/legal'); setOpen(false); } },
+    { label: 'Privacy',   action: () => { navigate('/privacy-policy'); setOpen(false); } },
   ];
 
   const DrawerContent = (

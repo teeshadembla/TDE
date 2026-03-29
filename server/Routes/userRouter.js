@@ -23,7 +23,9 @@ userRouter.get("/core-team", userController.getCoreTeamMembers);
 userRouter.patch("/update/:id", authenticateToken,requirePermission("access_profile_settings"), userController.updateUser);
 userRouter.delete("/delete/:id", authenticateToken,requirePermission("access_profile_settings"), userController.deleteUser);
 
+/* get user by ID */
 userRouter.get("/:id", userController.getUserById);  
+
 
 /* Get fellows by workgroup */
 userRouter.get("/workgroup/:workgroupId", getUsersByWorkgroup);

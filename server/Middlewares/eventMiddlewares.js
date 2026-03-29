@@ -1,11 +1,20 @@
+import axiosInstance from "../../client/src/config/apiConfig.js";
 import  logger  from "../utils/logger.js";
+import { getAuth } from "@clerk/express";
+import userModel from "../Models/userModel.js";
 
 const isAdmin = async (req, res, next) => {
   try {
-    const userId = req.user?._id || req._id;
+    const authToken = getAuth(req);
+    const userId = authToken.userId;
+    console.log("This is user id--->", userId);
     logger.debug({userId}, "Checking admin privileges");
 
-    if (userId === "69395caf541181e114939124") {
+    const user = await userModel.findOne({clerkUserId: userId});
+
+    console.log("This is our user (us)--->",user);
+
+    if (user?._id === "69395caf541181e114939124" || user?.role === "admin") {
       logger.debug({userId}, "Admin access granted");
       return next();
     }

@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import registrationModel from "../Models/regitrationsModel.js";
 import logger from "../utils/logger.js";
 import userModel from "../Models/userModel.js";
+import generatePresignedUrl from "../utils/s3presigned.js";
+import { generateEmbedding } from "../scripts/embeddings/utils/embedding.js";
 
 const getCurrentEvents = async (req, res) => {
   try {
@@ -29,13 +31,96 @@ const getCurrentEvents = async (req, res) => {
   }
 };
 
+const getPresignedThumbnailUrl = async (req, res) => {
+  try {
+    const { fileName, thumbnailType, fileSize, user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        message: "user_id is required",
+      });
+    }
+
+    if (!fileName || !fileSize || !thumbnailType) {
+      return res.status(400).json({
+        success: false,
+        message: "fileName, fileSize, thumbnailType are required",
+      });
+    }
+
+    if (!thumbnailType.startsWith("image/")) {
+      return res.status(400).json({
+        success: false,
+        message: "Thumbnail must be an image file",
+      });
+    }
+
+    // ✅ ALWAYS use thumbnailFileName
+    const fileExtension = fileName.split(".").pop();
+    const thumbnailFileName = `${Date.now()}-${fileName.replace(`.${fileExtension}`, "")}.jpg`;
+
+    const {
+      presignedUrl,
+      fileUrl,
+      key,
+    } = await generatePresignedUrl(
+      process.env.AWS_BUCKET_NAME_EVENT,
+      user_id,
+      thumbnailFileName,
+      thumbnailType,
+      "thumbnails", // ✅ folder
+      true
+    );
+
+    return res.status(200).json({
+      success: true,
+      presignedUrl,
+      fileUrl,
+      key,
+    });
+
+  } catch (err) {
+    logger.error({
+      errorMsg: err.message,
+      stack: err.stack,
+    }, "Error generating thumbnail presigned URL");
+
+    return res.status(500).json({
+      msg: "Internal Server Error",
+    });
+  }
+};
+
 const addEvents = async (req, res) => {
   try {
-    const { title, description, location, eventDate, registrationLink, slackLink, createdBy } = req.body;
+    const {
+      title,
+      description,
+      location,
+      registrationLink,
+      slackLink,
+      createdBy,
+      imageUrl,
+      imageKey,
+      type
+    } = req.body;
 
-    if (!title || !description || !location || !eventDate || !registrationLink || !slackLink || !createdBy) {
-      logger.warn({title, description, location, eventDate, registrationLink, slackLink, createdBy}, "Add event failed: Missing required fields");
-      return res.status(400).json({ msg: "All fields are required" });
+    const eventDate = JSON.parse(req.body.eventDate);
+
+    if (
+      !title ||
+      !description ||
+      !location ||
+      !eventDate ||/* 
+      !registrationLink ||
+      !slackLink || */
+      !createdBy,
+      !type
+    ) {
+      return res.status(400).json({
+        msg: "All required fields must be provided",
+      });
     }
 
     const newEvent = new eventsModel({
@@ -46,18 +131,43 @@ const addEvents = async (req, res) => {
       registrationLink,
       slackLink,
       createdBy,
+      type,
+
+      // ✅ Save image correctly
+      image: {
+        url: imageUrl || undefined,
+        key: imageKey || undefined,
+      },
     });
+
+    const embeddingText = `
+      ${title}
+      ${description || ''}
+      ${req.body.tags?.join(' ') || ''}
+    `.trim();
+
+    const embedding = await generateEmbedding(embeddingText);
+    if (embedding) {
+      newEvent.embedding = embedding;
+    }
 
     await newEvent.save();
 
-    logger.debug({eventId: newEvent._id}, "Event created successfully");
     return res.status(201).json({
       msg: "Event created successfully",
       event: newEvent,
     });
+
   } catch (err) {
-    logger.error({errorMsg: err.message, stack: err.stack}, "Error creating new event");
-    return res.status(500).json({ msg: "Internal server error", error: err.message });
+    logger.error({
+      errorMsg: err.message,
+      stack: err.stack,
+    }, "Error creating new event");
+
+    return res.status(500).json({
+      msg: "Internal server error",
+      error: err.message,
+    });
   }
 };
 
@@ -186,4 +296,4 @@ const getDelegatesByEvent = async(req, res) => {
   }
 }
 
-export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents, getEventById, getDelegatesByEvent}
+export default {addEvents, getCurrentEvents, updateEvent, deleteEvent, getPastEvents, getEventById, getDelegatesByEvent,getPresignedThumbnailUrl}

@@ -20,6 +20,8 @@ import {useAdminActions} from '../../components/AdminProfile/Hooks/useAdminActio
 
 import AdminHeader from '../../components/AdminProfile/AdminHeader.jsx';
 import AdminInfoSideBar from '../../components/AdminProfile/AdminInfoSideBar.jsx';
+import DiscountManagement from '../../components/AdminProfile/DiscountManagement.jsx';
+import ScholarshipManagement from '../../components/AdminProfile/ScholarshipManagement.jsx';
 
 
 const AdminProfile = () => {
@@ -192,7 +194,14 @@ const AdminProfile = () => {
             <UserVerificationTab/>
           )}
 
-        
+          {activeTab === 'discounts' && (
+            <DiscountManagement />
+          )}
+
+          {activeTab === 'scholarships' && (
+            <ScholarshipManagement />
+          )}
+
         </main>
       </div>
 

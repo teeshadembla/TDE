@@ -5,7 +5,7 @@ import logger from "../utils/logger.js";
 import generatePresignedUrl from '../utils/s3presigned.js';
 import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import mongoose from "mongoose";
+import { fellowProfileUpdateTemplate } from "../utils/NewEmail/templates.js";
 import dotenv from 'dotenv';
 import sgMail from "../utils/SendGrid/emailSetup.js";
 
@@ -176,15 +176,17 @@ export const getPresignedUrlHeadshot = async (req, res) => {
       responseData.profileId = profile._id;
     }
 
+    const emailContent = fellowProfileUpdateTemplate({
+                name: userDetails.FullName,
+                fellowProfileName: profile.displayName,
+                status: "DRAFT",
+            })
+
     sgMail.send({
             to: userDetails.email,
             from: "teesha@thedigitaleconomist.com",
             subject: "Onboarding Profile has successfully been submitted!",
-            html: fellowProfileUpdateTemplate({
-                name: userDetails.FullName,
-                fellowProfileName: profile.displayName,
-                status: "DRAFT",
-            }),
+            html: emailContent.html,
         }).catch((err) =>
         logger.error(
             {

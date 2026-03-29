@@ -1,6 +1,11 @@
 import react from "react";
 
-const AddEditModal = ({ formData, handleInputChange, resetForm, handleSubmit, editingEvent, X}) =>{
+const AddEditModal = ({ formData, handleInputChange, resetForm, handleSubmit, editingEvent, X, file, setFile}) =>{
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+  }
     return(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto pt-8">
             <div className="bg-white w-full max-w-lg mx-auto mt-8 mb-8 rounded-lg shadow-xl">
@@ -47,6 +52,34 @@ const AddEditModal = ({ formData, handleInputChange, resetForm, handleSubmit, ed
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium mb-1">Thumbnail Image</label>
+                      <input
+                        type="file"
+                        name="image"
+                        onChange={handleFileChange}
+                        className="w-full p-2 border border-gray-300 focus:border-black focus:outline-none transition-colors resize-vertical rounded"
+                        placeholder="Select a thumbnail file"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Type</label>
+                      <select className="w-full p-2 border border-gray-300 focus:border-black focus:outline-none transition-colors resize-vertical rounded" name="type" value={formData.type}>
+                        <option>Davos</option>
+                        <option>Roundtable</option>
+                        <option>Summit</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Location Type</label>
+                      <select className="w-full p-2 border border-gray-300 focus:border-black focus:outline-none transition-colors resize-vertical rounded" name="locationType" value={formData.locationType}>
+                        <option>Online</option>
+                        <option>On-site</option>
+                      </select>
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium mb-1">Location</label>
                       <input
                         type="text"
@@ -60,11 +93,23 @@ const AddEditModal = ({ formData, handleInputChange, resetForm, handleSubmit, ed
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-1">Event Date & Time</label>
+                      <label className="block text-sm font-medium mb-1">Event Start Date & Time</label>
                       <input
                         type="datetime-local"
-                        name="eventDate"
-                        value={formData.eventDate}
+                        name="eventDate.start"
+                        value={formData.eventDate.start}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-2 border border-gray-300 focus:border-black focus:outline-none transition-colors rounded"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Event End Date & Time</label>
+                      <input
+                        type="datetime-local"
+                        name="eventDate.end"
+                        value={formData.eventDate.end}
                         onChange={handleInputChange}
                         required
                         className="w-full p-2 border border-gray-300 focus:border-black focus:outline-none transition-colors rounded"

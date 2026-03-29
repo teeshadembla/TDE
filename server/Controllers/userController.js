@@ -12,6 +12,10 @@ import logger from "../utils/logger.js";
 import dotenv from "dotenv";
 import sgMail from "../utils/SendGrid/emailSetup.js";
 import { successfulSignupTemplate, profileUpdatedTemplate, mfaEnabledTemplate, passwordChangedTemplate } from "../utils/SendGrid/htmlTemplates.js";
+import { generateEmbedding } from "../scripts/embeddings/utils/embedding.js";
+
+// Fields whose changes should trigger an interestEmbedding recalculation
+const EMBEDDING_TRIGGER_FIELDS = ['expertise', 'followedTopics', 'title', 'department', 'company'];
 
 dotenv.config();
 
@@ -157,6 +161,25 @@ const signup = async (req, res) => {
         await newUser.save();
 
         logger.info({userId: newUser._id, email}, "User registered successfully");
+
+        // Generate interest embedding fire-and-forget so signup response is not blocked
+        const interestText = `
+          ${expertiseArray?.join(' ') || ''}
+          ${title || ''}
+          ${department || ''}
+          ${company || ''}
+          ${followedTopicsArray?.join(' ') || ''}
+        `.trim();
+
+        if (interestText) {
+          generateEmbedding(interestText)
+            .then(embedding => {
+              if (embedding) {
+                return userModel.updateOne({ _id: newUser._id }, { $set: { interestEmbedding: embedding } });
+              }
+            })
+            .catch(err => logger.error({ userId: newUser._id, errorMsg: err.message }, 'Failed to generate interest embedding at signup'));
+        }
 
         const msg = {
             to: newUser.email,
@@ -394,6 +417,37 @@ const updateUser = async(req, res)=>{
         const { id } = req.params;
         const updateData = req.body;
         logger.debug({userId: id}, "Updating user profile");
+
+        const needsEmbeddingUpdate = EMBEDDING_TRIGGER_FIELDS.some(f => f in updateData);
+
+        if (needsEmbeddingUpdate) {
+            const currentUser = await userModel.findById(id);
+            if (currentUser) {
+                const merged = {
+                    expertise:      updateData.expertise      ?? currentUser.expertise,
+                    title:          updateData.title          ?? currentUser.title,
+                    department:     updateData.department     ?? currentUser.department,
+                    company:        updateData.company        ?? currentUser.company,
+                    followedTopics: updateData.followedTopics ?? currentUser.followedTopics,
+                };
+
+                const embeddingText = `
+                  ${merged.expertise?.join(' ') || ''}
+                  ${merged.title || ''}
+                  ${merged.department || ''}
+                  ${merged.company || ''}
+                  ${merged.followedTopics?.join(' ') || ''}
+                `.trim();
+
+                if (embeddingText) {
+                    const embedding = await generateEmbedding(embeddingText);
+                    if (embedding) {
+                        updateData.interestEmbedding = embedding;
+                    }
+                }
+            }
+        }
+
         const user = await userModel.findByIdAndUpdate(id, updateData, { new: true });
         if (!user) {
             logger.warn({userId: id}, "User update failed: User not found");
@@ -543,6 +597,25 @@ const forgotPassword = () => async (req, res) => {
   }
 }
 
+const getUserByClerkId = () => async(req, res) => {
+    try{
+        const {clerkId} = req.param;
+
+        const user = await userModel.find({clerkUserId: clerkId});
+
+        if(!user){
+            return res.status(402).json({msg: "No user with this user Id"});
+        }
+
+        logger.debug({clerkId: clerkId, user:user}, "User was fetched");
+
+        return res.status(200).json({msg: "User successfully fetched", user: user});
+    }catch(err){
+        logger.error({clerkId: req.params.clerkId, err: err});
+        return res.status(500).json({msg: "Internal Server Error", error: err});
+    }
+}
 
 
-export default {signup, login, getMe, logout, forgotPassword, getUserStats, getCoreTeamMembers, updateUser, deleteUser, getUserById, enabledMFA};
+
+export default {signup, login, getMe, logout, forgotPassword, getUserStats, getCoreTeamMembers, updateUser, deleteUser, getUserById, enabledMFA, getUserByClerkId};

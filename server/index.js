@@ -32,6 +32,8 @@ import membershipRouter from './Routes/membershipRoutes.js';
 import newsletterSubscriberRouter from './Routes/newsletterSubscriberRouter.js';
 import rolesRouter from './Routes/rolesRouter.js';
 import webhookRouter from './Routes/webhookRouter.js';
+import discountRouter from './Routes/discountRoutes.js';
+import scholarshipRouter from './Routes/scholarshipRoutes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -203,6 +205,8 @@ app.use('/api/membership', membershipRouter);
 app.use('/api/organization', membershipRouter);
 app.use('/api/newsletter', newsletterSubscriberRouter);
 app.use('/api/roles', rolesRouter);
+app.use('/api/discount', discountRouter);
+app.use('/api/scholarship', scholarshipRouter);
 
 
 /* ======================================================================

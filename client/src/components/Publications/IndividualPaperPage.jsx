@@ -8,6 +8,8 @@ import { useContext } from 'react';
 import { AnalyticsPanel } from './AnalyticsPanel.jsx';
 import DataProvider from '../../context/DataProvider.jsx';
 import PDFPreview from "./PDFPreview.jsx"
+import PDFReader from "./PDFReader.jsx"
+import ShareDialog from "./ShareDialog.jsx"
 
 const IndividualPaperPage = () =>{
     const {paper_id} = useParams();
@@ -23,30 +25,14 @@ const IndividualPaperPage = () =>{
     const canDownload       = isLoggedIn && hasPermission('download_publication');
     const canViewAnalytics  = isLoggedIn && hasPermission('view_publication_analytics');
 
-    const [shareMsg, setShareMsg] = useState('');
-    const [showPreview, setShowPreview] = useState(false); // ← add this
+    const [showPreview, setShowPreview] = useState(false);
+    const [showReader, setShowReader]   = useState(false);
+    const [showShare, setShowShare]     = useState(false);
 
-    const handleRead = async () => {
-        try {
-            const response = await axiosInstance.get(`/api/documents/${paper_id}/view-url`);
-            window.open(response.data.data.url, '_blank');
-        } catch (err) {
-            console.error('Error fetching view URL:', err);
-        }
-    };
+    const shareUrl = `${window.location.origin}/research-paper/${paper_id}`;
 
-    const handleShare = async () => {
-        const url = `${window.location.origin}/research-paper/${paper_id}`;
-        try {
-            await navigator.clipboard.writeText(url);
-            await axiosInstance.post(`/api/documents/${paper_id}/track-share`);
-            setShareMsg('Link copied!');
-            setTimeout(() => setShareMsg(''), 2500);
-        } catch {
-            setShareMsg('Could not copy link');
-            setTimeout(() => setShareMsg(''), 2500);
-        }
-    };
+    const handleRead  = () => setShowReader(true);
+    const handleShare = () => setShowShare(true);
 
 
     const PaperDownload = async () =>{
@@ -248,16 +234,6 @@ const IndividualPaperPage = () =>{
             >
                 Share Publication
             </button>
-            {shareMsg && (
-                <span style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    fontSize: 13,
-                    fontWeight: 300,
-                    color: '#d9d9d9',
-                }}>
-                    {shareMsg}
-                </span>
-            )}
         </div>
     )}
 
@@ -273,18 +249,16 @@ const IndividualPaperPage = () =>{
                 borderRadius: 8,
                 border: '0.5px solid #d9d9d9',
                 background: 'transparent',
-                color: '#ffffff',
+                color: '#000000',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 width: 'fit-content',
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#000000';
             }}
             onMouseLeave={e => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#ffffff';
             }}
         >
             Download PDF
@@ -294,7 +268,7 @@ const IndividualPaperPage = () =>{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
             fontSize: 14,
             fontWeight: 300,
-            color: '#d9d9d9',
+            color: '#000000',
             margin: 0,
             padding: '10px 0',
             borderBottom: '0.5px solid #d9d9d9',
@@ -355,7 +329,7 @@ const IndividualPaperPage = () =>{
                                                     {paper?.Authors?.map((author, index) => (
                                                         <a
                                                             key={index}
-                                                            href={`/profile/${author._id}`}
+                                                            href={`/about/profile/${author._id}`}
                                                             className='text-blue-600 hover:underline'
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
@@ -532,8 +506,25 @@ const IndividualPaperPage = () =>{
         </div>
     </div>
 )}
-            
-            
+
+            {/* ── Read Publication Modal ───────────────────────────────────── */}
+            {showReader && (
+                <PDFReader
+                    paperId={paper_id}
+                    paperTitle={currentPaper?.title}
+                    onClose={() => setShowReader(false)}
+                />
+            )}
+
+            {/* ── Share Dialog ─────────────────────────────────────────────── */}
+            {showShare && (
+                <ShareDialog
+                    url={shareUrl}
+                    title={currentPaper?.title}
+                    paperId={paper_id}
+                    onClose={() => setShowShare(false)}
+                />
+            )}
         </>
     )
 }

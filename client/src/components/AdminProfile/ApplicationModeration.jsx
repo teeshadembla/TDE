@@ -1,130 +1,95 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  Award, 
-  Users, 
-  FileText, 
-  Plus,
-  Search, 
-  Filter,
-  Download,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  AlertCircle,
-  Settings,
-  History,
-  Target,
-  CreditCard // NEW ICON
+import { useState } from 'react';
+import {
+  Search, Download, Eye, CheckCircle, XCircle,
+  AlertCircle, CreditCard, Clock
 } from 'lucide-react';
-import ApplicationsDetailsModal from "../../components/AdminProfile/ApplicationDetailsModal.jsx";
-import axiosInstance from "../../config/apiConfig.js"; // ADD THIS
-import { toast } from "react-toastify"; // ADD THIS
+import ApplicationDetailsModal from './ApplicationDetailsModal.jsx';
+import axiosInstance from '../../config/apiConfig.js';
+import { toast } from 'react-toastify';
 
-const ApplicationsModeration = ({ applications, onStatusChange, onRefresh }) => { // ADD onRefresh prop
+const ApplicationsModeration = ({ applications, onRefresh }) => {
   const [selectedApplication, setSelectedApplication] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal]       = useState(false);
+  const [searchTerm, setSearchTerm]     = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
-  const [processingId, setProcessingId] = useState(null); // NEW STATE
+  const [processingId, setProcessingId] = useState(null);
 
-  const filteredApplications = applications.filter(app => {
-    const matchesSearch = app?.user?.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app?.user?.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filtered = applications.filter((app) => {
+    const matchesSearch =
+      app?.user?.FullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'ALL' || app.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  const handleViewDetails = (application) => {
-    setSelectedApplication(application);
-    setShowModal(true);
-  };
-
-  // NEW FUNCTION: Approve and automatically charge
-  const handleApproveAndCharge = async (applicationId) => {
-    if (!window.confirm('This will approve the application and automatically charge the saved payment method. Continue?')) {
-      return;
-    }
-
+  /* ── Approve (user is notified to pay via email) ── */
+  const handleApprove = async (applicationId) => {
+    if (!window.confirm('Approve this application? The applicant will be emailed to complete payment.')) return;
     setProcessingId(applicationId);
-
     try {
-      // First, approve the application
       await axiosInstance.patch(`/api/fellowship/registration/approve/${applicationId}`);
-
-      // Then, automatically charge the payment
-      const { data } = await axiosInstance.post('/api/fellowship/registration/charge-approved-application', {
-        applicationId
-      });
-
-      if (data.success) {
-        toast.success("Application approved and payment charged successfully!");
-        if (onRefresh) {
-          onRefresh(); // Refresh the applications list
-        }
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      const errorMsg = error.response?.data?.message || "Failed to process application";
-      toast.error(errorMsg);
-      
-      // Handle specific error cases
-      if (error.response?.data?.requiresAction) {
-        toast.warning("Payment requires additional authentication from user");
-      }
-      
-      if (error.response?.status === 400 && error.response?.data?.message?.includes("No payment method")) {
-        toast.error("No payment method saved for this application");
-      }
+      toast.success('Application approved — applicant notified to complete payment.');
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to approve application');
     } finally {
       setProcessingId(null);
     }
   };
 
-  // NEW FUNCTION: Reject application
+  /* ── Reject ── */
   const handleReject = async (applicationId) => {
-    if (!window.confirm('Are you sure you want to reject this application?')) {
-      return;
-    }
-
+    if (!window.confirm('Are you sure you want to reject this application?')) return;
     setProcessingId(applicationId);
-
     try {
       await axiosInstance.patch(`/api/fellowship/registration/reject/${applicationId}`);
-      toast.success("Application rejected");
-      if (onRefresh) {
-        onRefresh();
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Failed to reject application");
+      toast.success('Application rejected.');
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reject application');
     } finally {
       setProcessingId(null);
     }
+  };
+
+  const statusBadge = (status) => {
+    const map = {
+      PENDING_REVIEW: 'bg-yellow-100 text-yellow-800',
+      APPROVED:       'bg-blue-100 text-blue-800',
+      CONFIRMED:      'bg-green-100 text-green-800',
+      REJECTED:       'bg-red-100 text-red-800',
+    };
+    return map[status] || 'bg-gray-100 text-gray-600';
+  };
+
+  const paymentBadge = (status) => {
+    const map = {
+      PENDING:   'bg-yellow-100 text-yellow-800',
+      COMPLETED: 'bg-green-100 text-green-800',
+      FAILED:    'bg-red-100 text-red-800',
+    };
+    return map[status] || 'bg-gray-100 text-gray-600';
   };
 
   return (
     <div className="space-y-6">
-      {/* Search and Filter */}
+      {/* Search & filter */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="flex-1 w-full relative">
-            <Search className="text-black absolute left-3 top-1/2 transform -translate-y-1/2  w-5 h-5" />
+            <Search className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search applications..."
+              placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="text-black w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full text-black sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
           >
             <option value="ALL">All Status</option>
             <option value="PENDING_REVIEW">Pending Review</option>
@@ -132,170 +97,151 @@ const ApplicationsModeration = ({ applications, onStatusChange, onRefresh }) => 
             <option value="CONFIRMED">Confirmed</option>
             <option value="REJECTED">Rejected</option>
           </select>
-          <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center">
-            <Download className="w-4 h-4 mr-2" />
+          <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center gap-2">
+            <Download className="w-4 h-4" />
             Export
           </button>
         </div>
       </div>
 
-      {/* Applications Table */}
+      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Fellowship Applications</h2>
-            <span className="text-sm text-gray-500">
-              {filteredApplications.length} applications
-            </span>
-          </div>
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Fellowship Applications</h2>
+          <span className="text-sm text-gray-500">{filtered.length} applications</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Applicant
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fellowship
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Submitted
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Card
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                {['Applicant', 'Fellowship', 'Status', 'Submitted', 'Payment', 'Actions'].map((h) => (
+                  <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredApplications.map((application) => (
-                <tr key={application._id} className="hover:bg-gray-50 transition-colors">
+              {filtered.map((app) => (
+                <tr key={app._id} className="hover:bg-gray-50 transition-colors">
+                  {/* Applicant */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-700">
-                            {application.user.FullName[0] + (application.user.FullName.split(' ')[1]?.[0] || '')}
-                          </span>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-medium text-gray-700">
+                          {app.user.FullName[0]}{app.user.FullName.split(' ')[1]?.[0] || ''}
+                        </span>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{application.user.FullName}</div>
-                        <div className="text-sm text-gray-500">{application.user.email}</div>
+                      <div>
+                        <div className="font-medium text-gray-900">{app.user.FullName}</div>
+                        <div className="text-gray-500 text-xs">{app.user.email}</div>
                       </div>
                     </div>
                   </td>
+
+                  {/* Fellowship */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{application?.fellowship?.cycle || ""}</div>
-                    <div className="text-sm text-gray-500">{application?.workgroupId?.title}</div>
+                    <div className="text-gray-900">{app.fellowship?.cycle || '—'}</div>
+                    <div className="text-gray-500 text-xs">{app.workgroupId?.title}</div>
                   </td>
+
+                  {/* Status */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      application.status === 'PENDING_REVIEW' ? 'bg-yellow-100 text-yellow-800' :
-                      application.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
-                      application.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {application.status}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusBadge(app.status)}`}>
+                      {app.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(application.createdAt).toLocaleDateString()}
+
+                  {/* Submitted */}
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
+                    {new Date(app.createdAt).toLocaleDateString()}
                   </td>
+
+                  {/* Payment */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      application.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      application.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {application.paymentStatus}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${paymentBadge(app.paymentStatus)}`}>
+                      {app.paymentStatus}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {application.paymentMethodId ? (
-                      <div className="flex items-center text-green-600 text-xs">
-                        <CreditCard className="w-4 h-4 mr-1" />
-                        Saved
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-red-600 text-xs">
-                        <AlertCircle className="w-4 h-4 mr-1" />
-                        None
-                      </div>
+                    {app.isScholarshipApplied && (
+                      <span className="ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700">
+                        Scholarship
+                      </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
+
+                  {/* Actions */}
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className="flex justify-end gap-2">
                       <button
-                        onClick={() => handleViewDetails(application)}
+                        onClick={() => { setSelectedApplication(app); setShowModal(true); }}
                         className="text-indigo-600 hover:text-indigo-900 p-1"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      {application.status === 'PENDING_REVIEW' && (
+
+                      {app.status === 'PENDING_REVIEW' && (
                         <>
                           <button
-                            onClick={() => handleApproveAndCharge(application._id)}
-                            disabled={processingId === application._id || !application.paymentMethodId}
-                            className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={!application.paymentMethodId ? "No payment method saved" : "Approve & Charge"}
+                            onClick={() => handleApprove(app._id)}
+                            disabled={processingId === app._id}
+                            className="text-green-600 hover:text-green-900 p-1 disabled:opacity-40"
+                            title="Approve (notifies applicant to pay)"
                           >
-                            {processingId === application._id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                            ) : (
-                              <CheckCircle className="w-4 h-4" />
-                            )}
+                            {processingId === app._id
+                              ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600" />
+                              : <CheckCircle className="w-4 h-4" />}
                           </button>
                           <button
-                            onClick={() => handleReject(application._id)}
-                            disabled={processingId === application._id}
-                            className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleReject(app._id)}
+                            disabled={processingId === app._id}
+                            className="text-red-500 hover:text-red-800 p-1 disabled:opacity-40"
                             title="Reject"
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
                         </>
                       )}
-                      {application.status === 'APPROVED' && application.paymentStatus === 'PENDING' && (
-                        <button
-                          onClick={() => handleApproveAndCharge(application._id)}
-                          disabled={processingId === application._id}
-                          className="text-blue-600 hover:text-blue-900 p-1 text-xs disabled:opacity-50"
-                          title="Charge Payment"
-                        >
-                          {processingId === application._id ? 'Charging...' : 'Charge'}
-                        </button>
+
+                      {app.status === 'APPROVED' && app.paymentStatus === 'PENDING' && (
+                        <span className="flex items-center text-yellow-600 text-xs gap-1">
+                          <Clock className="w-3 h-3" />
+                          Awaiting payment
+                        </span>
+                      )}
+
+                      {app.status === 'CONFIRMED' && (
+                        <span className="flex items-center text-green-600 text-xs gap-1">
+                          <CreditCard className="w-3 h-3" />
+                          Paid
+                        </span>
                       )}
                     </div>
                   </td>
                 </tr>
               ))}
+
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                    <AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    No applications found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <ApplicationsDetailsModal
+      <ApplicationDetailsModal
         application={selectedApplication}
         isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setSelectedApplication(null);
-        }}
-        onStatusChange={onStatusChange}
-        onApproveAndCharge={handleApproveAndCharge} // NEW PROP
-        onReject={handleReject} // NEW PROP
-        processingId={processingId} // NEW PROP
+        onClose={() => { setShowModal(false); setSelectedApplication(null); }}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        processingId={processingId}
+        onRefresh={onRefresh}
       />
     </div>
   );

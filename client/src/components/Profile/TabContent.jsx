@@ -7,6 +7,7 @@ import ProfileSettings from "./ProfileSettings";
 import Memberships from "./Memberships";
 import ApplicationTracker from "./ApplicationTracker";
 import OnboardingStatusBanner from "./OnboardingStatusBanner";
+import PaymentHistory from "./PaymentHistory";
 import axiosInstance from "../../config/apiConfig";
 import DataProvider from "../../context/DataProvider";
 
@@ -112,6 +113,10 @@ const TabContent = ({account ,activeTab, currentRegistrations, pastRegistrations
   }else if(activeTab === 'track-application'){
     return(
       <div><ApplicationTracker/></div>
+    )
+  }else if(activeTab === 'payment-history'){
+    return(
+      <div><PaymentHistory userId={account._id}/></div>
     )
   }
 

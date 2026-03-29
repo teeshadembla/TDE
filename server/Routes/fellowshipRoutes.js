@@ -1,18 +1,29 @@
 import express from "express";
 const fellowshipRouter = express.Router();
 import fellowshipRegistrationController from "../Controllers/fellowshipregistrationController.js";
-import {createSetupIntent, submitFellowshipApplication, chargeApprovedApplication, getApplicationForPayment} from "../Controllers/paymentController.js";
+import {
+  createSetupIntent,
+  submitFellowshipApplication,
+  chargeApprovedApplication,
+  completeApplicationPayment,
+  getApplicationForPayment
+} from "../Controllers/paymentController.js";
 
 import { addNewFellowship, getAllPastFellowships, getFellowshipRegistrationCounts, getAllFutureFellowships, updateFellowship, deleteFellowship } from "../Controllers/fellowshipController.js";
 import { addNewWorkgroup, getWorkgroups, editWorkgroup, deleteWorkgroup, getWorkgroupById , getWorkgroupMembers, getWorkgroupPublications} from "../Controllers/workgroupController.js";
 import authenticateToken from "../Controllers/tokenControllers.js";
 import requirePermission from "../middleware/requirePermission.js";
 
-// NEW ROUTES (for new flow with saved payment methods)
-fellowshipRouter.post("/registration/create-setup-intent",authenticateToken, requirePermission("apply_fellowship") , createSetupIntent);
-fellowshipRouter.post("/registration/submitFellowshipApplication",authenticateToken, requirePermission("apply_fellowship"), submitFellowshipApplication);
-fellowshipRouter.post("/registration/charge-approved-application",authenticateToken, requirePermission("moderate_applications"), chargeApprovedApplication);
-fellowshipRouter.get("/registration/application/:applicationId",authenticateToken, requirePermission("apply_fellowship"), getApplicationForPayment);
+// Fellowship application submission (no card collected at this stage)
+fellowshipRouter.post("/registration/submitFellowshipApplication", authenticateToken, requirePermission("apply_fellowship"), submitFellowshipApplication);
+
+// Payment flow (triggered after admin approval)
+fellowshipRouter.post("/registration/create-setup-intent", authenticateToken, requirePermission("apply_fellowship"), createSetupIntent);
+fellowshipRouter.post("/registration/complete-payment", authenticateToken, requirePermission("apply_fellowship"), completeApplicationPayment);
+fellowshipRouter.get("/registration/application/:applicationId", authenticateToken, requirePermission("apply_fellowship"), getApplicationForPayment);
+
+// Admin override charge
+fellowshipRouter.post("/registration/charge-approved-application", authenticateToken, requirePermission("moderate_applications"), chargeApprovedApplication);
 
 // ADD THESE NEW ROUTES
 fellowshipRouter.get("/registration/all-applications",authenticateToken, requirePermission("moderate_applications"), fellowshipRegistrationController.getAllApplications);

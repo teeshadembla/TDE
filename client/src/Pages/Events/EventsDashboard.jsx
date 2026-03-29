@@ -14,6 +14,7 @@ import { fetchPastEvents, fetchUpcomingEvents } from "./utils.js";
 import { toast } from "react-toastify";
 import { sortAccordingToDate } from '../../components/Events/EventsList/utils.js';
 import VerticalCarouselTailwind from '../../components/Events/VerticalCarouselTailwind.jsx';
+import axios from 'axios';
 
 const images = [
   "https://cdn.prod.website-files.com/685269b5ec19fa449f15ae3c/685ccced56b6b25f83851b16_Rectangle%20122.png",
@@ -35,6 +36,7 @@ const EventsDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [file, setFile] = useState();
   const [editingEvent, setEditingEvent] = useState(null);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
@@ -45,6 +47,8 @@ const EventsDashboard = () => {
     eventDate: '',
     registrationLink: '',
     slackLink: '',
+    image: '',
+    locationType: '',
   });
 
   const loadEvents = async () => {
@@ -65,28 +69,95 @@ const EventsDashboard = () => {
   }, [account._id]);
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const { name, value } = e.target;
+
+  if (name.includes(".")) {
+    const [parent, child] = name.split(".");
+
+    setFormData((prev) => ({
+      ...prev,
+      [parent]: {
+        ...prev[parent],
+        [child]: value,
+      },
+    }));
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+};
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const eventData = { ...formData, createdBy: account._id };
+  e.preventDefault();
 
-      if (editingEvent) {
-        await axiosInstance.patch(`/api/events/updateEvent/${editingEvent._id}`, eventData);
-      } else {
-        await axiosInstance.post("/api/events/addEvent", eventData);
-      }
+  try {
 
-      resetForm();
-      loadEvents();
-      toast.success(`Event ${editingEvent ? 'updated' : 'added'} successfully!`);
-    } catch (error) {
-      console.error('Error saving event:', error);
-      toast.error("Some server error occurred, try again in a minute.");
+    const { data } = await axiosInstance.post("/api/events/get-thumbnail-url", {
+      fileName: file.name,
+      fileSize: file.size,
+      thumbnailType: file.type,
+      user_id: account._id,
+    });
+
+
+    await axios.put(data.presignedUrl, file,{
+      headers: {
+          'Content-Type': file.type,
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setPdfUploadProgress(progress);
+        },
+    });
+
+    console.log("PDF upload completed");
+    const formDataToSend = new FormData();
+
+    // append all text fields
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("location", formData.location);
+    formDataToSend.append(
+      "eventDate",
+      JSON.stringify(formData.eventDate)
+    );
+    formDataToSend.append("type", formData.type);
+    formDataToSend.append("locationType", formData.locationType);
+    formDataToSend.append("registrationLink", formData.registrationLink);
+    formDataToSend.append("slackLink", formData.slackLink);
+    formDataToSend.append("createdBy", account._id);
+
+    if (editingEvent) {
+      await axiosInstance.patch(
+        `/api/events/updateEvent/${editingEvent._id}`,
+        formDataToSend,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+    } else {
+      await axiosInstance.post(
+        "/api/events/addEvent",
+        formDataToSend,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
     }
-  };
+
+    resetForm();
+    loadEvents();
+    toast.success(`Event ${editingEvent ? 'updated' : 'added'} successfully!`);
+
+  } catch (error) {
+    console.error('Error saving event:', error);
+    toast.error("Some server error occurred, try again in a minute.");
+  }
+};
 
   const handleEdit = (event) => {
     setEditingEvent(event);
@@ -172,26 +243,14 @@ const EventsDashboard = () => {
         <div id='fade-overlay' className="absolute pointer-events-none top-0 left-0 h-80 w-full bg-gradient-to-t from-transparent from-[25%] to-black z-[10]" />
       </div>
 
-      <UpcomingEventsSection upcomingEvents={upcomingEvents} />
+      <UpcomingEventsSection upcomingEvents={upcomingEvents} role={account.role} onClick={setShowAddForm}/>
       <EventsList pastEvents={pastEvents} />
       <SubscribeToNewsletter />
-      <Footer />
+      <Footer />{/* 
 
-      {/* Event management UI — uncomment when ready to use.
-          canManageEvents and canManageEvent() are already wired up above.
+      Event management UI — uncomment when ready to use.
+          canManageEvents and canManageEvent() are already wired up above. */}
 
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
-          {canManageEvents && (
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border border-black"
-            >
-              <Plus size={16} />
-              Add Event
-            </button>
-          )}
-        </div>
 
         {showAddForm && (
           <AddEditModal
@@ -200,11 +259,12 @@ const EventsDashboard = () => {
             formData={formData}
             resetForm={resetForm}
             editingEvent={editingEvent}
+            file={file}
+            setFile={setFile}
             X={X}
           />
         )}
-      </div>
-      */}
+     
     </div>
   );
 };

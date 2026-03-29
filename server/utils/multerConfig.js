@@ -22,6 +22,14 @@ const pdfFileFilter = (req, file, cb) => {
     }
 };
 
+const eventThumbnailFilter = (req,file, cb)=>{
+    if(file.mimetype === 'image/'){
+        cb(null, true);
+    } else{
+        cb(new Error('Only image files are allowed!'), false);
+    }
+}
+
 // Multer middleware for profile pictures
 export const uploadProfilePicture = multer({
     storage: storage,
@@ -37,5 +45,13 @@ export const uploadPDF = multer({
     fileFilter: pdfFileFilter,
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+});
+
+export const uploadEventThumbnail = multer({
+    storage: storage,
+    fileFilter: eventThumbnailFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
     }
 });

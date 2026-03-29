@@ -33,7 +33,6 @@ const eventsSchema = new mongoose.Schema({
     },
     registrationLink:{
         type: String,
-        required: true,
     },
     workgroup:[{
         type: mongoose.Schema.Types.ObjectId,

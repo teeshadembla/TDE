@@ -7,10 +7,22 @@ const paymentHistorySchema = mongoose.Schema({
         required: true,
         index: true
     },
+    // Type of payment — either membership or fellowship
+    paymentType: {
+        type: String,
+        enum: ["membership", "fellowship"],
+        required: true,
+        default: "membership"
+    },
     membership: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Membership",
-        required: true
+        default: null
+    },
+    fellowshipApplication: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Fellowship-Registration",
+        default: null
     },
     organization: {
         type: mongoose.Schema.Types.ObjectId,

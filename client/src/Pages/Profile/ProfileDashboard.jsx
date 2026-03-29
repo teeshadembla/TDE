@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Award, Clock, Settings, IdCard, ClipboardList, Lock } from 'lucide-react';
+import { User, Award, Clock, Settings, IdCard, ClipboardList, Receipt, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TabContent from '../../components/Profile/TabContent.jsx';
 import ProfileSidebar from '../../components/Profile/ProfileSidebar.jsx';
@@ -66,10 +66,11 @@ useEffect(() => {
     
 
   const tabs = [
-    { id: 'current', label: 'Current Registrations', icon: Award },
-    { id: 'history', label: 'Fellowship History', icon: Clock },
-    {id:'track-application' , label: "Application Tracker", icon: ClipboardList},
-    {id: 'membership', label: "Manage Membership" ,icon: IdCard}
+    { id: 'current',         label: 'Current Registrations', icon: Award },
+    { id: 'history',         label: 'Fellowship History',     icon: Clock },
+    { id: 'track-application', label: 'Application Tracker', icon: ClipboardList },
+    { id: 'membership',      label: 'Manage Membership',      icon: IdCard },
+    { id: 'payment-history', label: 'Payment History',        icon: Receipt },
   ];
 
   if (loading) {

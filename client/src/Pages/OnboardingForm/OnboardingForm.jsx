@@ -337,7 +337,7 @@ const OnboardingForm = () => {
   const { completed, total } = calculateCompletion();
 
   return (
-    <div className='min-h-screen bg-black text-white'>
+    <div className='min-h-screen pt-[100px] bg-black text-white'>
       <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12'>
         {/* Header */}
         <div className='mb-6 sm:mb-8'>

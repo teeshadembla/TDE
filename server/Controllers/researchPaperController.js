@@ -2,6 +2,7 @@ import generatePresignedUrl from '../utils/s3presigned.js';
 import researchPaperModel from '../Models/researchPaperModel.js';
 import eventsModel from '../Models/eventsModel.js';
 import logger from '../utils/logger.js';
+import { generateEmbedding } from '../scripts/embeddings/utils/embedding.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -161,6 +162,20 @@ export const confirmUpload = async (req, res) => {
 
     // Update upload status
     document.uploadStatus = 'completed';
+
+    // Generate embedding now that the document is confirmed live
+    const embeddingText = `
+      ${document.title}
+      ${document.subtitle || ''}
+      ${document.description || ''}
+      ${document.tags?.join(' ') || ''}
+    `.trim();
+
+    const embedding = await generateEmbedding(embeddingText);
+    if (embedding) {
+      document.embedding = embedding;
+    }
+
     await document.save();
 
     logger.info({documentId, user_id}, "Upload confirmed successfully");

@@ -1,10 +1,10 @@
-import { 
-  BarChart3, 
-  Award, 
-  Users, 
-  FileText, 
+import {
+  BarChart3,
+  Award,
+  Users,
+  FileText,
   Plus,
-  Search, 
+  Search,
   Filter,
   Download,
   Eye,
@@ -18,7 +18,9 @@ import {
   History,
   Target,
   Shield,
-  Wrench
+  Wrench,
+  Tag,
+  GraduationCap
 } from 'lucide-react';
 
 // Sample data
@@ -140,13 +142,15 @@ export const sampleAdminData = {
 };
 
 export const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'fellowships', label: 'Add Fellowship', icon: Award },
-    { id: 'workgroups', label: 'Add Workgroup', icon: Target },
-    { id: 'moderation', label: 'Moderate Applications', icon: FileText },
-    { id: 'future', label: 'Future Fellowships', icon: Calendar },
-    { id: 'history', label: 'Past Fellowships', icon: History },
-    {id:'onboarding', label: 'Onboarding Tracker', icon: Users},
-    { id: 'manage-workgroups', label: 'Manage Workgroups', icon: Wrench },
-    {id: 'user-verification', label: 'User Verification', icon: Shield}
-  ];
+  { id: 'dashboard',        label: 'Dashboard',              icon: BarChart3 },
+  { id: 'fellowships',      label: 'Add Fellowship',          icon: Award },
+  { id: 'workgroups',       label: 'Add Workgroup',           icon: Target },
+  { id: 'moderation',       label: 'Moderate Applications',   icon: FileText },
+  { id: 'scholarships',     label: 'Scholarships',            icon: GraduationCap },
+  { id: 'discounts',        label: 'Discount Codes',          icon: Tag },
+  { id: 'future',           label: 'Future Fellowships',      icon: Calendar },
+  { id: 'history',          label: 'Past Fellowships',        icon: History },
+  { id: 'onboarding',       label: 'Onboarding Tracker',      icon: Users },
+  { id: 'manage-workgroups',label: 'Manage Workgroups',       icon: Wrench },
+  { id: 'user-verification',label: 'User Verification',       icon: Shield },
+];

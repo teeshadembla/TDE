@@ -43,9 +43,20 @@ const fellowshipRegistrationSchema = new mongoose.Schema({
   reviewedAt: { type: Date},
 
   // Payment fields
-  amount: { type: Number, required: true },
+  amount: { type: Number, required: true },      // Final charged amount in cents
+  originalAmount: { type: Number },              // Amount before any discount/scholarship
   paymentIntentId: { type: String },
   paidAt: { type: Date },
+
+  // Discount code fields
+  discountCodeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Discount', default: null },
+  discountCode: { type: String, default: null },
+  discountAmount: { type: Number, default: 0 }, // Amount discounted in cents
+
+  // Scholarship fields
+  scholarshipId: { type: mongoose.Schema.Types.ObjectId, ref: 'Scholarship', default: null },
+  scholarshipAmount: { type: Number, default: 0 }, // Amount covered by scholarship in cents
+  isScholarshipApplied: { type: Boolean, default: false },
 
   // Timestamps
   appliedAt: {

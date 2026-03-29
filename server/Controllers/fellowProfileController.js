@@ -6,6 +6,11 @@ import logger from "../utils/logger.js";
 import {generateSignedUrlForViewing} from "./onboardingController.js";
 import {profileAcceptedTemplate, profileRevisionRequestedTemplate, profileSubmittedTemplate} from "../utils/SendGrid/htmlTemplatesOnboarding.js";
 import sgMail from "../utils/SendGrid/emailSetup.js";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 /**
  * @route   GET /api/fellow-profile/:registrationId
@@ -266,7 +271,7 @@ export const approveFellowProfile = async (req, res) => {
       to: user.email, 
       from: "teesha@thedigitaleconomist.com",
       subject: "Onboarding Successful!",
-      html: profileAcceptedTemplate({name: user.FullName, dashboardUrl: "", slackInviteUrl: "", supportEmail:"teeshadembla0509@gmail.com"})
+      html: profileAcceptedTemplate({name: user.FullName, dashboardUrl: `${FRONTEND_URL}/${user.role}/profile`, slackInviteUrl: "", supportEmail:"teeshadembla0509@gmail.com"})
     }
 
     sgMail.send(msg)

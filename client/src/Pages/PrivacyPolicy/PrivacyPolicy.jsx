@@ -410,7 +410,7 @@ export default function PrivacyPolicy() {
             <p className="pp-glossary-term"><strong>Legal Obligation:</strong> Processing your personal data where necessary for compliance with a legal obligation.</p>
           </div>
 
-          <div className="pp-last-updated">Last updated: 2024</div>
+          <div className="pp-last-updated">Last updated: 2026</div>
         </div>
       </div>
     </>

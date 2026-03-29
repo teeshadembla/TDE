@@ -272,23 +272,35 @@ export const reactivateSubscription = async (req, res) => {
 };
 
 /**
- * Get payment history
+ * Get unified payment history (membership + fellowship)
  */
 export const getPaymentHistory = async (req, res) => {
   const { userId } = req.params;
-  const { limit = 10, page = 1 } = req.query;
+  const { limit = 20, page = 1, type } = req.query;
 
   try {
     const skip = (page - 1) * limit;
+    const filter = { user: userId };
+    if (type && ["membership", "fellowship"].includes(type)) {
+      filter.paymentType = type;
+    }
 
     const payments = await paymentHistoryModel
-      .find({ user: userId })
+      .find(filter)
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip(skip)
-      .populate('membership', 'tier');
+      .populate("membership", "stripePriceId stripeSubscriptionId")
+      .populate({
+        path: "fellowshipApplication",
+        select: "userStat workgroupId fellowship discountCode isScholarshipApplied originalAmount",
+        populate: [
+          { path: "workgroupId", select: "title" },
+          { path: "fellowship", select: "cycle" },
+        ],
+      });
 
-    const total = await paymentHistoryModel.countDocuments({ user: userId });
+    const total = await paymentHistoryModel.countDocuments(filter);
 
     res.status(200).json({
       success: true,
@@ -296,14 +308,32 @@ export const getPaymentHistory = async (req, res) => {
       pagination: {
         total,
         page: parseInt(page),
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
-
   } catch (err) {
-    logger.error({ userId: req.params.userId, errorMsg: err.message, stack: err.stack }, 
+    logger.error({ userId: req.params.userId, errorMsg: err.message, stack: err.stack },
       "Error fetching payment history");
     res.status(500).json({ message: "Failed to fetch payment history" });
+  }
+};
+
+/**
+ * Get all memberships for a user (for history tab)
+ */
+export const getMembershipHistory = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const memberships = await membershipModel
+      .find({ user: userId })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, memberships });
+  } catch (err) {
+    logger.error({ userId: req.params.userId, errorMsg: err.message, stack: err.stack },
+      "Error fetching membership history");
+    res.status(500).json({ message: "Failed to fetch membership history" });
   }
 };
 
@@ -385,6 +415,7 @@ export default {
   cancelSubscription,
   reactivateSubscription,
   getPaymentHistory,
+  getMembershipHistory,
   getInvoice,
   confirmSetupIntent
 };

@@ -2,8 +2,10 @@ import fellowshipRegistrationModel from "../Models/fellowshipRegistrationModel.j
 import fellowshipModel from "../Models/fellowshipModel.js";
 import userModel from "../Models/userModel.js";
 import logger from "../utils/logger.js";
-import {fellowshipReviewEmailTemplate} from "../utils/SendGrid/htmlTemplateFellowshipApplication.js";
+import { fellowshipReviewEmailTemplate } from "../utils/SendGrid/htmlTemplateFellowshipApplication.js";
 import sgMail from "../utils/SendGrid/emailSetup.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 /* ============================
    Get all applications for user
@@ -82,26 +84,27 @@ const reviewFellowshipApplication = async (req, res) => {
     await application.save();
 
     const user = application.user;
+    const dashboardUrl = `${process.env.FRONTEND_URL}/${user.role}/profile`;
+    const paymentAmount = (application.originalAmount || application.amount) / 100;
 
-    if (action === "APPROVED") {
-      const paymentAmount =
-        application.experience === "0-2" || application.experience === "3-5"
-          ? 4000
-          : 8000;
-
-      
-    }
+    const emailContent = fellowshipReviewEmailTemplate({
+        name: user.FullName,
+        fellowshipName: application.fellowship.cycle,
+        action,
+        paymentAmount,
+        dashboardUrl,
+      })
 
     const msg = {
-        to: user.email,
-        from: "teesha@thedigitaleconomist.com",
-        subject: "Fellowship Update",
-        html: fellowshipReviewEmailTemplate({name: user.FullName, fellowshipName: application.fellowship.cycle, action: req.body.action, paymentAmount: paymentAmount, dashboardUrl: `https://app.thedigitaleconomist.com/${user.role}/profile`})
-      }
+      to: user.email,
+      from: "teesha@thedigitaleconomist.com",
+      subject: action === "APPROVED" ? "Congratulations! Your Fellowship Application is Approved" : "Fellowship Application Update",
+      html: emailContent.html
+    };
 
     sgMail.send(msg)
-    .then(()=> {console.log("Fellowship Application review Email has been sent")})
-    .catch((err) => {console.log(err)})
+      .then(() => logger.info({ userId: user._id, action }, "Fellowship review email sent"))
+      .catch((err) => logger.error({ userId: user._id, errorMsg: err.message }, "Fellowship review email failed"));
 
     logger.info({applicationId: id, action, userId: user._id}, "Fellowship application reviewed successfully");
     return res.status(200).json({
@@ -278,9 +281,10 @@ const getAllApplications = async (req, res) => {
 ============================ */
 const approveApplication = async (req, res) => {
   const { id } = req.params;
+  const action = "APPROVED"
 
   try {
-    const application = await fellowshipRegistrationModel.findById(id);
+    const application = await fellowshipRegistrationModel.findById(id).populate("user fellowship");
     if (!application) {
       logger.warn({applicationId: id}, "Approval failed: Application not found");
       return res.status(404).json({ message: "Application not found" });
@@ -289,6 +293,29 @@ const approveApplication = async (req, res) => {
     application.status = "APPROVED";
     application.reviewedAt = new Date();
     await application.save();
+
+    const user = application.user;
+    const dashboardUrl = `${process.env.FRONTEND_URL}/${user.role}/profile`;
+    const paymentAmount = (application.originalAmount || application.amount) / 100;
+
+    const emailContent = fellowshipReviewEmailTemplate({
+        name: user.FullName,
+        fellowshipName: application.fellowship.cycle,
+        action,
+        paymentAmount,
+        dashboardUrl,
+      })
+
+    const msg = {
+      to: user.email,
+      from: "teesha@thedigitaleconomist.com",
+      subject: action === "APPROVED" ? "Congratulations! Your Fellowship Application is Approved" : "Fellowship Application Update",
+      html: emailContent.html
+    };
+
+    sgMail.send(msg)
+      .then(() => logger.info({ userId: user._id, action }, "Fellowship review email sent"))
+      .catch((err) => logger.error({ userId: user._id, errorMsg: err.message }, "Fellowship review email failed"));
 
     logger.info({applicationId: id}, "Application approved successfully");
     return res.status(200).json({
@@ -307,6 +334,7 @@ const approveApplication = async (req, res) => {
 ============================ */
 const rejectApplication = async (req, res) => {
   const { id } = req.params;
+  const action = "REJECTED";
 
   try {
     const application = await fellowshipRegistrationModel
@@ -323,18 +351,28 @@ const rejectApplication = async (req, res) => {
     application.reviewedAt = new Date();
     await application.save();
 
-    sendEmail({
-      to: application.user.email,
-      ...applicationRejectionTemplate({
-        name: application.user.FullName,
-        fellowshipName: `${application.workgroupId} - Cycle ${application.fellowship.cycle}`,
-        reason:
-          application.adminComments ||
-          "Unfortunately, your application was not accepted at this time.",
-      }),
-    }).catch((err) =>
-      logger.error({applicationId: id, userId: application.user._id, errorMsg: err.message}, "Application rejection email failed")
-    );
+   const user = application.user;
+    const dashboardUrl = `${process.env.FRONTEND_URL}/${user.role}/profile`;
+    const paymentAmount = (application.originalAmount || application.amount) / 100;
+
+    const emailContent = fellowshipReviewEmailTemplate({
+        name: user.FullName,
+        fellowshipName: application.fellowship.cycle,
+        action,
+        paymentAmount,
+        dashboardUrl,
+      })
+
+    const msg = {
+      to: user.email,
+      from: "teesha@thedigitaleconomist.com",
+      subject: action === "APPROVED" ? "Congratulations! Your Fellowship Application is Approved" : "Fellowship Application Update",
+      html: emailContent.html
+    };
+
+    sgMail.send(msg)
+      .then(() => logger.info({ userId: user._id, action }, "Fellowship review email sent"))
+      .catch((err) => logger.error({ userId: user._id, errorMsg: err.message }, "Fellowship review email failed"));
 
     logger.info({applicationId: id, userId: application.user._id}, "Application rejected successfully");
     return res.status(200).json({

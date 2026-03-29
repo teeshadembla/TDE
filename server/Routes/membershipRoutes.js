@@ -34,8 +34,14 @@ router.post('/reactivate', membershipController.reactivateSubscription);
 
 /**
  * GET /api/membership/payments/:userId
- * Get payment history
+ * Get unified payment history (membership + fellowship), supports ?type=membership|fellowship
  */
 router.get('/payments/:userId', membershipController.getPaymentHistory);
+
+/**
+ * GET /api/membership/history/:userId
+ * Get all membership records for a user (for membership history tab)
+ */
+router.get('/history/:userId', membershipController.getMembershipHistory);
 
 export default router;
