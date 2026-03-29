@@ -1,4 +1,3 @@
-import axiosInstance from "../../client/src/config/apiConfig.js";
 import  logger  from "../utils/logger.js";
 import { getAuth } from "@clerk/express";
 import userModel from "../Models/userModel.js";
