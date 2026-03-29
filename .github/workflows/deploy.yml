@@ -107,7 +107,7 @@ jobs:
             cd ~/TDE
             git pull origin main
             cd server
-            npm ci --omit=dev
+            npm install --omit=dev
             # Restart or start the process with PM2
             pm2 restart tde-server --update-env || pm2 start index.js --name tde-server
             pm2 save
