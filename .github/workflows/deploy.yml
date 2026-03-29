@@ -1,37 +1,35 @@
 # .github/workflows/deploy.yml
+# Deploys frontend to S3+CloudFront and backend to EC2
 
-name: Deploy to Production
+name: Deploy to AWS
 
-# Only run when code is pushed to main branch
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  # ── 1. Run tests first ────────────────────────────────────────────────
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-    
     steps:
-      # Step 1: Get the code
-      - name: Get the code
-        uses: actions/checkout@v4
-      
-      # Step 2: Run tests first (don't deploy broken code!)
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Install dependencies
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
         working-directory: ./server
-        run: npm install
-      
+        run: npm ci
+
       - name: Run tests
         working-directory: ./server
         run: npm test
         env:
           NODE_ENV: test
-          # Mock environment variables for testing
           STRIPE_SECRET_KEY: sk_test_mock_key_for_ci_testing
           MONGO_USER: test_user
           MONGO_PASS: test_password
@@ -39,18 +37,82 @@ jobs:
           REFRESH_SECRET: test_refresh_secret
           JWT_SECRET: test_jwt_secret
           PORT: 8080
-      
-      # Step 3: If tests pass, deploy!
-      - name: Deploy to Render
-        if: success()  # Only if previous steps worked
+
+  # ── 2. Build React app and push to S3, then clear CloudFront cache ────
+  deploy-frontend:
+    name: Deploy Frontend (S3 + CloudFront)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        working-directory: ./client
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./client
+        run: npm run build
+        env:
+          # These become baked into the JS bundle at build time
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Sync build output to S3 — --delete removes files no longer in dist/
+      - name: Upload build to S3
         run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-      
-      # Step 4: Wait for deployment
-      - name: Wait for deployment
-        run: sleep 30
-      
-      # Step 5: Check if app is healthy
+          aws s3 sync ./client/dist s3://${{ secrets.S3_BUCKET_NAME }} \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "index.html"
+          # index.html must NOT be cached — browsers always need the latest version
+          aws s3 cp ./client/dist/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+            --cache-control "no-cache,no-store,must-revalidate"
+
+      # Tell CloudFront to forget its cached files so users get the new version
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+  # ── 3. SSH into EC2, pull latest code, restart the Node server ────────
+  deploy-backend:
+    name: Deploy Backend (EC2)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into EC2 and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/TDE
+            git pull origin main
+            cd server
+            npm ci --omit=dev
+            # Restart or start the process with PM2
+            pm2 restart tde-server --update-env || pm2 start index.js --name tde-server
+            pm2 save
+
       - name: Health check
         run: |
-          curl -f https://tde-2.onrender.com/health || exit 1
+          sleep 20
+          curl -f https://${{ secrets.EC2_HOST }}/api/health || exit 1
