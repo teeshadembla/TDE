@@ -9,4 +9,13 @@ const axiosInstance = axios.create({
     }
 })
 
+// Attach Clerk session token to every request (required for cross-domain auth)
+axiosInstance.interceptors.request.use(async (config) => {
+    const token = await window.Clerk?.session?.getToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 export default axiosInstance;
