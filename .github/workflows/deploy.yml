@@ -115,4 +115,4 @@ jobs:
       - name: Health check
         run: |
           sleep 20
-          curl -f http://${{ secrets.EC2_HOST }}/api/health || exit 1
+          curl -f https://${{ secrets.EC2_HOST }}/api/health || exit 1
