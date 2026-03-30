@@ -1,4 +1,5 @@
 // File: src/App.jsx
+//Final build change to make sure everything deploys on new subdomain
 import './App.css';
 import HomePage from './Pages/HomePage.jsx'; 
 import 'slick-carousel/slick/slick.css';
